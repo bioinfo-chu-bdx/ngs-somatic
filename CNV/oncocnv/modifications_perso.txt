@@ -1,0 +1,7 @@
+script "getcount" : ajout apr_s ligne 509
+		$filename=~s/.*[\/]//;
+		print "\tsample name: $filename\n";
+		
+script principal ONCOCNV.sh :
+		$DATADIR commenté, inutile
+		... et $controls et $tests remplis avec chemins absolus

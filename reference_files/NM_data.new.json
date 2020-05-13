@@ -1,0 +1,537 @@
+{
+    "STK11": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_000455", 
+        "strand": "forward"
+    }, 
+    "B2M": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_004048", 
+        "strand": "forward"
+    }, 
+    "SETD1B": {
+        "transcriptVersion": 1, 
+        "transcript": "NM_015048", 
+        "strand": "forward"
+    }, 
+    "AXL": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_021913", 
+        "strand": "forward"
+    }, 
+    "EP300": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_001429", 
+        "strand": "forward"
+    }, 
+    "PIK3CA": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_006218", 
+        "strand": "forward"
+    }, 
+    "MYC": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_002467", 
+        "strand": "forward"
+    }, 
+    "KRAS": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_033360", 
+        "strand": "reverse"
+    }, 
+    "CDKN2B": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_004936", 
+        "strand": "reverse"
+    }, 
+    "WT1": {
+        "transcriptVersion": 1, 
+        "transcript": "NM_001198551", 
+        "strand": "reverse"
+    }, 
+    "CDKN2A": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_058195", 
+        "strand": "reverse"
+    }, 
+    "ERBB4": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_005235", 
+        "strand": "reverse"
+    }, 
+    "IDH2": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_002168", 
+        "strand": "reverse"
+    }, 
+    "IDH1": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_005896", 
+        "strand": "reverse"
+    }, 
+    "CSF3R": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_156039", 
+        "strand": "reverse"
+    }, 
+    "FGFR2": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_000141", 
+        "strand": "reverse"
+    }, 
+    "FGFR3": {
+        "transcriptVersion": 1, 
+        "transcript": "NM_001163213", 
+        "strand": "forward"
+    }, 
+    "GATA1": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_002049", 
+        "strand": "forward"
+    }, 
+    "SOCS1": {
+        "transcriptVersion": 1, 
+        "transcript": "NM_003745", 
+        "strand": "reverse"
+    }, 
+    "DDX41": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_016222", 
+        "strand": "reverse"
+    }, 
+    "CCND3": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_001760", 
+        "strand": "reverse"
+    }, 
+    "PLCG1": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_002660", 
+        "strand": "forward"
+    }, 
+    "KIT": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_000222", 
+        "strand": "forward"
+    }, 
+    "PTEN": {
+        "transcriptVersion": 8, 
+        "transcript": "NM_000314", 
+        "strand": "forward"
+    }, 
+    "RUNX1": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_001754", 
+        "strand": "reverse"
+    }, 
+    "ARID1A": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_006015", 
+        "strand": "forward"
+    }, 
+    "PTPN11": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_002834", 
+        "strand": "forward"
+    }, 
+    "HRAS": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_005343", 
+        "strand": "reverse"
+    }, 
+    "RIT1": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_006912", 
+        "strand": "reverse"
+    }, 
+    "TNFRSF14": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_003820", 
+        "strand": "forward"
+    }, 
+    "DNMT3A": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_175629", 
+        "strand": "reverse"
+    }, 
+    "SETBP1": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_015559", 
+        "strand": "forward"
+    }, 
+    "XPO1": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_003400", 
+        "strand": "reverse"
+    }, 
+    "PPM1D": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_003620", 
+        "strand": "forward"
+    }, 
+    "MET": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_001127500", 
+        "strand": "forward"
+    }, 
+    "ASXL1": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_015338", 
+        "strand": "forward"
+    }, 
+    "RAD21": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_006265", 
+        "strand": "reverse"
+    }, 
+    "JAK2": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_004972", 
+        "strand": "forward"
+    }, 
+    "JAK3": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_000215", 
+        "strand": "reverse"
+    }, 
+    "MYD88": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_002468", 
+        "strand": "forward"
+    }, 
+    "SMC1A": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_006306", 
+        "strand": "reverse"
+    }, 
+    "TCF3": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_003200", 
+        "strand": "reverse"
+    }, 
+    "STAG2": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001042749", 
+        "strand": "forward"
+    }, 
+    "ANKRD26": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_014915", 
+        "strand": "reverse"
+    }, 
+    "RHOA": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_001664", 
+        "strand": "reverse"
+    }, 
+    "ZEB1": {
+        "transcriptVersion": 1, 
+        "transcript": "NM_001174096", 
+        "strand": "forward"
+    }, 
+    "BTK": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_000061", 
+        "strand": "reverse"
+    }, 
+    "TP53": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_000546", 
+        "strand": "reverse"
+    }, 
+    "ETV6": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_001987", 
+        "strand": "forward"
+    }, 
+    "MPL": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_005373", 
+        "strand": "forward"
+    }, 
+    "TNFAIP3": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001270507", 
+        "strand": "forward"
+    }, 
+    "MEF2B": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001145785", 
+        "strand": "reverse"
+    }, 
+    "PRDM1": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_001198", 
+        "strand": "forward"
+    }, 
+    "PHF6": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001015877", 
+        "strand": "forward"
+    }, 
+    "CREBBP": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_004380", 
+        "strand": "reverse"
+    }, 
+    "PDGFRA": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_006206", 
+        "strand": "forward"
+    }, 
+    "MAP2K1": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_002755", 
+        "strand": "forward"
+    }, 
+    "POLE": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_006231", 
+        "strand": "reverse"
+    }, 
+    "CCR4": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_005508", 
+        "strand": "forward"
+    }, 
+    "ABL1": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_005157", 
+        "strand": "forward"
+    }, 
+    "BCORL1": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_021946", 
+        "strand": "forward"
+    }, 
+    "CD79B": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_000626", 
+        "strand": "reverse"
+    }, 
+    "FLT3": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_004119", 
+        "strand": "reverse"
+    }, 
+    "CD79A": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_001783", 
+        "strand": "forward"
+    }, 
+    "STAT6": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001178078", 
+        "strand": "reverse"
+    }, 
+    "STAT3": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_139276", 
+        "strand": "reverse"
+    }, 
+    "CIITA": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_000246", 
+        "strand": "forward"
+    }, 
+    "SMC3": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_005445", 
+        "strand": "forward"
+    }, 
+    "FASN": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_004104", 
+        "strand": "reverse"
+    }, 
+    "KDM6B": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001080424", 
+        "strand": "forward"
+    }, 
+    "SF3B1": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_012433", 
+        "strand": "reverse"
+    }, 
+    "TET2": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001127208", 
+        "strand": "forward"
+    }, 
+    "SH2B3": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_005475", 
+        "strand": "forward"
+    }, 
+    "BCOR": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001123385", 
+        "strand": "reverse"
+    }, 
+    "SRY": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_003140", 
+        "strand": "reverse"
+    }, 
+    "ALK": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_004304", 
+        "strand": "reverse"
+    }, 
+    "IRF4": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_002460", 
+        "strand": "forward"
+    }, 
+    "ID3": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_002167", 
+        "strand": "reverse"
+    }, 
+    "STAT5B": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_012448", 
+        "strand": "reverse"
+    }, 
+    "ERBB2": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_004448", 
+        "strand": "forward"
+    }, 
+    "CD58": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_001779", 
+        "strand": "reverse"
+    }, 
+    "EGFR": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_005228", 
+        "strand": "forward"
+    }, 
+    "GATA2": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_032638", 
+        "strand": "reverse"
+    }, 
+    "PLCG2": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_002661", 
+        "strand": "forward"
+    }, 
+    "FOXO1": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_002015", 
+        "strand": "reverse"
+    }, 
+    "EZH2": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_004456", 
+        "strand": "reverse"
+    }, 
+    "CBL": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_005188", 
+        "strand": "forward"
+    }, 
+    "ZRSR2": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_005089", 
+        "strand": "forward"
+    }, 
+    "FAS": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_000043", 
+        "strand": "forward"
+    }, 
+    "NRAS": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_002524", 
+        "strand": "reverse"
+    }, 
+    "ETNK1": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_018638", 
+        "strand": "forward"
+    }, 
+    "CXCR4": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001008540", 
+        "strand": "reverse"
+    }, 
+    "GNA13": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_006572", 
+        "strand": "reverse"
+    }, 
+    "KMT2C": {
+        "transcriptVersion": 3, 
+        "transcript": "NM_170606", 
+        "strand": "reverse"
+    }, 
+    "ULK1": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_003565", 
+        "strand": "forward"
+    }, 
+    "PIM1": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_001243186", 
+        "strand": "forward"
+    }, 
+    "CARD11": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_032415", 
+        "strand": "reverse"
+    }, 
+    "CEBPA": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_004364", 
+        "strand": "reverse"
+    }, 
+    "NPM1": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_002520", 
+        "strand": "forward"
+    }, 
+    "CD28": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_006139", 
+        "strand": "forward"
+    }, 
+    "CALR": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_004343", 
+        "strand": "forward"
+    }, 
+    "SRSF2": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_003016", 
+        "strand": "reverse"
+    }, 
+    "NOTCH1": {
+        "transcriptVersion": 5, 
+        "transcript": "NM_017617", 
+        "strand": "reverse"
+    }, 
+    "NOTCH2": {
+        "transcriptVersion": 4, 
+        "transcript": "NM_024408", 
+        "strand": "reverse"
+    }, 
+    "U2AF1": {
+        "transcriptVersion": 1, 
+        "transcript": "NM_001025203", 
+        "strand": "reverse"
+    }, 
+    "BRAF": {
+        "transcriptVersion": 6, 
+        "transcript": "NM_004333", 
+        "strand": "reverse"
+    }, 
+    "BCL2": {
+        "transcriptVersion": 2, 
+        "transcript": "NM_000633", 
+        "strand": "reverse"
+    }
+}

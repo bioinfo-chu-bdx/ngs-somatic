@@ -1,0 +1,86 @@
+{
+	"frameshift_variant":{
+		"region" : "exonic",
+		"type" : "frameshift"
+	},
+	"stop_gained":{
+		"region" : "exonic",
+		"type" : "stopgain"
+	},
+	"stop_lost":{
+		"region" : "exonic",
+		"type" : "stoploss"
+	},
+	"start_lost":{
+		"region" : "exonic",
+		"type" : "startloss"
+	},
+	"splice_acceptor_variant":{
+		"region" : "splicing",
+		"type" : "."
+	},
+	"splice_donor_variant":{
+		"region" : "splicing",
+		"type" : "."
+	},
+	"inframe_insertion":{
+		"region" : "exonic",
+		"type" : "nonframeshift"
+	},
+	"inframe_deletion":{
+		"region" : "exonic",
+		"type" : "nonframeshift"
+	},
+	"protein_altering_variant":{
+		"region" : "exonic",
+		"type" : "nonframeshift"
+	},
+	"missense_variant":{
+		"region" : "exonic",
+		"type" : "missense"
+	},
+	"start_retained_variant":{
+		"region" : "exonic",
+		"type" : "synonymous"
+	},
+	"stop_retained_variant":{
+		"region" : "exonic",
+		"type" : "synonymous"
+	},
+	"synonymous_variant":{
+		"region" : "exonic",
+		"type" : "synonymous"
+	},
+	"splice_region_variant":{
+		"region" : "intronic",
+		"type" : "."
+	},
+	"5_prime_UTR_variant":{
+		"region" : "UTR5",
+		"type" : "."
+	},
+	"3_prime_UTR_variant":{
+		"region" : "UTR3",
+		"type" : "."
+	},
+	"non_coding_transcript_exon_variant":{
+		"region" : "ncRNA_exonic",
+		"type" : "."
+	},
+	"intron_variant":{
+		"region" : "intronic",
+		"type" : "."
+	},
+	"non_coding_transcript_variant":{
+		"region" : "ncRNA_intronic",
+		"type" : "."
+	},
+	"upstream_gene_variant":{
+		"region" : "upstream",
+		"type" : "."
+	},
+	"downstream_gene_variant":{
+		"region" : "downstream",
+		"type" : "."
+	}
+}

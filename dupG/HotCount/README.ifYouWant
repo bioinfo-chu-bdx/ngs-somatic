@@ -1,0 +1,13 @@
+usage : 
+
+./do_it.sh asxl1.txt *.fastq > comptage-asxl1-260215.tsv
+
+Rscript do_it.R comptage-asxl1-260215.tsv ALL dupG
+Rscript do_it.R comptage-asxl1-260215.tsv ALL delG
+
+ou en une seule ligne :
+
+Rscript do_it.R ~/data/msh6/comptage-asxl1-260215.tsv ALL dupG delG
+
+Le script calcule la significativité des "dupG" puis des "delG" en les comparant aux motifs "ALL"
+

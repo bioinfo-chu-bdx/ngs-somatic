@@ -1,0 +1,59 @@
+--DUP X bases FORWARD (KIT)--
+
+	variant = hp.parse_hgvs_variant("NC_000004.11:g.55592185_55592186insGCCTAT")
+	variant.posedit.pos.start.base 		-> 85
+	variant.posedit.pos.end.base 		-> 86
+
+	normalized = normalize(variant)		-> NC_000004.11:g.55592180_55592185dup
+	normalized.posedit.pos.start.base 	-> 80
+	normalized.posedit.pos.end.base		-> 85
+	
+	variantID needed = chr4:85-86:->GCCTAT
+	(start=normalized.posedit.pos.end.base, stop=normalized.posedit.pos.end.base+1)
+	
+	c.1504_1509dup
+
+--DUP 1 base FORWARD (KIT)--
+
+	variant = hp.parse_hgvs_variant("NC_000004.11:g.55592186_55592187insT")
+	variant.posedit.pos.start.base 		-> 86
+	variant.posedit.pos.end.base 		-> 87
+
+	normalized = normalize(variant)		-> NC_000004.11:g.55592180_55592185dup
+	normalized.posedit.pos.start.base 	-> 88
+	normalized.posedit.pos.end.base		-> 88
+	
+	variantID needed = chr4:88-89:->T
+	(start=normalized.posedit.pos.end.base, stop=normalized.posedit.pos.end.base+1) IDEM
+	
+--DUP X bases REVERSE (NRAS)--
+
+	variant = hp.parse_hgvs_variant("NC_000001.10:g.115256525_115256526insTCT")
+	variant.posedit.pos.start.base 		-> 25
+	variant.posedit.pos.end.base 		-> 26
+
+	normalized = normalize(variant)		-> NC_000004.11:g.115256527_115256529dup # devrait donner start = 23, end = 25!!!!
+	normalized.posedit.pos.start.base 	-> 27
+	normalized.posedit.pos.end.base		-> 29
+	
+	variantID needed = chr4:22-23:->TCT
+	(???,???)
+	
+	c.186_188dup # correspond bien à start = 23, end = 25!!!!
+	
+	
+1 error possible en validate() du g0:
+...Variant reference (XXXXXX) does not agree with reference sequence (XXXXXX)
+	-> Mettre 'error' dans hgvs et message exact dans hgvsInfo 
+
+1 error possible en g_to_c() :
+...Position is beyond the bounds of transcript record
+	-> Mettre 'error' dans hgvs et message exact dans hgvsInfo 
+	
+3 warning possible en validate() du c :
+...Cannot compare coordinates in the same intron with one based on end of exon and the other based on start of next exon
+	-> Mettre 'warning' dans hgvs et message exact dans hgvsInfo 
+...Cannot validate sequence of an intronic variant (NM_175629.2:c.856-5_856-2delinsCTCCGAG)
+	-> Mettre 'warning' dans hgvs et message exact dans hgvsInfo 
+...Interval length with intronic offsets is ill-defined
+	-> Mettre 'warning' dans hgvs et message exact dans hgvsInfo 

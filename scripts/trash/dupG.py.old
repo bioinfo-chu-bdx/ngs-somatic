@@ -1,0 +1,193 @@
+#!/usr/bin/env python
+import os
+import json
+import csv
+import subprocess
+import glob
+import numpy
+import matplotlib
+matplotlib.use('Agg')
+from pylab import *
+from optparse import OptionParser
+
+"""Script searching ASXL1 dupG mutation"""
+
+############################################################################################
+parser = OptionParser()
+parser.add_option('-i', '--run-folder', help='Run folder ', dest='run_folder')
+(options, args) = parser.parse_args()
+
+with open('/DATA/work/global_parameters.json', 'r') as g:
+	global_param = json.load(g)
+
+if os.path.isfile(options.run_folder+'/barcodes.json'):
+	with open(options.run_folder+'/barcodes.json', 'r') as g:
+		barcodes_json = json.load(g)
+else:
+	print "error : barcodes.json not found in run folder"
+
+dupG_COSM = 'COSM34210'
+control_names = ['H2O','H20','NTC'] # liste des noms possibles pour les temoins negatifs
+dupg_dir = options.run_folder + '/_test_dupG'
+############################################################################################
+
+if not os.path.isdir(dupg_dir):
+	subprocess.call(['mkdir',dupg_dir])
+
+bamlist = glob.glob(options.run_folder+'/*/*.bam')
+bamlist = [item for item in bamlist if not 'processed' in item]
+
+barcode2sample = {}
+barcode2runtype = {}
+barcode2vcf = {}
+for bamfile in bamlist:
+	sample = bamfile.split('/')[-1].split('_IonXpress')[0]
+	barcode = 'IonXpress_' + bamfile.split('IonXpress_')[-1].split('.bam')[0]
+	barcode2sample[barcode] = sample
+	target = barcodes_json[barcode]['target_region_filepath'].split('/')[-1]
+	for _run_type in global_param['run_type']:
+		if global_param['run_type'][_run_type]['target_bed'].split('/')[-1] == target:
+			barcode2runtype[barcode] = _run_type
+			break
+	vcf = '/DATA/work/results/%s_%s.bam/tvc_only_hotspot/TSVC_variants.vcf' % (sample.replace(' ','@'),barcode)
+	if os.path.isfile(vcf):
+		barcode2vcf[barcode] = vcf
+
+sample2data = {}
+for barcode in barcode2runtype:
+	sample = barcode2sample[barcode]
+	iscontrol = False # check if barcode is not a control
+	for control_name in control_names:
+		if control_name in sample.upper():
+			iscontrol = True
+	if iscontrol:
+		continue
+	if barcode2runtype[barcode] != 'LAM':
+		continue
+	print "Sample : " + sample
+	vcf = barcode2vcf[barcode]
+	sample2data[sample] = {}
+	vcfReader = csv.reader(open(vcf,'rb'),delimiter='\t')
+	typ = False
+	for row in vcfReader:
+		if row[0].startswith('#'): # headers
+			continue
+		elif dupG_COSM in row[2].split(';'):
+			if len(row[2].split(';')) > 1 :
+				print "WARNING : more than one hotspot found at dupG position."
+				print "-> Check .VCF to see if mutation type are style correct (ins =/= complex)"
+			infoField = row[7]
+			print "dupG position found"
+			print "%s : %s : %s : %s > %s" %(row[0],row[1],row[2],row[3],row[4])
+			print "INFO Field = " + row[7]
+			taglist = infoField.split(';')
+			for tag in taglist:
+				if tag.startswith('AO='):
+					ao = tag.split('=')[-1].split(',')
+				if tag.startswith('DP='):
+					dp = tag.split('=')[-1]
+					sample2data[sample]['DP'] = dp
+				if tag.startswith('TYPE='):
+					typ = tag.split('=')[-1].split(',')
+	ao_ins = 0
+	ao_del = 0
+	if not typ:
+		sample2data[sample]['DP'] = 0
+		print "WARNING : no %s found for %s" % (dupG_COSM, sample)
+	else:
+		for i in range (len(typ)):
+			if typ[i] == 'ins':	#or typ[i] == 'complex' ?
+				ao_ins = ao_ins + int(ao[i])
+			elif typ[i] == 'del':
+				ao_del = ao_del + int(ao[i])
+	sample2data[sample]['AO_ins'] = ao_ins
+	sample2data[sample]['AO_del'] = ao_del
+	
+### CALCUL DE LA DETECTION DE DUPG ###
+list_freq_ins = []
+for sample in sample2data:
+	dp_real = sample2data[sample]['AO_del'] + int(sample2data[sample]['DP'])
+	sample2data[sample]['DP_real'] = dp_real
+	freq_ins = numpy.divide(float(sample2data[sample]['AO_ins']),float(dp_real))*100
+	sample2data[sample]['FREQ_ins'] = freq_ins
+	list_freq_ins.append(freq_ins)
+	freq_del = numpy.divide(float(sample2data[sample]['AO_del']),float(dp_real))*100
+	sample2data[sample]['FREQ_del'] = freq_del
+	
+moy_freq_ins = numpy.mean(list_freq_ins)
+ecart_type_freq_ins = numpy.std(list_freq_ins,ddof=1)
+threshold = moy_freq_ins + 2*ecart_type_freq_ins
+
+for sample in sample2data.keys():
+	if sample2data[sample]['FREQ_ins'] > threshold:
+		sample2data[sample]['DupG'] = "Probable"
+	else:
+		sample2data[sample]['DupG'] = "Non"
+
+csvfile = open('%s/dupG.csv' % dupg_dir,'wb')
+results = csv.writer(csvfile, delimiter =';')
+#header
+results.writerow(['DupG','mean = %s' % numpy.around(moy_freq_ins,1),'standard_deviation = %s' % numpy.around(ecart_type_freq_ins,1), 'threshold = %s' % numpy.around(threshold,1)])
+results.writerow(['Sample','Ins','Del','Depth','Real depth','Freq Ins','Freq Del','DupG'])
+for sample in sample2data.keys():	
+	results.writerow([sample,sample2data[sample]['AO_ins'],sample2data[sample]['AO_del'],sample2data[sample]['DP'],sample2data[sample]['DP_real'],numpy.around(sample2data[sample]['FREQ_ins'],1),numpy.around(sample2data[sample]['FREQ_del'],1),sample2data[sample]['DupG']])
+csvfile.close()	
+
+### GRAPH ###
+fig = figure()
+
+N = len(sample2data.keys())
+ind = numpy.arange(N)
+width = 0.4
+
+tab_freq_ins = []
+tab_freq_del = []
+for sample in sample2data.keys():
+	tab_freq_ins.append(sample2data[sample]['FREQ_ins'])
+	tab_freq_del.append(sample2data[sample]['FREQ_del'])
+
+ax = fig.add_subplot(111)
+rects1 = ax.bar(ind, tab_freq_ins, width, facecolor='#9999ff', label='d')
+rects2 = bar(ind+width, tab_freq_del, width, facecolor='#ff9999')
+ax.set_xlabel('Patients',fontsize=15)
+ax.set_ylabel('Frequence',fontsize=15)
+xticks(ind+width,sample2data.keys())
+ax.legend( (rects1[0], rects2[0]), ('freq ins', 'freq del') )
+ax.plot([0., N], [threshold, threshold], 'k--') # horizontal line indicating the threshold
+max_y = max([max(tab_freq_ins),max(tab_freq_del)]) #ax.set_xlim([0,max(tab_freq_del)])
+ax.set_ylim([0,max_y*1.5])	#augmentation un peu de l'ordonne, trop courte
+fig.autofmt_xdate()
+fig.savefig('%s/freq_ins_del_histogram.png' % dupg_dir,bbox_inches='tight',dpi=200)
+
+###############################
+####### HotCount script #######
+###############################
+
+#print "HotCount script"
+## generer les fastq necessaires pour le script
+#FastqCreatorCp = Popen(['cp', '%s/FastqCreator.py' % envDict['DIRNAME'], envDict['RESULTS_DIR']], stdout=PIPE)
+#out, err = FastqCreatorCp.communicate()
+#print 'exec: FastqCreator.py'
+#FastqCmd = Popen(['python', '%s/FastqCreator.py' % envDict['RESULTS_DIR']], stdout=PIPE)
+#FastqOut, FastqErr = FastqCmd.communicate()
+
+
+## lancement script
+#os.chdir(envDict['RESULTS_DIR'])
+##HotCountCmd1 = Popen(["bash","%s/HotCount/do_it.sh" % envDict["DIRNAME"],"%s/HotCount/asxl1.txt" % envDict["DIRNAME"],"%s/*.fastq" % envDict["RESULTS_DIR"],">","%s/comptage-asxl1.tsv" % envDict["RESULTS_DIR"]], stdout=PIPE, shell=True)
+#HotCountCmd1 = Popen("bash %s/HotCount/do_it.sh %s/HotCount/asxl1.txt *.fastq > comptage-asxl1.tsv" % (envDict["DIRNAME"],envDict["DIRNAME"]), stdout=PIPE, shell=True)
+#HotCountCmd1Out, HotCountCmd1Err = HotCountCmd1.communicate()
+
+##HotCountCmd2 = Popen(["Rscript", "%s/HotCount/do_it.R" % envDict["DIRNAME"], "%s/comptage-asxl1.tsv" % envDict["RESULTS_DIR"],"ALL","dupG","delG"], stdout=PIPE, shell=True)
+#HotCountCmd2 = Popen("Rscript %s/HotCount/do_it.R comptage-asxl1.tsv ALL dupG delG > HotCount_results.txt" % envDict["DIRNAME"], stdout=PIPE, shell=True)
+#HotCountCmd2Out, HotCountCmd2Err = HotCountCmd2.communicate()
+
+## nettoyer les fastq
+#FastqDel = Popen("rm *.fastq", stdout=PIPE, shell=True)
+#FastqDelOut, FastqDelErr = FastqDel.communicate()
+
+#comptage = open("comptage-asxl1.tsv")
+#comptagelines = comptage.readlines()
+#txt = open("HotCount_results.txt")
+#txtlines = txt.readlines()
+

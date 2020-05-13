@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE HTML>
+<html>
+<head>
+ <script type="text/javascript" src="/site_media/jquery/js/jquery-1.6.1.min.js"></script>
+
+ <style type="text/css">
+  #formwrap {
+   line-height: 2em;
+   background: #eef;
+   margin: 10px;
+   padding: 10px;
+   height: 500px;
+  }
+  body {
+   font-family: "Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif;
+   font-size: 14px;
+  }
+  .center { margin-left:auto; margin-right:auto; }
+  .help {cursor:help; border-bottom: 1px dotted #A9A9A9}
+ </style>
+
+ <script>
+  $(function() {
+
+    $.fn.serializeObject = function() {
+     var o = {};
+     var a = this.serializeArray();
+     $.each( a, function() {
+       if( o[this.name] != null ) {
+         if( !o[this.name].push ) {
+           o[this.name] = [o[this.name]];
+         }
+         o[this.name].push(this.value || '');
+       } else {
+         o[this.name] = this.value || '';
+       }
+      });
+      return o;
+    };
+
+    $('#show_advanced').click(function() {
+      var state = $(this).text();
+      if( state == "Show advanced options" ) {
+        state = "Hide advanced options";
+        $('.advanced').show();
+        // set show/hide based on application selected
+        setOptionDefaults($("#librarytype").val(),true);
+      } else {
+        state = "Show advanced options";
+        $('.advanced').hide();
+      }
+      $(this).text(state);
+      return false; // cancels redirection
+    });
+
+    function populateLibType(selectorID) {
+      if( selectorID == '' ) return;
+      $('#'+selectorID).empty();
+      var runtypeUrl = '/rundb/api/v1/runtype/?format=json';
+      $.get( runtypeUrl, function(data) {
+        $.each( data.objects, function(intIndex,result) {
+          var runType = result.runType;
+          var selName = result.description.trim();
+          // debar unsuported applications here, e.g. runType != "GENS"
+          if( selName != "" ) {
+            $('#'+selectorID).append("<option value='"+runType+"'>"+selName+"</option>");
+          }
+        });
+      });
+      orderSelectorList(selectorID);
+    }
+
+    var refBedType = '/unmerged/detail/';
+
+    function targetNameFromURL(bedURL) {
+      var i = bedURL.lastIndexOf(refBedType);
+      if( i >= 0 ) {
+        bedURL = bedURL.substr(i+refBedType.length);
+      } else {
+        i = bedURL.lastIndexOf('/');
+        if( i >= 0 ) bedURL = bedURL.substr(i+1);
+      }
+      if( bedURL.substr(0,7) == 'example' ) return "";
+      i = bedURL.lastIndexOf('.bed');
+      if( i > 0 ) return bedURL.substr(0,i);
+      return bedURL;
+    }
+
+    // For each selector populated by this function a list of items and selected reference is recorded
+    // for performance by avoiding multiple API queries to poplate and sort these lists.
+    var selectRefs = {};
+    var selectLst = {};
+    var planBcAssign = {};
+    var referenceID = "Unknown";
+
+    // Returns true if the list was created or changed. Returns false if no change was necessary.
+    function populateTargetsList(refID,selectorID,firstItem) {
+      if( selectorID == '' || selectRefs[selectorID] == refID ) return false;
+      selectRefs[selectorID] = refID;
+      $('#'+selectorID).empty();
+      var lstID = selectorID+"@"+refID;
+      if( !selectLst[lstID] ) {
+        var refBedURL = '/rundb/api/v1/content/?format=json&limit=0&publisher__name=BED&path__startswith=/'+refID+refBedType;
+        $.get( refBedURL, function(data) {
+          $.each( data.objects, function(intIndex,result) {
+            var targfile = result.file;
+            var selName = targetNameFromURL(targfile);
+            if( selName != "" && !result.meta.hotspot ) {
+              $('#'+selectorID).append("<option value='"+targfile+"'>"+selName+"</option>");
+            }
+          });
+        });
+        orderSelectorList(selectorID,firstItem);
+        // ensure reference with no targets get 'none' selection
+        if( $('#'+selectorID+' option').size() == 0 ) {
+          $('#'+selectorID).append("<option value=''>None</option>");
+        }
+        selectLst[lstID] = $('#'+selectorID+' option');
+      } else {
+        $('#'+selectorID).append(selectLst[lstID]);
+        if( $('#'+selectorID+' option').size() > 0 )
+          $('#'+selectorID+' option')[0].selected = true;
+      }
+      return true;
+    }
+
+    function orderSelectorList(selectorID,firstItem) {
+      var lst = $('#'+selectorID+' option');
+      lst.sort(function(a,b) {
+        if( a.text > b.text ) return 1;
+        if( a.text < b.text ) return -1;
+        return 0;
+      });
+      $('#'+selectorID).empty();
+      if( firstItem ) {
+        $('#'+selectorID).append("<option value=''>"+firstItem+"</option>");
+      }
+      $('#'+selectorID).append(lst);
+      if( $('#'+selectorID+' option').size() > 0 )
+        $('#'+selectorID+' option')[0].selected = true;
+    }
+
+    function setOptionDefaults(runType,forceUpdate) {
+      forceUpdate = forceUpdate || false;
+      $("#librarytype").val(runType);
+      var showchecks = 'NYYYY';
+      if( runType.substr(0,4) == "AMPS" || runType == "MIXED") {
+        showchecks = 'YNYNY';
+      } else if( runType == "TAG_SEQUENCING" ) {
+        showchecks = 'YNYNY';
+      } else if( runType == "TARS_16S" || runType == "RNA" ) {
+        showchecks = 'NNYNN';
+      }
+      $("#sampid").toggle(showchecks[0]=='Y');
+      // do not update for hidden advanced option - unless forced
+      if( !forceUpdate && $('#show_advanced').text() == "Show advanced options" ) return;
+      $("#tpadding").toggle(showchecks[1]=='Y');
+      $("#uniquereads").toggle(showchecks[2]=='Y');
+      $("#nondups").toggle(showchecks[3]=='Y');
+      $("#cov_depth1").toggle(showchecks[4]=='Y');
+      $("#cov_depth2").toggle(showchecks[4]=='Y');
+      $("#cov_depth3").toggle(showchecks[4]=='Y');
+    }
+
+    // Check (user) NPVs are correctly formated and available and
+    // return a compressed list of mappings or error message "Error at line ..."
+    function checkBarcodeTargets(txtList) {
+      var txt = "";
+      var curBarcode = $("#barcodeids").val();
+      var curReference = selectRefs['barcodetargets'];
+      var curTarget = $("#barcodetargets").val();
+      var lines = txtList.split("\n");
+      $.each(lines, function(n,row) {
+        var fields = $.trim(row).split(/\s+/);
+        if( fields.length == 1 && fields[0] == "" ) {
+          return true;  // blank lines ok
+        } else if( fields.length != 2 || fields[1] == "" ) {
+          txt = "Error at line "+(n+1)+": Invalid number of fields. Must be '<barcode> <targets>'.";
+          return false;
+        }
+        var barcodename = fields[0];
+        var trgname = fields[1];
+        if( $('#barcodeids option[value='+barcodename+']').length == 0 ) {
+          txt = "Error at line "+(n+1)+": Barcode ID "+barcodename+" is unavailable to this run analysis.";
+          return false;
+        }
+        // allow explicit 'None' just to support plan for erroneously assigned references w/o targets
+        var trgbed = 'None';
+        if( trgname == 'None' ) {
+          trgbed = '';
+        } else {
+          var refID = barcodename in planBcAssign ? planBcAssign[barcodename].ref : referenceID;
+          populateTargetsList(refID,'barcodetargets')
+          var inList = false;
+          $('#barcodetargets option').each(function() {
+            if( this.text == trgname ) {
+              inList = true;
+              trgbed = this.value;
+              return false;
+            }
+          });
+          if( !inList ) {
+            txt = "Error at line "+(n+1)+": Target Regions "+trgname+" is unavailable to reference "+refID+".";
+            return false;
+          }
+        }
+        // collect the actual file path to the bed file
+        txt += barcodename+'='+trgbed+';';
+      });
+      // restore selectors to entry state
+      $("#barcodeids").val(curBarcode);
+      populateTargetsList(curReference,'barcodetargets')
+      $("#barcodetargets").val(curTarget);
+      return txt;
+    }
+
+    $("#librarytype").change(function() {
+      var libType = $("#librarytype option:selected").val();
+      setOptionDefaults(libType);
+    });
+
+    $('#barcodebeds').change(function() {
+      if( $(this).attr("checked") ) {
+        $('.bcbed-shy').show();
+      } else {
+        $('.bcbed-shy').hide();
+      }
+    });
+
+    $('#barcodeids').change(function() {
+      updateTargetAfterBarcodeChange(this.value);
+    });
+
+    function updateTargetAfterBarcodeChange(barcode) {
+      if( barcode in planBcAssign ) {
+        bcdat = planBcAssign[barcode];
+        // update default selecion only if list updated => reference changed
+        if( populateTargetsList(bcdat.ref,'barcodetargets') ) {
+          // set to default target if no specifc value given
+          $("#barcodetargets").val( bcdat.trg ? bcdat.trg : $("#targetregions").val() );
+        }
+      }
+    }
+
+    $('#addbcbutton').click(function() {
+      var bcID = $('#barcodeids option:selected').val();
+      var trgID = $('#barcodetargets option:selected').text();
+      var box = $("#bctextarea");
+      // clean current input by removing duplicates and blank lines
+      var lines = box.val().split("\n");
+      var txt = "";
+      $.each(lines, function(n,row) {
+        var fields = $.trim(row).split(/\s+/);
+        if( fields.length >= 2 && fields[0] != "" && fields[0] != bcID ) {
+          txt += fields[0]+'\t'+fields[1]+'\n';
+        }
+      });
+      box.val(txt+bcID+'\t'+trgID+'\n');
+      var bcIndex = $('#barcodeids :selected').index()+1;
+      var numOptions = $('#barcodeids option').size();
+      if( bcIndex >= numOptions ) bcIndex = 0;
+      $('#barcodeids option')[bcIndex].selected = true;
+      updateTargetAfterBarcodeChange( $('#barcodeids option:selected').val() );
+    });
+
+    // uncheck barcoded targets & sampleID options (allows values to be set consisently for checked state)
+    $('#barcodebeds').attr('checked',false);
+    $('.bcbed-shy').hide();
+    
+    var reportUrl = '/rundb/api/v1/results/'+TB_result+'/?format=json&noplugin=True';
+    var easUrl;
+    var analysisUrl;
+    $.ajaxSetup({async: false});
+    $.get( reportUrl, function(data) {
+      analysisUrl = data.reportLink;
+      easUrl = data.eas;
+      experimentUrl = data.experiment;
+      referenceID = data.reference;
+      // set up any config.html plan settings
+      $.each( data.config, function(key,val) {
+        try { $("#"+key).val(val); $("#"+key).attr('checked',(val=='Yes')); }
+        catch(e) {}
+      });
+    });
+    $('#referenceid').html(referenceID);
+
+    // attempt to get Plan details for default selection values - should be in EAS!
+    var planLibType = "";
+    if( experimentUrl != undefined && experimentUrl != null && experimentUrl != "" ) {
+      var planUrl;
+      $.get( experimentUrl+"?format=json", function(data) { planUrl = data.plan; } );
+      if( planUrl != undefined && planUrl != null && planUrl != "" ) {
+        $.get( planUrl+"?format=json", function(data) { planLibType = data.runType; });
+      }
+    }
+    // get majority of current report settings from EAS
+    var def_nuc = (planLibType == 'AMPS_RNA' || planLibType == 'RNA') ? 'RNA' : 'DNA'; 
+    var def_trg = 'None';//(planLibType == 'AMPS_DNA_RNA') ? 'None' : ''; 
+    var planBedFile = "";
+    var barcodedTargets = 0;
+    var def_barcode = null;
+    if( easUrl != undefined && easUrl != null && easUrl != "" ) {
+      $.get( easUrl+"?format=json", function(data) {
+        planBedFile = data.targetRegionBedFile;
+        $.each( data.barcodedSamples, function(samplename,sampledata) {
+          $.each( sampledata.barcodeSampleInfo, function(barcodename,barcodedata) {
+            var nuc = barcodedata.nucleotideType ? barcodedata.nucleotideType : def_nuc;
+            var ref = barcodedata.reference ? barcodedata.reference : referenceID;
+            var trg = '';
+            if( barcodedata.targetRegionBedFile !== undefined ) {
+               trg = barcodedata.targetRegionBedFile ? barcodedata.targetRegionBedFile : def_trg;
+            }
+            // do not include barcodes for 'None' reference, since should be excluded from analysis
+            if( ref != "None" ) {
+              planBcAssign[barcodename] = { 'nuc':nuc, 'ref':ref, 'trg':trg };
+              if( ++barcodedTargets == 1 ) def_barcode = barcodename;
+            }
+          });
+        });
+        // set up plan.html plan settings
+        try {
+          $.each( data.selectedPlugins.coverageAnalysis_dev.userInput, function(key,val) {
+            if( key != 'launch_mode' ) {
+              try { $("#"+key).val(val); $("#"+key).attr('checked',(val=='Yes')); }
+              catch(e) {}
+            }
+          });
+        }
+        catch(e) {}
+      });
+    }
+    // fill in for un-named samples
+    var numBarcodes = 0;
+    var barcodeUrl = analysisUrl + 'barcodeList.txt';
+    $.get( barcodeUrl, function(mem) {
+      var lines = mem.split("\n");
+      $.each(lines, function(n,row) {
+        var fields = $.trim(row).split(',');
+        if( fields[0].substr(0,7) == "barcode" ) {
+          ++numBarcodes;
+          if( barcodedTargets > 0 ) {
+            if( !(fields[1] in planBcAssign) ) {
+              planBcAssign[fields[1]] = { 'nuc':def_nuc, 'ref':referenceID, 'trg':'' };
+            }
+          } else {
+            $('#barcodeids').append("<option value='" + fields[1] + "'>" +  fields[1] + "</option>");
+          }
+        }
+      });
+    }).error(function() {
+      $('#multibed').hide();
+    });
+
+    populateTargetsList(referenceID,'targetregions','None');
+
+    var deadTarget = 0;
+    if( barcodedTargets > 0 ) {
+      // create barcode ids from planBcAssign[]
+      $.each( planBcAssign, function(barcodename,barcodedata) {
+        $('#barcodeids').append("<option value='"+barcodename+"'>"+barcodename+": ("+barcodedata.nuc+") "+ barcodedata.ref+"</option>");
+      });
+      orderSelectorList('barcodeids');
+      var boxtxt = "";
+      var bcdat = def_barcode ? planBcAssign[def_barcode] : null;
+      $('#barcodeids option').each(function(i) {
+        var bc = $(this).val();
+        var trg = planBcAssign[bc].trg;
+        if( trg != '' && trg != planBedFile ) {
+          if( planBedFile != '' || trg != 'None' ) {
+            boxtxt += bc+'\t'+targetNameFromURL(trg)+'\n';
+          }
+        }
+        if( bcdat === null ) bcdat = planBcAssign[bc];
+      });
+      // For 4.4 always allow a 'None' selection for barcode-specific targets
+      populateTargetsList(bcdat.ref,'barcodetargets','None');
+      // set the default for barcoded targets to the first specified
+      if( def_barcode ) $("#barcodeids").val(def_barcode);
+      if( $("#barcodetargets option[value='"+bcdat.trg+"']").length == 0 ) ++deadTarget;
+      $("#barcodetargets").val(bcdat.trg);
+      $("#bctextarea").val(boxtxt);
+      $('.custom_fusions').show();
+      if( boxtxt != '' ) {
+        $('#barcodebeds').attr("checked",true);
+        $('.bcbed-shy').show();
+      }
+    } else {
+      // populate targets for reference w/o the 'None' option
+      populateTargetsList(referenceID,'barcodetargets');
+      if( numBarcodes < 2 ) {
+        $('#multibed').hide();
+      } else {
+        orderSelectorList('barcodeids');
+      }
+    }
+    // smarter default sizing of text box
+    var nbc = barcodedTargets > 0 ? barcodedTargets : numBarcodes;
+    if( nbc > 0 && nbc <= 20 ) {
+      $('#bctextarea').attr("rows",(nbc < 4 ? 4 : nbc+1));
+    }
+
+    // populate Library Type selector
+    populateLibType("librarytype");
+
+    // populate Plan default selections
+    var pluginLibType = planLibType != "" ? planLibType : (planBedFile == "" ? "WGNM" : "AMPS");
+    if( planBedFile !== "" ) {
+      if( $("#barcodetargets option[value='"+planBedFile+"']").length == 0 ) ++deadTarget;
+      $("#targetregions").val(planBedFile);
+    }
+    setOptionDefaults(pluginLibType);
+
+    // Hide waiting and display Submit
+    $("#still_loading").hide();
+    $("#postbutton").show();
+
+    if( deadTarget ) alert("Warning: The original target regions specified by the Plan no longer exists or was replaced with a newer version.");
+
+    $('#postbutton').click(function() {
+      var libType = $('#librarytype option:selected').val();
+      var libName = $('#librarytype option:selected').text();
+      var tarn = $('#targetregions')[0].selectedIndex;
+      var useBcTargets = $('#barcodebeds').attr("checked");
+      var bcTargetList = "";
+      if( useBcTargets ) {
+        bcTargetList = checkBarcodeTargets( $("#bctextarea").val() );
+        if( bcTargetList == "" ) {
+          var msg = "Barcode-specific Targets was specified but no mappings were defined."
+          msg += "\n\nDo you wish to continue?";
+          if( !confirm(msg) ) return false;
+        } else if( bcTargetList.substr(0,5) == "Error" ) {
+          alert("Barcode target mapping is invalid.\n"+bcTargetList);
+          return false;
+        }
+      }
+      if( libType == "WGNM" || libType == "RNA" ) {
+        if( tarn > 0 || bcTargetList != "" ) {
+          var msg = "Specifying targeted regions is typically not appropriate for Library Type: " + libName + ". ";
+          if( libType == "WGNM" ) {
+            msg += "Analysis for barcodes with targeted regions will be limited to base coverage within these regions ";
+            msg += "but the barcode/target matrix will still record reads per chromosome.";
+          } else {
+            msg += "Analysis for barcodes with targeted regions will be limited to read coverage within these regions ";
+            msg += "and the barcode/target matrix will record reads per target, or reads per contig where the target is 'None'.";
+          }
+          msg += "\n\nDo you wish to continue?";
+          if( !confirm(msg) ) return false;
+        }
+      } else if( libType != "GENS" ) {
+        if( tarn == 0 && bcTargetList == "" ) {
+          alert("Targeted Regions selection is required for Library Type: " + libName);
+          return false;
+        }
+      }
+      // check coverage depth requirements if required
+      
+      // force invisible options to be unchecked
+      if( libType == "WGNM" ) {
+        $('#sampleid').attr("checked",false);
+      } else if( libType.substr(0,4) == "AMPS" ) {
+        $("#nonduplicates").attr("checked",false);
+        $("#padtargets").val(0);
+      } else if( libType == "TARS_16S" || libType == "RNA" ) {
+        $('#sampleid').attr("checked",false);
+        $("#nonduplicates").attr("checked",false);
+        $("#uniquemaps").attr("checked",false);
+        $("#padtargets").val(0);
+      } else if( libType.substr(0,4) == "TARS" ) {
+        $('#sampleid').attr("checked",false);
+      }
+      var regex = /^[0-9]+$/;
+      var padval = $("#padtargets").val();
+      if( tarn == 0 && padval > 0 && bcTargetList == "" ) {
+        var msg = "Target padding is ignored if no specific Targeted Regions value is selected.";
+        msg += "\n\nDo you wish to continue?";
+        if( !confirm(msg) ) return false;
+        padval = document.coverageAnalysis.padtargets.value = 0;
+      }
+      if( !regex.test(padval) ) {
+        alert("Target padding value must be a non-negative integer (>=0).");
+        return false;
+      }
+      // safety code: targets are required for AmpliSeq runs
+      var useSampleIDs = $('#sampleid').attr("checked");
+      if( useSampleIDs && tarn == 0 && bcTargetList == "" ) {
+        var msg = "SampleID Tracking is typically used to account for additional targets in AmpliSeq runs.";
+        msg += "\nTo look at coverage for just tracking targets it is recommended to use the sampleID plugin.";
+        msg += "\n\nDo you wish to continue?";
+        if( !confirm(msg) ) return false;
+      }
+      var alnval = $("#minalignlen").val();
+      if( !regex.test(alnval) ) {
+        alert("Minimum align length value must be a non-negative integer (>=0).");
+        return false;
+      }
+      var qval = $("#minmapqual").val();
+      if( !regex.test(qval) ) {
+        alert("Minimum align quality value must be a non-negative integer (>=0).");
+        return false;
+      }
+      var covdt1 = $("#covdepth1").val();
+      if( !regex.test(covdt1) || parseInt(covdt1) <= 1 ) {
+        alert("Tier 1 Coverage Depth value must be an integer value > 1.");
+        return false;
+      }
+      var covdt2 = $("#covdepth2").val();
+      if( !regex.test(covdt2) || parseInt(covdt2) <= parseInt(covdt1) ) {
+        alert("Tier 2 Coverage Depth value must be an integer value > Tier 1 Coverage Depth value.");
+        return false;
+      }
+      var covdt3 = $("#covdepth3").val();
+      if( !regex.test(covdt3) || parseInt(covdt3) <= parseInt(covdt2) ) {
+        alert("Tier 3 Coverage Depth value must be an integer value > Tier 2 Coverage Depth value.");
+        return false;
+      }
+      // pass user selections to variables exported (via name attribute)
+      $('#librarytype_id').val(libName);
+      $('#targetregions_id').val( $('#targetregions option:selected').text() );
+      $('#barcodetargetregions').val(bcTargetList);
+      obj = $('#coverageAnalysis').serializeObject();
+      pluginAPIJSON = { "plugin" : [TB_plugin.fields.name], "pluginconfig" : obj };
+      pluginAPIJSON = JSON.stringify(pluginAPIJSON);
+      pluginURL = "/rundb/api/v1/results/" + TB_result + "/plugin/";
+      $.ajax({
+        type: 'POST',
+        url: pluginURL,
+        async: false,
+        contentType: "application/json; charset=utf-8",
+        success: function(data) {
+          $("#json_result").html('<div style="text-align: center;"><img src="/site_media/jquery/colorbox/images/loading.gif" alt="Running Plugin" style="float:center"></img><p>Running the Plugin... Check coverageAnalysis.html in the Plugin Summary</p></div>');
+          setTimeout("parent.$.fn.colorbox.close()",2000);
+        },
+        data: pluginAPIJSON,
+        dataType: "json"
+      });
+    });
+  });
+ </script>
+</head>
+
+<body>
+ <form id="coverageAnalysis" name="coverageAnalysis">
+  <div style="text-align:center">
+   <h1>Torrent Coverage Analysis Plugin</h1>
+   <h3>Genome and Targeted Re-sequencing Coverage Analysis</h3>
+  </div>
+   <table class="center" cellpadding="5px">
+    <tr>
+     <td><span class="help" title="The short name of the reference genome (or DNA sequences) that the current report was generated against and to be used for coverage analysis.">Reference Genome:</span></td>
+     <td><div id="referenceid"></div></td> </tr>
+    <tr>
+     <td><span class="help" title="Select the library (enrichment) type sequenced.">Library Type:</span></td>
+     <td><select id="librarytype" name="librarytype"></select></td> </tr>
+    <tr id="targetselect">
+     <td><span class="help"
+       title="Select the target regions (ROI) matching your reference and enriched fragment library. See Description and Usage Notes below.">
+       Targeted Regions:</span></td>
+     <td><select id="targetregions" name="targetregions"></select></td> </tr>
+    <tr id="multibed">
+     <td style="vertical-align: text-top"><span class="help"
+       title="Assign target regions based on assigned barcodes.">
+       Barcode-specific Targets:</span></td>
+     <td><input type="checkbox" id="barcodebeds" name="barcodebeds" value="Yes" style="float:left"/>
+       <div class="bcbed-shy" style="margin-left:25px;display:none">
+         Use the text box below to assign specific target regions to individual barcodes.</div>
+       <div style="font-size:3px;display:none">&nbsp;</div>
+       <div class="bcbed-shy" style="display:none">
+         <input id="addbcbutton" type="button" title="Add the currently selected target regions for the currently selected barcode to the list of barcode-specific targets." value="Add" style="font-size:13px">
+         <select id="barcodeids" style="font-size:13px"></select>
+         <span class="custom_fusions" style="display:none"><br/></span>
+         <select id="barcodetargets" style="font-size:13px"></select>
+       </div>
+       <div class="bcbed-shy" style="display:none">
+         <textarea id="bctextarea" rows=20 cols="61" style="font-size:13px;border:5px double #C0C0C0"></textarea>
+       </div>
+       <div class="bcbed-shy" style="font-style:italic;max-width:540px;display:none">
+         Un-assigned barcodes will use the Targeted Regions selected when the Submit button is clicked.
+         (Set to 'None' to ignore un-assigned barcodes.)</div>
+     </td> </tr>
+    <tr id="sampid" style="display:none">
+     <td><span class="help"
+       title="Check if this AmpliSeq library employed sampleID tracking amplicons.">
+       Sample Tracking:</span></td>
+     <td><input type="checkbox" id="sampleid" name="sampleid" value="Yes"/></td> </tr>
+   </table>
+   <table class="center" cellpadding="5px">
+    <tr>
+     <td colspan=2 style="text-align:center"><a id="show_advanced" href="">Show advanced options</a></td>
+    </tr>
+    <tr id="tpadding" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Specifiy the number of bases to expand each target at both 3' and 5' ends. This option is intended for use only with the TargetSeq Library Type but may also be specified for the Generic Sequencing application type.">
+       Target Padding:</span></td>
+     <td><input type="text" size=6 id="padtargets" name="padtargets" value=0></select></td> </tr>
+    <tr id="uniquereads" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Check to analyze only reads mapped to a unique location in the reference. Non-uniquely mapped reads are those that could have equally well aligned to multiple locations and are typically mapped randomly to one.">
+       Uniquely Mapped Reads:</span></td>
+     <td><input type="checkbox" id="uniquemaps" name="uniquemaps" value="Yes"/></td> </tr>
+    <tr id="nondups" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Check to analyze only reads that are not demarked as duplicate reads. This only applies to reads aligned with the Mark Duplicates option checked, which is not typcial for reads aligned by the Ion Torrent analysis pipeline.">
+       Non-duplicate Reads:</span></td>
+     <td><input type="checkbox" id="nonduplicates" name="nonduplicates" value="Yes" checked="checked"/></td> </tr>
+    <tr id="alignlen" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Specifiy the minimum aligned length a that read must have to be included in analysis.">
+       Minimum Aligned Length:</span></td>
+     <td><input type="text" size=6 id="minalignlen" name="minalignlen" value=0></select></td> </tr>
+    <tr id="mapq" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Specifiy the minimum mapping quality (MAPQ) that a read must have to be included in analysis. Using value of 1 (or higher) is equivalent to checking the 'Uniquely Mapped Reads' option.">
+       Minimum Mapping Quality:</span></td>
+     <td><input type="text" size=6 id="minmapqual" name="minmapqual" value=0></select></td> </tr>
+    <tr id="cov_depth1" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Specify the first tier coverage depth at which percentage of target coverage is reported. This value must be at least 2 since coverage at 1x read depth will always be output. The default value of 20 means that the percentage of targets, total target bases and/or individual target bases with at least 20 reads is reported.">
+       Tier 1 Coverage Depth:</span></td>
+     <td><input type="text" size=6 id="covdepth1" name="covdepth1" value=20></select></td> </tr>
+    <tr id="cov_depth2" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Specify the second tier coverage depth at which percentage of target coverage is reported. This value must be greater than the value used for first tier coverage. The default value of 100 means that the percentage of targets, total target bases and/or individual target bases with at least 100 reads is reported.">
+       Tier 2 Coverage Depth:</span></td>
+     <td><input type="text" size=6 id="covdepth2" name="covdepth2" value=100></select></td> </tr>
+    <tr id="cov_depth3" class="advanced" style="display:none">
+     <td><span class="help"
+       title="Specify the third tier coverage depth at which percentage of target coverage is reported. This value must be greater than the value used for second tier coverage. The default value of 500 means that the percentage of targets, total target bases and/or individual target bases with at least 500 reads is reported.">
+       Tier 3 Coverage Depth:</span></td>
+     <td><input type="text" size=6 id="covdepth3" name="covdepth3" value=500></select></td> </tr>
+   </table>
+   <br/>
+   <div align="center" id="json_result">
+    <span id="still_loading" style="color:#A06090"><h2><i>Loading default settings and options...</i></h2></span>
+    <input id="postbutton" type="submit" value="Submit" style="display:none">
+   </div>
+   <input type="hidden" id="librarytype_id" name="librarytype_id"/>
+   <input type="hidden" id="targetregions_id" name="targetregions_id"/>
+   <input type="hidden" id="barcodetargetregions" name="barcodetargetregions" value=""/>
+   <input type="hidden" id="launch_mode" name="launch_mode" value="Manual"/>
+   <br/>
+   <div align="left">
+    <h3>Description and Usage Notes</h3>
+    <p>
+This plugin generates statistics, downloadable data files and interactive visualization of coverage over
+targeted regions of the reference genome.</p>
+    <p>
+The Library Type selected will default to the application (aka 'Run Type') specified in the Plan and typically
+reflects the type of enriched fragment library used for the run. It primarily specifies the type of report
+produced, although this will also depend on the library type for specific barcodes where the application
+has mixed sample sources (DNA and RNA). Reports mostly differ with respect to whether coverage is targeted and
+includes base reads.</p>
+    <p>
+The Targeted Regions option specifies the default regions that coverage analysis will be performed on if they
+are not more specifically defined for individual barcodes. This value will default to that specified in the Plan
+but may be respecified for coverage analysis to any target region currently availiable for the Reference Genome.
+Setting the value to 'None' for a targeted resequencing application will indicate that all barcodes that do have
+a specifically defined target regions will be excluded from analysis.</p>
+    <p>
+The Barcode-specific Targets option is presented for any run that employed barcodes. Checking this option will allow
+the targets for individual barcodes to be changed from those defined in the Plan, or the barcode to be excluded from
+analysis entirely by setting its target to None. The input is a text box defining a barcode and target regions pair
+on each line (separated by space) and may be edited directly or populated using the Add button for the selected barcode
+and target region. Barcodes not explicited listed will assume the targets specified by the Target
+Regions option. Note that target regions may only be specified for the specific reference associated with the barcode.</p>
+    <p>
+The SampleID Tracking option is recommended if your AmpliSeq panel was 'spiked' with SampleID sample tracking targets.
+This will inform the analysis to produce an extra statistic for reads mapped to these targets so that
+the true level of 'off-target' reads is accurately represented. This option is only available for AmpliSeq applications
+and typically only effective for reads aligned to the human hg19 or GRCh38 genome reference.</p>
+    <p>
+Advanced options are available upon clicking on the Show advanced options link. Some options will only be available
+depending on the Library Type selected. Refer to the tooltip help by hovering the mouse over the option text to
+see a detailed description of an individual option.</p>
+   </div>
+ </form>
+</body>
+</html>
+

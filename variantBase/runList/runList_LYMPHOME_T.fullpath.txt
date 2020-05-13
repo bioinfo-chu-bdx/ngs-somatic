@@ -1,0 +1,13 @@
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-105-Run_panelT_50pM_janv2018_Lymphome_T_530_257
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-136-Run_lib2_50pM_Lymphome_T_530_299
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-137-Run_lib3_50pM_Lymphome_T_530_300
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-142-Run_lib4_panelT_50pM_Lymphome_T_530_306
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-143-Run_lib5_panelT_50pM_Lymphome_T_530_307
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-150-Run_lib6_panelT_50pM_Lymphome_T_530_316
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-151-Run_lib7_panelT_50pM_Lymphome_T_530_317
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-178-Run_lib8_50pM_Lymphome_T_530_347
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-179-Run_lib9_50pM_Lymphome_T_530_348
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-181-Run_lib10_50pM_Lymphome_T_530_350
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-182-Run_lib11_50pM_Lymphome_T_530_351
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-183-Run_lib12_50pM_Lymphome_T_530_352
+/media/n06lbth/sauvegardes_pgm/Lymphome_T/Auto_user_S5-0198-184-Run_lib13_50pM_Lymphome_T_530_353

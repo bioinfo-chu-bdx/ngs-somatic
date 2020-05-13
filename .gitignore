@@ -1,0 +1,14 @@
+variantBase/cosmic.db
+variantBase/VariantBase.db
+variantBase/VariantBase.db.*.backup
+variantBase/reannotation/*
+reference_files/hg19/*
+reference_files/mutect/af-only-gnomad.raw.sites.b37.vcf.gz
+seqrepo/*
+variantAnnotation/annovar/humandb/*
+variantAnnotation/VEP/cache/homo_sapiens/*
+variantAnnotation/VEP/cache/homo_sapiens_refseq/*
+variantAnnotation/VEP/ensembl-vep/t/testdata/*
+variantAnnotation/VEP/ensembl-vep/t/test-genome-DBs/*
+variantAnnotation/VEP/ensembl-vep/.git/*
+variantAnnotation/temp/*

@@ -1,0 +1,20 @@
+Installer SeqRepo  for local sequence database:
+
+$ pip install biocommons.seqrepo
+Définir dossier avec au moins 10GB de libre (par défaut /usr/local/share/seqrepo)
+$ mkdir $NGS_PIPELINE_BX_DIR/seqrepo
+$ seqrepo -r $NGS_PIPELINE_BX_DIR/seqrepo pull
+$ export HGVS_SEQREPO_DIR=$NGS_PIPELINE_BX_DIR/seqrepo/2019-06-20
+
+
+Installer UTA db :
+
+voir github : https://github.com/biocommons/uta/tree/master/misc/docker
+le port 50827:5432 est pour la librairie hgvs python
+
+$ docker run -dit --name uta_20170629 -p 15032:5432 biocommons/uta:uta_20170629
+$ docker logs -f uta_20170629
+$ export UTA_DB_URL=postgresql://anonymous@localhost:15032/uta/uta_20170629
+
+(pour annuler : voir commandes docker container ls -a, docker stop, docker container rm, unset pour enlever l'export)
+

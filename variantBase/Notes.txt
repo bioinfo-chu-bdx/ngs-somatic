@@ -1,0 +1,44 @@
+
+Table Variant dans la VariantBase :
+
+	cdnaPosition, proteinPosition :
+		- par rapport au transcrit !
+		
+	genomicStart, genomicStop, referenceAllele, alternateAllele (et variantID) :
+		- par rapport à hg19
+		(!! ref et alt doivent etre par rapport à hg19)
+		
+----		
+
+cas des DUP :
+	- genomicStart, genomicStop, referenceAllele, alternateAllele comme pour une INS
+	- HGVS avec dup dans c., p., genomicDescription et variantType
+cas de INV :
+	- genomicStart, genomicStop, referenceAllele, alternateAllele comme pour une DELINS
+	- HGVS avec inv dans c., p., genomicDescription et variantType
+
+HGVS règles pour la BDD :
+	- Creation d'une nouvelle entree UNIQUEMENT lorsque position change (et si "bonne entree" n'existe pas)
+	- laisser entrée "fausse" pour permettre redirection vers "bonne" grâce à un champ
+		- (ne pas annoter la fausse... laisser le minimum)
+	- rediriger les variantMetrics vers la bonne entrée
+
+----
+
+ex hgvs module :
+v = hp.parse_hgvs_variant("NC_000007.13:g.151884940_151884941insA")
+v2 = normalize(v)
+
+Recuperer les positions :
+	v2.posedit.pos
+		ou v2.posedit.pos.start / v2.posedit.pos.end
+Recuperer les bases:
+	v2.posedit.edit
+		ou v2.posedit.edit.ref / v2.posedit.edit.alt
+			(! les dup n'ont pas de alt)
+			
+==> CAS PARTICULIER DES DUP ET INV
+dup : pas de alt, ref indique la sequence dupliquee
+inv : pas de alt, ref indique la sequence inversee
+			
+			

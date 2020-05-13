@@ -1,0 +1,4 @@
+##fileformat=VCFv4.1
+##allowBlockSubstitutions=true
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	27106691	.	AC	A	.	.	OID=0;OPOS=27106692;OREF=C;OALT=;OMAPALT=A

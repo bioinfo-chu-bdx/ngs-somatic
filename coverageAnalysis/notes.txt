@@ -1,0 +1,12 @@
+
+- Commentaire sur certaines lignes qui generent des liens symboliques (ne marche pas sous partage windows)
+
+ex :
+ln -sf "$BEDFILE" "${WORKDIR}/$PLUGIN_OUT_BEDFILE_MERGED"
+ln -sf "$ANNOBED" "${WORKDIR}/$PLUGIN_OUT_BEDFILE_UNMERGED"
+
+ln -sf "${RUNDIR}/../flot" "${WORKDIR}/"
+ln -sf "${RUNDIR}/../lifechart" "${WORKDIR}/"
+ln -sf "${RUNDIR}/igv.php3" "${WORKDIR}/"
+
+- suppression redirection sortie erreur sur tous les echo, sauf les "ERROR" et "WARNING"

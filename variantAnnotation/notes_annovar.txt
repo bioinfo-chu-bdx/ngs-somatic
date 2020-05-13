@@ -1,0 +1,3 @@
+
+remplacement des "print STDERR" par "print" (sauf pour la ligne avec WARNING) dans table_annovar.pl
+pour avoir un stderr propre lorsque aucune erreur.

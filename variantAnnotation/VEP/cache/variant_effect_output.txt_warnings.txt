@@ -1,0 +1,29 @@
+WARNING: Parent entries with the following IDs were not found or skipped due to invalid types: foo
+WARNING: Unable to determine biotype of ENST00000307301
+WARNING: Failed to add exon to transcript ENST00000307301
+
+-------------------- EXCEPTION --------------------
+MSG: Exon overlaps with other exon in same transcript.
+Transcript Exons:
+  25607403-25607517 (-1) 
+  25606449-25606655 (-1) 
+  25603796-25603935 (-1) 
+  25601368-25601467 (-1) 
+  25599799-25599866 (-1) 
+  25597302-25597414 (-1) 
+  25593893-25593958 (-1) 
+  25592812-25592965 (-1) 
+  25588835-25588882 (-1) 
+  25587701-25587789 (-1) 
+
+This Exon:
+  25585656-25685754 (-1) 
+
+STACK Bio::EnsEMBL::Transcript::add_Exon Bio/EnsEMBL/Transcript.pm:1414
+STACK (eval) /DATA/work/variantAnnotation/VEP/ensembl-vep/modules/Bio/EnsEMBL/VEP/AnnotationSource/File/BaseGXF.pm:555
+STACK Bio::EnsEMBL::VEP::AnnotationSource::File::BaseGXF::_create_transcript /DATA/work/variantAnnotation/VEP/ensembl-vep/modules/Bio/EnsEMBL/VEP/AnnotationSource/File/BaseGXF.pm:555
+STACK Bio::EnsEMBL::VEP::AnnotationSource::File::BaseGXF::lazy_load_transcript /DATA/work/variantAnnotation/VEP/ensembl-vep/modules/Bio/EnsEMBL/VEP/AnnotationSource/File/BaseGXF.pm:795
+STACK toplevel ../ensembl-vep/t/AnnotationSource_File_GFF.t:231
+Date (localtime)    = Mon Jun 24 11:22:37 2019
+Ensembl API version = 96
+---------------------------------------------------

@@ -1,0 +1,973 @@
+AKAU.AO024F_IonXpress_008
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+        5 
+0.1075786 
+          2 
+-0.08111036 
+         3 
+0.09130553 
+         3 
+-0.0747243 
+       3 
+0.100259 
+          3 
+-0.07285872 
+         2 
+-0.2238117 
+         2 
+-0.0894064 
+chr7	55241600	55259578	Gain	copy=5.5	EGFR	MedianRatio=0.98	P-value_absMean=7.59545954327477	P-value_absMean=2.23544189654312e-102
+chr7	116339602	140481512	PotentialGain	copy=2.5	MET,BRAF	MedianRatio=0.17	P-value_absMean=1.25210100636535	P-value_absMean=8.56872783640375e-10
+ANTIER.AO063F_IonXpress_029
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.01584841 
+         2 
+0.01239476 
+         2 
+0.02127039 
+         2 
+0.01576706 
+        2 
+0.0228116 
+         2 
+0.01617528 
+           2 
+-0.004943925 
+         2 
+0.02228622 
+chr11	533380	534348	PotentialGain	copy=2.5	HRAS	MedianRatio=0.14	P-value_absMean=1.18175155162404	P-value_absMean=0.0082302103081897
+ASTORGA.AO005F_IonXpress_001
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+           1 
+-0.005980573 
+           1 
+-0.005356491 
+          2 
+0.001195628 
+           2 
+-0.007012979 
+           1 
+-0.009082623 
+          2 
+0.002374733 
+           2 
+-0.001541322 
+           2 
+-0.004754991 
+BEAUMONT.AO001F_IonXpress_093
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.04029654 
+         2 
+0.03649385 
+         2 
+0.03128699 
+[1] 0.01902441
+         2 
+0.04519159 
+         1 
+0.04212375 
+         2 
+0.03750616 
+         2 
+0.03007444 
+BEILVERT.AO008F_IonXpress_004
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+[1] 0.009135293
+[1] 0.003331543
+[1] 0.008336731
+         2 
+0.01196556 
+         2 
+0.01542369 
+[1] 0.002518797
+[1] 0.002511129
+[1] 0.004990059
+BELLAZ.AO047F_IonXpress_015
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.03929804 
+         2 
+0.03056342 
+         2 
+0.04035897 
+        2 
+0.0364853 
+         2 
+0.04008704 
+         2 
+0.03711797 
+         2 
+0.04032827 
+         2 
+0.03436482 
+BENAHMED.AO038F_IonXpress_012
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+[1] 0.02588742
+[1] 0.03097399
+           3 
+-0.003103135 
+[1] 0.02747296
+          2 
+-0.01126186 
+          2 
+-0.01275409 
+      2 
+0.12564 
+          2 
+-0.01105359 
+chr4	1803553	55602784	PotentialGain	copy=2.5	FGFR3,PDGFRA,KIT	MedianRatio=0.12	P-value_absMean=0.620361254542175	P-value_absMean=0.00447117704796861
+BOUTERAOU.AO084F_IonXpress_037
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+[1] 0.004445489
+         1 
+-0.0118632 
+           1 
+-0.008077453 
+         1 
+-0.0032306 
+          1 
+-0.00205046 
+           1 
+-0.007596104 
+           1 
+-0.007138938 
+           1 
+-0.007291944 
+BOUYDRON.AN998F_IonXpress_092
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.05176138 
+         2 
+0.05288623 
+         2 
+0.05617414 
+        2 
+0.0521987 
+         2 
+0.03249478 
+         2 
+0.05043587 
+         2 
+0.04528852 
+        2 
+0.0192245 
+CADET.AO062F_IonXpress_028
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+        3 
+0.1310721 
+        3 
+0.1225421 
+        3 
+0.1176722 
+        3 
+0.1259364 
+        3 
+0.1182736 
+        3 
+0.1329334 
+        3 
+0.1202294 
+        3 
+0.1206293 
+chr4	1803553	55602784	PotentialLoss	copy=1.5	FGFR3,PDGFRA,KIT	MedianRatio=-0.21	P-value_absMean=1.43435528499133	P-value_absMean=4.92976553654665e-11
+COCHARD.AO059F_IonXpress_025
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+0.004396975 
+          2 
+0.008745992 
+          2 
+0.005402029 
+           2 
+-0.003786926 
+            2 
+-0.0001573545 
+          2 
+0.003056856 
+          2 
+0.001223439 
+          2 
+0.003414088 
+chr2	29432581	212570115	PotentialGain	copy=2.5	ALK,ERBB4	MedianRatio=0.28	P-value_absMean=1.74699481606726	P-value_absMean=3.30457833265451e-08
+chr4	55141001	55602784	PotentialLoss	copy=1.5	PDGFRA,KIT	MedianRatio=-0.21	P-value_absMean=1.24914889238028	P-value_absMean=1.1599952001155e-07
+DARRIBAT.AO007F_IonXpress_003
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.04557909 
+        2 
+0.0367096 
+         2 
+0.03501399 
+         2 
+0.04443077 
+         2 
+0.04000447 
+        2 
+0.0397433 
+         2 
+0.04131522 
+         2 
+0.04750475 
+DELHUILE.AO058F_IonXpress_024
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+        2 
+0.0102707 
+         1 
+-0.1961367 
+         1 
+-0.2042585 
+         1 
+-0.1873004 
+         1 
+-0.2057545 
+        1 
+-0.195764 
+         1 
+-0.1882267 
+         1 
+-0.1919606 
+chr7	116339602	116435917	PotentialLoss	copy=1.5	MET	MedianRatio=-0.16	P-value_absMean=1.83969914143199	P-value_absMean=3.44013263224198e-17
+DORHRI.AO068F_IonXpress_033
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+-0.2628491 
+        3 
+0.7480171 
+         2 
+-0.2541603 
+        3 
+0.7408666 
+        3 
+0.7405271 
+        3 
+0.7738239 
+         2 
+-0.2174109 
+        3 
+0.7545853 
+chr7	116339602	116435917	Gain	copy=5	MET	MedianRatio=0.89	P-value_absMean=3.55313123342958	P-value_absMean=1.31405174932152e-59
+DOSQUE.AO103F_IonXpress_044
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+-0.02843409 
+          2 
+-0.02728922 
+         3 
+0.05981366 
+          2 
+-0.03011802 
+          2 
+-0.03064006 
+[1] 0.0168569
+          2 
+-0.03318758 
+          1 
+-0.02770941 
+DUBILLE.AO078F_IonXpress_036
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+        2 
+0.0273313 
+         2 
+0.02781052 
+         2 
+0.03516569 
+         2 
+0.03623107 
+         2 
+0.03102023 
+         2 
+0.03407846 
+         2 
+0.03648033 
+         2 
+0.03868592 
+FICHET.AO060F_IonXpress_026
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+        2 
+0.1439295 
+        2 
+0.1495771 
+      2 
+0.13578 
+       2 
+0.140767 
+        2 
+0.1449672 
+        2 
+0.1545862 
+        3 
+0.1512035 
+        2 
+0.1496698 
+chr4	1803553	55602784	PotentialLoss	copy=1.5	FGFR3,PDGFRA,KIT	MedianRatio=-0.33	P-value_absMean=2.24743850059396	P-value_absMean=7.1155349058464e-25
+FOUGEROUX.AO006F_IonXpress_002
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+           2 
+-0.006588243 
+           2 
+-0.004782058 
+           2 
+-0.004580135 
+           2 
+-0.006127188 
+           2 
+-0.007528482 
+            2 
+-0.0008405031 
+           2 
+-0.005846719 
+           2 
+-0.007176968 
+GANE.AO010F_IonXpress_006
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.01368949 
+          2 
+0.008429894 
+         2 
+0.01271578 
+         2 
+0.01260424 
+          2 
+0.003090867 
+          2 
+0.004888392 
+          2 
+0.008432266 
+         2 
+0.01082485 
+GARNIER.AO072F_IonXpress_035
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+-0.01314582 
+          1 
+-0.01234548 
+          1 
+-0.02361404 
+[1] 0.002068371
+           1 
+0.0004854103 
+[1] 0.004684959
+          1 
+-0.01646943 
+          1 
+-0.01392783 
+GAUTHIER.AO051F_IonXpress_022
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+0.007770193 
+          2 
+0.004455943 
+        2 
+0.0102263 
+           2 
+0.0004340606 
+        4 
+0.1541961 
+          2 
+-0.02673441 
+          2 
+0.003195886 
+          2 
+0.002242673 
+GIUDICELLI.AO045F_IonXpress_014
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+-0.03191242 
+          2 
+-0.02938347 
+        3 
+0.2319647 
+        2 
+0.2391635 
+          2 
+-0.03432318 
+          2 
+-0.04743011 
+          2 
+-0.03934474 
+          2 
+-0.01994872 
+chr1	115252190	115258821	PotentialLoss	copy=1.5	NRAS	MedianRatio=-0.15	P-value_absMean=1.81935580614996	P-value_absMean=0.0016259181295801
+chr4	1803553	55602784	PotentialGain	copy=2.5	FGFR3,PDGFRA,KIT	MedianRatio=0.28	P-value_absMean=1.87112833995183	P-value_absMean=9.94427722313124e-18
+GUELEME.AO004F_IonXpress_096
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+-0.2155237 
+         3 
+-0.1713446 
+         2 
+-0.2037191 
+         2 
+-0.1985736 
+       3 
+0.323751 
+         2 
+-0.2112966 
+         2 
+-0.1941532 
+         2 
+-0.2037473 
+chr2	29432581	29445319	Gain	copy=5.5	ALK	MedianRatio=0.99	P-value_absMean=6.78274333007591	P-value_absMean=4.98760925344959e-82
+chr4	1803553	55602784	Gain	copy=3.5	FGFR3,PDGFRA,KIT	MedianRatio=0.54	P-value_absMean=3.27351010622733	P-value_absMean=7.22040107849646e-51
+GUITTON.AO044F_IonXpress_013
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.05038437 
+         2 
+0.05504647 
+         2 
+0.05956241 
+         2 
+0.05938047 
+        2 
+0.0591303 
+       3 
+0.084803 
+         2 
+0.05943182 
+         2 
+0.05166115 
+chr11	533380	534348	PotentialLoss	copy=1.5	HRAS	MedianRatio=-0.25	P-value_absMean=2.20562405216955	P-value_absMean=8.14230510167437e-07
+HAMON.AO066F_IonXpress_032
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.06443773 
+         2 
+0.05205325 
+         2 
+0.05776888 
+         2 
+0.05589169 
+         2 
+0.03259621 
+         2 
+0.04941919 
+         2 
+0.04269685 
+         2 
+0.04952663 
+INSABY.AO102F_IonXpress_043
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         3 
+0.03316924 
+        1 
+-0.349166 
+         3 
+0.03802194 
+         2 
+0.02245324 
+         3 
+0.03483546 
+         3 
+0.04152816 
+         2 
+0.04487552 
+         3 
+0.03782658 
+chr4	1803553	55152200	PotentialGain	copy=2.5	FGFR3,PDGFRA	MedianRatio=0.15	P-value_absMean=1.14709739379538	P-value_absMean=0.000578943005238423
+chr4	55589743	55602784	PotentialLoss	copy=1.5	KIT	MedianRatio=-0.34	P-value_absMean=2.61281366601923	P-value_absMean=1.41597443522687e-19
+ISSIDORI.AO092F_IonXpress_040
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+-0.01389495 
+          2 
+-0.01951325 
+          2 
+-0.01756188 
+          2 
+-0.02113123 
+[1] -0.02125934
+         2 
+-0.0215596 
+          2 
+-0.01962697 
+[1] -0.008795936
+JEAN.AN996F_IonXpress_091
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.02756156 
+         2 
+0.02128889 
+           2 
+0.0004706891 
+         2 
+0.02060535 
+         2 
+0.02281862 
+         2 
+0.01165783 
+         2 
+0.01462983 
+         2 
+0.01422797 
+chr11	533380	534348	PotentialLoss	copy=1.5	HRAS	MedianRatio=-0.15	P-value_absMean=1.75865940513621	P-value_absMean=8.40732841919147e-05
+LAFOURCADE.AO064F_IonXpress_030
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         1 
+-0.1213238 
+         1 
+-0.1270846 
+         1 
+-0.1143305 
+         1 
+-0.1106815 
+         1 
+-0.1219291 
+         1 
+-0.1147959 
+         1 
+-0.1094407 
+        4 
+0.1256262 
+chr4	1803553	55602784	PotentialGain	copy=2.5	FGFR3,PDGFRA,KIT	MedianRatio=0.24	P-value_absMean=1.68434290609596	P-value_absMean=1.17587741666365e-14
+LALANNE.AO031F_IonXpress_010
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+0.007389021 
+          2 
+0.004230389 
+         3 
+0.00743001 
+          2 
+0.004401553 
+           2 
+-0.002233332 
+         3 
+0.00227454 
+            2 
+-0.0008074433 
+         3 
+0.09251032 
+chr2	29432581	29445319	PotentialGain	copy=2.5	ALK	MedianRatio=0.29	P-value_absMean=2.42620470911012	P-value_absMean=6.77400717928781e-12
+chr2	212566741	212570115	PotentialLoss	copy=1.5	ERBB4	MedianRatio=-0.38	P-value_absMean=4.08300149571192	P-value_absMean=7.73029852077255e-09
+chr15	66727413	66729224	PotentialLoss	copy=1.5	MAP2K1	MedianRatio=-0.2	P-value_absMean=2.47596533358565	P-value_absMean=1.79885616599927e-05
+LALANNE.AO093F_IonXpress_041
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+-0.03900077 
+        3 
+0.3253319 
+          2 
+-0.03323845 
+          2 
+-0.04069094 
+          2 
+-0.03754589 
+          2 
+-0.04383875 
+          2 
+-0.04765414 
+          2 
+-0.04230068 
+chr4	55141001	55602784	Gain	copy=3	PDGFRA,KIT	MedianRatio=0.35	P-value_absMean=3.9094498659865	P-value_absMean=8.7417911030896e-62
+LAUDE.BAZIN.AO091F_IonXpress_039
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          1 
+-0.02290234 
+          1 
+-0.02335879 
+[1] -0.01532356
+          1 
+-0.02169109 
+          1 
+-0.02219978 
+          1 
+-0.02170875 
+[1] -0.01843968
+          1 
+-0.02146751 
+LEVEQUE.AO003F_IonXpress_095
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+          2 
+-0.03109424 
+[1] 0.0006670659
+          2 
+-0.03263638 
+          2 
+-0.03150087 
+          2 
+-0.04376148 
+[1] -0.000745023
+[1] -0.006001782
+[1] -0.009270554
+LHUILLIER.AO061F_IonXpress_027
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.01253167 
+[1] 0.005625081
+          2 
+0.001669748 
+[1] 0.00753538
+          3 
+0.004530298 
+[1] 0.004455979
+          2 
+0.008593105 
+[1] 0.0054125
+LIMAMACHADO.AF598C_IonXpress_007
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.05813518 
+         2 
+0.03347278 
+         2 
+0.05367873 
+         2 
+0.05752356 
+         2 
+0.04614789 
+         2 
+0.05331457 
+         2 
+0.04506298 
+         2 
+0.05190327 
+MEHENE.AO049F_IonXpress_017
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+        3 
+0.2116987 
+        3 
+0.2234753 
+        3 
+0.2138553 
+        3 
+0.2160303 
+        3 
+0.2144981 
+        4 
+0.2167515 
+         1 
+-0.3029048 
+        2 
+0.2234432 
+chr2	29432581	212570115	PotentialLoss	copy=1.5	ALK,ERBB4	MedianRatio=-0.35	P-value_absMean=2.34558958241448	P-value_absMean=1.19436815377599e-13
+chr4	1803553	55141247	PotentialLoss	copy=1.5	FGFR3,PDGFRA	MedianRatio=-0.27	P-value_absMean=2.11024596466034	P-value_absMean=2.37410881715514e-06
+chr4	55144027	55602784	Loss	copy=1	PDGFRA,KIT	MedianRatio=-0.51	P-value_absMean=3.98603844897828	P-value_absMean=3.12849130486062e-57
+ORTIGOSA.AO090F_IonXpress_038
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+-0.1329368 
+         1 
+-0.1265017 
+         2 
+-0.1317818 
+         2 
+-0.1216646 
+         1 
+-0.1289483 
+         1 
+-0.1274157 
+         1 
+-0.1262656 
+         1 
+-0.1134769 
+chr4	1803553	55602784	PotentialGain	copy=2.5	FGFR3,PDGFRA,KIT	MedianRatio=0.31	P-value_absMean=1.72806929464289	P-value_absMean=2.39412275401827e-15
+PABOU.AO104F_IonXpress_045
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+       2 
+0.278182 
+        2 
+0.2662411 
+         1 
+-0.1692512 
+        2 
+0.2709543 
+         1 
+-0.1998948 
+        2 
+0.2727326 
+        3 
+0.2758871 
+        2 
+0.2767796 
+chr7	55248956	140481512	Gain	copy=3	EGFR,MET,BRAF	MedianRatio=0.45	P-value_absMean=1.75255469668109	P-value_absMean=3.80703129470646e-21
+PIASENTIN.AO094F_IonXpress_042
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+-0.1393854 
+        2 
+-0.136227 
+         2 
+-0.1234913 
+         3 
+0.09426107 
+        2 
+-0.117169 
+         2 
+-0.1212271 
+         2 
+-0.1225897 
+         3 
+0.08754322 
+chr4	1803553	55602784	PotentialLoss	copy=1.5	FGFR3,PDGFRA,KIT	MedianRatio=-0.23	P-value_absMean=2.41781558777664	P-value_absMean=1.57183078605807e-28
+ROCHE.AO002F_IonXpress_094
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+        2 
+0.1115475 
+          2 
+-0.05207667 
+        2 
+0.1102069 
+       2 
+0.119651 
+        2 
+0.1083018 
+          2 
+-0.06089243 
+         2 
+-0.0525974 
+        3 
+0.1049417 
+chr7	55241600	140481512	PotentialGain	copy=2.5	EGFR,MET,BRAF	MedianRatio=0.16	P-value_absMean=1.0565561509629	P-value_absMean=2.27585419494451e-09
+RODRIGUEZ.AO009F_IonXpress_005
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.01136563 
+          2 
+0.007849507 
+         2 
+0.01392226 
+           2 
+-0.005201095 
+          2 
+-0.01022548 
+          2 
+0.006721572 
+         2 
+0.01172419 
+          2 
+0.008882952 
+SADOUK.AO033F_IonXpress_011
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.02890771 
+         2 
+0.02541909 
+         2 
+0.02966104 
+         2 
+0.01466462 
+         2 
+0.02297168 
+         2 
+0.02310435 
+         2 
+0.02335238 
+         2 
+0.03110381 
+TIKOURE.AO048F_IonXpress_016
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+         2 
+0.00309263 
+        2 
+0.0268926 
+         3 
+0.06902564 
+          2 
+0.002421198 
+          2 
+0.001604126 
+          2 
+0.003916125 
+          2 
+0.002555116 
+         2 
+0.02196682 
+TISON.AO065F_IonXpress_031
+[raw data: check] minimum number of positions per signal 
+[raw data: check] number of records per position 
+[raw data: format] changing dataframe to compact format (list) 
+[getuniKmax] uniKmax initialized by pre-screening
+Y 
+       3 
+0.699626 
+        3 
+0.7110187 
+         2 
+-0.2068342 
+        3 
+0.7346666 
+        3 
+0.7094391 
+        3 
+0.7158248 
+        3 
+0.6915305 
+        3 
+0.7112506 
+chr7	116339602	116435917	Gain	copy=5	MET	MedianRatio=0.92	P-value_absMean=2.52042579606482	P-value_absMean=7.37843762387972e-31
