@@ -11,6 +11,7 @@
 	"variantlist" : "$NGS_PIPELINE_BX_DIR/variantBase/variantList/variantList_ALL.json",
 	"default_reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
 	"uta_container_id":"7b5b595deacb",
+	"cosmicDB":"$NGS_PIPELINE_BX_DIR/variantBase/cosmic.db",
 	"run_type":{
 		"SBT":{
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",

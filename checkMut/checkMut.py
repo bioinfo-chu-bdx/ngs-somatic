@@ -349,12 +349,10 @@ for bam in sorted(bamlist):
 							posCov += 1
 		# SAMPLE RESULTS
 		if no_read:
-			# mytext = printing("- %0-30s no reads at position" % (sample[0:25]),mytext)
-			mytext = printing("- %0-30s %0-13s %0-20s %s" % (sample[0:25],'no reads','-','-'),mytext)
+			mytext = printing("- %0-30s no reads at position" % (sample[0:25]),mytext)
 			continue
 		elif depth < int(options.min_depth):
-			# mytext = printing("- %0-30s not enough depth (%s)" % (sample[0:25],depth),mytext)
-			mytext = printing("- %0-30s %0-13s %0-20s (%s)" % (sample[0:25],'low depth','-',depth),mytext)
+			mytext = printing("- %0-30s not enough depth (%s)" % (sample[0:25],depth),mytext)
 			continue
 		else:
 			freq = float(var_count)/float(depth)
@@ -392,7 +390,10 @@ if options.run_folder:
 	plt.title('%s:%s:%s' % (gene,transcript,cpos))
 	ax.set_xlabel('Samples',fontsize=12)
 	ax.set_ylabel('Variant Freq (%)',fontsize=12)
-	plt.xticks(ind,sample_names,fontsize=4)
+	if N<=50:
+		plt.xticks(ind,sample_names,fontsize=4)
+	else:
+		plt.xticks(ind,sample_names,fontsize=2)
 	max_y = max(sample_freqs) #ax.set_xlim([0,max(tab_freq_del)])
 	ax.set_ylim([0,min(100,max(2,max_y*1.5))])	#augmentation un peu de l'ordonne, trop courte
 	if max_y < 0.5:
@@ -406,7 +407,11 @@ if options.run_folder:
 	#ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 	monofont = {'fontname':'FreeMono'}
-	plt.text(0.95, 0.5, mytext, fontsize=8, va='center', transform=plt.gcf().transFigure, **monofont) # ha='left', va='left'
-	
-	fig.autofmt_xdate()
-	fig.savefig('%s/%s_%s.png' % (checkMut_folder,gene,cpos.replace('>','_')),bbox_inches='tight',dpi=300)
+	if N<=50:
+		plt.text(0.95, 0.5, mytext, fontsize=8, va='center', transform=plt.gcf().transFigure, **monofont) # ha='left', va='left'
+		fig.autofmt_xdate()
+		fig.savefig('%s/%s_%s.png' % (checkMut_folder,gene,cpos.replace('>','_')),bbox_inches='tight',dpi=300)
+	else:
+		plt.text(0.95, 0.5, mytext, fontsize=4, va='center', transform=plt.gcf().transFigure, **monofont) # ha='left', va='left'
+		fig.autofmt_xdate()
+		fig.savefig('%s/%s_%s.png' % (checkMut_folder,gene,cpos.replace('>','_')),bbox_inches='tight',dpi=600)

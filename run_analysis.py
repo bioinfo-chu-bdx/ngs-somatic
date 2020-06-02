@@ -442,6 +442,8 @@ for bamfile in sorted(bamlist) :
 			subprocess.call(['python','%s/scripts/Acrometrix_check.py' % pipeline_folder,finalReport_path,sample,run_name])
 		elif 'HORIZON' in sample.upper():
 			subprocess.call(['python','%s/scripts/Horizon_check.py' % pipeline_folder,finalReport_path,sample,run_name])
+		elif 'BARBI' in sample.upper():
+			subprocess.call(['python','%s/scripts/Temoin_TP53_check.py' % pipeline_folder,finalReport_path,sample,run_name])
 		for c in ['BAF-','BAF5','P190']:
 			if c in sample.upper():
 				subprocess.call(['python','%s/scripts/Temoins_ABL1_check.py' % pipeline_folder,finalReport_path,sample,run_name])

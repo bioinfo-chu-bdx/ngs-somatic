@@ -213,7 +213,6 @@ sample = sample_folder.split('/')[-1]
 run_folder = os.path.dirname(sample_folder)
 intermediate_folder = sample_folder+'/intermediate_files'
 
-# cosmicDB = open('%s/variantAnnotation/annovar/humandb/hg19_cosmic90.txt' % pipeline_folder,'r')
 cosmicDB_con = sqlite3.connect(global_param['cosmicDB'])
 cosmicDB_con.row_factory = dict_factory
 cosmicDB_cur = cosmicDB_con.cursor()
@@ -295,9 +294,10 @@ for db_vm in db_vms :
 
 print " - [%s] Annotation sheet ..." % time.strftime("%H:%M:%S")
 
-if 'SBT' in run_type:
-	aheader.insert(aheader.index('Consequence')+1,'Sensitivity')
+if run_type in ['SBT','Lymphome_B','Lymphome_T']:
 	aheader.insert(aheader.index('p.')+1,'c.p.f.')
+	if 'SBT' in run_type:
+		aheader.insert(aheader.index('Consequence')+1,'Sensitivity')
 elif 'TP53' in run_type:
 	aheader.insert(aheader.index('COSMIC'),'Patho UMD')
 	aheader.insert(aheader.index('COSMIC'),'Comment UMD')
@@ -344,6 +344,21 @@ for variant in variants:
 			variant['Commentaire'] = '%s. Exon corrected (12->13)' % variant['Commentaire']
 		else:
 			variant['Commentaire'] = 'Exon corrected (12->13)'
+
+	# COSMIC occurence for Lymphome B & T (haematopoietic_and_lymphoid_tissue)
+	if run_type in ['Lymphome_B','Lymphome_T']:
+		if variant['COSMIC']:
+			cosmics = variant['COSMIC'].split(',')
+			occ = []
+			for c in cosmics:
+				cosmicDB_cur.execute("SELECT haematopoietic_and_lymphoid_tissue FROM Cosmic WHERE cosmicID='%s' AND haematopoietic_and_lymphoid_tissue not NULL" % c)
+				cosmicDB_data = cosmicDB_cur.fetchone()
+				if cosmicDB_data:
+					occ.append(str(cosmicDB_data['haematopoietic_and_lymphoid_tissue']))
+				else:
+					occ.append('0')
+			occs = ','.join(occ)
+			variant['COSMIC'] = '%s;occurence(haematopoietic_and_lymphoid_tissue)=%s' % (variant['COSMIC'],occs)
 			
 	# FORMATING RESULTS
 	if ((variant['Region'] in ['exonic','splicing','ncRNA_exonic']) and (variant['Consequence'] != 'synonymous')) or ((116411873 <= variant['Position'] <= 116411902) or (116412044 <= variant['Position'] <= 116412087)):
@@ -626,7 +641,6 @@ if base_cov_file:
 	base_cov_lines = [] # if from zip cannot seek(), so keep lines in list
 	for base_cov_line in base_cov_file_reader:
 		base_cov_lines.append(base_cov_line)
-	cosmic_lines = cosmicDB.readlines()
 	
 	header = ['Chr','Start','End','Number of bases','Amplicon','Gene','Exon','Hotspots']
 	if run_type == 'Lymphome_B' or run_type == 'Lymphome_T':
@@ -707,7 +721,7 @@ if base_cov_file:
 					region_minx.append([chrom,start,end,numOfBase,ampl,gene,details])
 					start = False
 
-		# Recherche variants d'interet (hotspots pour LAM, actionnables pour SBT)
+		# Recherche variants d'interet (hotspots pour LAM, actionnables pour SBT). Colonne "hotspots"
 		for region in region_minx:
 			db_variants = []
 			relevant_variants = []
@@ -723,7 +737,7 @@ if base_cov_file:
 			hotstring = ','.join(relevant_variants)
 			region.append(hotstring)
 
-		# panel lymphome : recherche cosmic haematopoietic_and_lymphoid_tissue
+		# panel lymphome : recherche cosmic haematopoietic_and_lymphoid_tissue. Colonne "Cosmic occurences (haematopoietic_and_lymphoid_tissue)"
 		if run_type == 'Lymphome_B' or run_type == 'Lymphome_T':
 			if len(region_minx) > 500: # si trop on ne cherche pas. plombe le temps d'execution
 				for region in region_minx:

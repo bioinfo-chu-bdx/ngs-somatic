@@ -49,6 +49,7 @@ abl1_c_list = [
 'c.951C>G',
 'c.667C>T',
 'c.730A>G',
+'c.749G>A', # ajout lisa 15/05/2020
 'c.758A>T',
 'c.757T>C',
 'c.763G>A',
@@ -73,7 +74,7 @@ abl1_c_list = [
 
 print "[%s] ABL1 checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(abl1_c_list))
 for c_pos in abl1_c_list:
-	subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','ABL1','--cpos',c_pos,'--run-type','ABL1'])#,'--sub-folder','ABL1'])
+	subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','ABL1','--cpos',c_pos,'--run-type','ABL1'])#,'--sub-folder','ABL1'])
 	
 # LISTE MUTATIONS TABLEAU ADN CIRCULANT AUDREY
 egfr_c_list = [
@@ -122,7 +123,7 @@ braf_c_list = [
 'c.1798_1799delinsAG',
 'c.1797_1799delinsGAG',
 'c.1801A>G',
-'c.1797delinsTACTACG', # ligne et suivantes : ajout cq myel
+'c.1797delinsTACTACG', # ajout cq myel
 'c.1798_1799delinsCA',
 'c.1798G>A',
 'c.1798G>C',
@@ -139,7 +140,7 @@ braf_c_list = [
 
 print "[%s] BRAF checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(braf_c_list))
 for c_pos in braf_c_list:
-	subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','BRAF','--cpos',c_pos,'--run-type','SBT'])#,'--sub-folder','BRAF'])
+	subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','BRAF','--cpos',c_pos,'--run-type','SBT,Lymphome_B'])#,'--sub-folder','BRAF'])
 	
 nras_c_list = [
 'c.35G>C',
@@ -207,7 +208,7 @@ kras_c_list = [
 print "[%s] KRAS checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(kras_c_list))
 for c_pos in kras_c_list:
 	subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','KRAS','--cpos',c_pos,'--run-type','SBT'])#,'--sub-folder','KRAS'])
-
+	
 cd79b_c_list = [
 'c.591G>C',
 'c.589G>A',
@@ -224,5 +225,6 @@ cd79b_c_list = [
 print "[%s] CD79B checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(kras_c_list))
 for c_pos in cd79b_c_list:
 	subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CD79B','--cpos',c_pos,'--run-type','Lymphome_B'])#,'--sub-folder','KRAS'])
+
 
 print "[%s] Done." % time.strftime("%H:%M:%S")
