@@ -193,7 +193,7 @@ pid_found = True
 while pid_found:
 	time.sleep(30)
 	try:
-		pid_found = subprocess.check_output(['pgrep','-f','/DATA/work/checkMut/checkMut.py'])
+		pid_found = subprocess.check_output(['pgrep','-f','%s/checkMut/checkMut.py' % pipeline_folder])
 		print "[%s] \t running pid : %s" % (time.strftime("%H:%M:%S"),pid_found.replace('\n',','))
 	except subprocess.CalledProcessError, e:
 		pid_found = False

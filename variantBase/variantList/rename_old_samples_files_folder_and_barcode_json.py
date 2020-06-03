@@ -12,10 +12,11 @@ import uuid
 from datetime import date
 import subprocess
 
+pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 month2num = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
 control_names = ['H2O','H20','NTC','ACROMETRIX','BAF5','BAF-5','HD300','HD301','HD802','HD901','HD748','HORIZON','TEMOIN'] # liste des noms possibles pour les temoins negatifs
 
-run_list_path = '/DATA/work/variantBase/runList/runList_ALL.fullpath.txt'
+run_list_path = '%s/variantBase/runList/runList_ALL.fullpath.txt' % pipeline_folder
 
 #     __                   
 #    |__) |  | |\ |  

@@ -20,8 +20,9 @@ import openpyxl
 # USAGE : python collect_run_variants_to_variantlist.py
 #    OR : python collect_run_variants_to_variantlist.py /path/to/run_folder
 
-variant_list_path = '/DATA/work/variantBase/variantList/variantList_ALL.json'
-run_list_path = '/DATA/work/variantBase/runList/runList_ALL.fullpath.txt'
+pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
+variant_list_path = '%s/variantBase/variantList/variantList_ALL.json' % pipeline_folder
+run_list_path = '%s/variantBase/runList/runList_ALL.fullpath.txt' % pipeline_folder
 
 variantlist = {}
 if os.path.exists(variant_list_path):

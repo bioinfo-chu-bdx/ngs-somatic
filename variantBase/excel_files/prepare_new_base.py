@@ -3,6 +3,7 @@
 import openpyxl
 import sys
 
+pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 variantBase_empty_path = sys.argv[1]
 #gene_list = sys.argv[2]
 if len(sys.argv) == 3:
@@ -29,4 +30,4 @@ for gene in glist:
 	newsheet.title = gene
 
 vb_empty.remove_sheet(gene_sheet)
-vb_empty.save('/DATA/work/variantBase/newBase_files/VariantBase_%s.xlsx' % sys.argv[2].split('/')[-1])
+vb_empty.save('%s/variantBase/newBase_files/VariantBase_%s.xlsx' % (pipeline_folder,sys.argv[2].split('/')[-1]))

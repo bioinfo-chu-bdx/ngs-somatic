@@ -57,7 +57,7 @@ mkdir ~/ngs-pipeline-bx/hgvs
 cd ~/ngs-pipeline-bx/hgvs 
 wget -r --no-parent --reject="index.html*" http://54.201.113.125/seqrepo/2019-06-20/
 # nettoyage
-mv ~/ngs-pipeline-bx/54.201.113.125/2019-06-20 /DATA/work/seqrepo/
+mv ~/ngs-pipeline-bx/54.201.113.125/2019-06-20 ~/ngs-pipeline-bx/seqrepo/
 rm -r ~/ngs-pipeline-bx/seqrepo/54.201.113.125
 export HGVS_SEQREPO_DIR=~/ngs-pipeline-bx/seqrepo/2019-06-20
 # OU plutot, dans /etc/bash.bashrc avant "#if not running interactively..."

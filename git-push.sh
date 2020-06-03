@@ -38,5 +38,9 @@ echo "git commit ...";
 git commit -m "$USER-`date '+%Y-%m-%d'`";
 echo "git push ...";
 git push -f origin master;
+expect "Username for 'https://github.com': "
+send "thomas.bandres@chu-bordeaux.fr"
+expect "Password for 'https://thomas.bandres@chu-bordeaux.fr@github.com': "
+send "8bc%VXMOtZA9"
 
 # to pull : git pull origin master
