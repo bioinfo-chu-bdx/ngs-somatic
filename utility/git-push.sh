@@ -36,10 +36,12 @@ echo "- git commit ...";
 git commit -m "$USER-`date '+%Y-%m-%d'`";
 echo "- git push ...";
 git push -f origin master;
+# thomas.bandres@chu-bordeaux.fr
+# 8bc%VXMOtZA9
 echo "- upload big files to gdrive"
-$NGS_PIPELINE_BX_DIR/gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/VariantBase.db
-$NGS_PIPELINE_BX_DIR/gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/cosmic.db
-$NGS_PIPELINE_BX_DIR/gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/variantList/variantList_ALL.json
+$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/VariantBase.db
+$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/cosmic.db
+$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/variantList/variantList_ALL.json
 echo "... done."
 
 # Note : to avoir constant login/password ask :
