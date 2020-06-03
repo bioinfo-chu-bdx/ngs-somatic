@@ -207,9 +207,9 @@ for fastqfile in fastq_data:
 	# FASTQ TO SAM
 	logging.info("\t\t- [%s] BWA-MEM Alignment ..." % time.strftime("%H:%M:%S"))
 	if fastq_r2 != None:
-		cmd = subprocess.Popen(['bwa','mem','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1,fastq_r2], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
+		cmd = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1,fastq_r2], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
 	else:
-		cmd = subprocess.Popen(['bwa','mem','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
+		cmd = subprocess.Popen(['%s/bwa/bwa','mem','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
 	cmd.communicate()
 
 	if fastq_r2 != None:

@@ -1,0 +1,39 @@
+https://github.com/gdrive-org/gdrive
+-> Download gdrive-linux-x64
+
+# mettre gdrive-key.json dans ~/.gdrive (creer dossier si inexistant) si deja généré, sinon voir plus bas
+# USAGE : 
+
+./gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/VariantBase.db
+./gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/cosmic.db
+./gdrive-linux-x64 --service-account gdrive-key.json upload $NGS_PIPELINE_BX_DIR/variantBase/variantList/variantList_ALL.json
+
+
+###########################################
+# Pour initialiser avec un nouveau drive: #
+###########################################
+
+./gdrive-linux-x64 about
+# Si le lien qui s'affiche ne marche pas :
+
+1.  Create Service Account & Download the JSON Key. You can follow Offical Google Guide here: https://developers.google.com/identity/protocols/OAuth2ServiceAccount#creatinganaccount
+2.  Create GDrive Config directory (should be in ~/.gdrive or /home/MYUSERNAME/.gdrive)
+3.  Store JSON Key file in the GDrive Config directory (from Step 2) Tips: use easy name for JSON Key
+4.  Run command gdrive --service-account [YOUR JSON KEY NAME HERE] about to test connection
+5.  If error like this, follow the step 6-10. If error doesn't occur you can skip it:
+    Failed to get about: googleapi: Error 403: Access Not Configured. Drive API has not been used in project [PROJECT_ID] before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/drive.googleapis.com/overview?project=[PROJECT_ID] then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry., accessNotConfigured
+    You should go to https://console.developers.google.com/apis/api/drive.googleapis.com/overview?project=[PROJECT_ID] as instructed.
+6.  After Enabling API, you should create credentials for GDrive API by click Create Credentials, and choose Google Drive API from 'Which API are you using?' drop down list.
+7.  Choose Other UI from 'Where will you be calling the API from?' drop down list.
+8.  Choose User Data from 'What data will you be accessing?'
+9.  Click on 'What credentials do I need?' now you will be instructed to create OAuth Client ID (Next Step).
+10. Choose Other, fill name for OAuth Client ID, then click Create. Done, just click Ok, no need to store Client ID or Secret.
+    Now the important bits is your Service Account have their own Google Drive space. This mean that if you upload file, it won't show up in your drive. To workaround this, your account need to create a shared folder with your service account email as the editor. See this Stackoverflow discussion: https://stackoverflow.com/questions/45492703/google-drive-api-oauth-and-service-account
+
+Now to get the folder ID you can follow the tips from this blog: https://ploi.io/documentation/mysql/where-do-i-get-google-drive-folder-id
+Use that folder id as parrent folder to store all of your files, and done! Your files now shows up!
+
+IMPORTANT NOTE: There's an unmerged fix (#331) for changing ownership of files. For now GDrive util will throw error: 'Failed to share file: googleapi: Error 403: The transferOwnership parameter must be enabled when the permission role is 'owner'., forbidden'
+This will results in the files uploaded is owned by your service account.
+
+11.    ./gdrive-linux-x64 --service-account gdrive-key.json about
