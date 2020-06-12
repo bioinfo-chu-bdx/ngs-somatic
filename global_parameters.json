@@ -38,6 +38,18 @@
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
 			"checkContamination_read_len":150
 		},
+		"LAM-illumina":{
+			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
+			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.annotated.bed",
+			"merged_bed": "",
+			"vc_parameters": "",
+			"vc_parameters_hotspot_only": "",
+			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_LAM_v3.vcf",
+			"lam_hotspot_highlight":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_details/hotspots_details_HEMATO.xls",
+			"variantBase": "/media/n06lbth/sauvegardes_pgm/LAM/VariantBase.xlsx",
+			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
+			"checkContamination_read_len":150
+		},
 		"TP53":{
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
 			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/TP53.20140108.designed_with_NM.bed",

@@ -1,0 +1,20 @@
+!!! Do not work on old CPU (like SBT-server)
+
+# TO INSTALL AND LAUNCH DOCKER
+> sudo docker pull google/deepvariant
+# with $NGS_PIPELINE_BX_DIR defined in environment variables
+> docker run -dit --name deepvariant --restart always -v /media/n06lbth:/media/n06lbth -v $NGS_PIPELINE_BX_DIR:$NGS_PIPELINE_BX_DIR google/deepvariant
+
+# TO RUN A COMMAND
+> docker exec -it deepvariant /opt/deepvariant/bin/run_deepvariant 
+--model_type=WGS 
+--ref=/media/n06lbth/sauvegardes_pgm/tests_qualification/quickstart-testdata/ucsc.hg19.chr20.unittest.fasta 
+--reads=/media/n06lbth/sauvegardes_pgm/tests_qualification/quickstart-testdata/NA12878_S1.chr20.10_10p1mb.bam 
+--regions=/media/n06lbth/sauvegardes_pgm/tests_qualification/SureSelect-HEMATO-v5.merged.bed 
+--output_vcf=/media/n06lbth/sauvegardes_pgm/tests_qualification/quickstart-testdata/output.vcf.gz 
+--output_gvcf=/media/n06lbth/sauvegardes_pgm/tests_qualification/quickstart-testdata/output.g.vcf.gz 
+--num_shards=1
+
+
+
+--regions works with bed, but bed should be simple, merged and without annotation

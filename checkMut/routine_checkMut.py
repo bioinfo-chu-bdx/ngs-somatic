@@ -5,8 +5,7 @@ import time
 import subprocess
 
 run_folder = sys.argv[1]
-pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
-checkMut_path = '%s/checkMut/checkMut.py' % pipeline_folder
+checkMut_path = '/DATA/work/checkMut/checkMut.py'
 FNULL = open(os.devnull, 'w')
 
 # DIVERS MUTATIONS PAR DEFAUT
@@ -32,9 +31,12 @@ subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample'
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','GATA2','--cpos','c.599dup','--run-type','LAM'])
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','GATA2','--cpos','c.302del','--run-type','LAM'])
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','SRSF2','--cpos','c.287del','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.455dup','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.455del','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.454_466del','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.455dup','--run-type','TP53,LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.455del','--run-type','TP53,LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.454_466del','--run-type','TP53,LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.743G>A','--run-type','TP53,LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.796G>A','--run-type','TP53,LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.817C>T','--run-type','TP53,LAM'])
 
 # DIVERS LYMPHOME B
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','MYD88','--cpos','c.794T>C','--run-type','Lymphome_B'])

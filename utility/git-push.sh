@@ -40,11 +40,14 @@ git push -f origin master;
 # 8bc%VXMOtZA9
 echo "- upload big files to gdrive :"
 echo "    - VariantBase.db"
-$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json update 16VGtVtq5weh2AFfj-SXmpBBvBUiV1xwU $NGS_PIPELINE_BX_DIR/variantBase/VariantBase.db
+$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json update '16VGtVtq5weh2AFfj-SXmpBBvBUiV1xwU' $NGS_PIPELINE_BX_DIR/variantBase/VariantBase.db
 echo "    - cosmic.db"
-$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json update 1v3-gIBN-1Us-LU8g5jtlu8huMZGc7Ybs $NGS_PIPELINE_BX_DIR/variantBase/cosmic.db
+$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json update '1v3-gIBN-1Us-LU8g5jtlu8huMZGc7Ybs' $NGS_PIPELINE_BX_DIR/variantBase/cosmic.db
 echo "    - variantList_ALL.json"
-$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json update 1KecvpkoeMzSGM7gtrGmVwvzVEdhddMj_ $NGS_PIPELINE_BX_DIR/variantBase/variantList/variantList_ALL.json
+$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json update '1KecvpkoeMzSGM7gtrGmVwvzVEdhddMj_' $NGS_PIPELINE_BX_DIR/variantBase/variantList/variantList_ALL.json
+#echo "    - FalsePositives.csv" # fichier petit deja sur github pas besoin
+#$NGS_PIPELINE_BX_DIR/utility/gdrive-linux-x64 --service-account gdrive-key.json update '1N98azA__fb3uE4AMkz2aczpfLc2LJcRY' $NGS_PIPELINE_BX_DIR/finalReport/FalsePositives.csv
+
 echo "... done."
 
 # Note : to avoir constant login/password ask :
