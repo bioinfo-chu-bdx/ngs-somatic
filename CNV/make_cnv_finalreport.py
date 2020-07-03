@@ -83,7 +83,7 @@ for line in gain_reader:
 		else:
 			cn = line[i].split(',')[0].replace('CN=','')
 		sample_amplicon_cn[sample][line[0]]["gain"] = float(cn)
-		
+
 ### LOSS RESULTS
 column2sample = {}
 header = loss_reader.next()
@@ -98,12 +98,12 @@ for line in loss_reader:
 		else:
 			cn = line[i].split(',')[0].replace('CN=','')
 		sample_amplicon_cn[sample][line[0]]["loss"] = float(cn)
-		
+
 # COMBINE RESULTS
 sample_gene_cn = {}
 for sample in column2sample.values():
 	sample_gene_cn[sample] = {}
-	
+
 for sample in sample_amplicon_cn.keys():
 	for amplicon in sample_amplicon_cn[sample].keys():
 		gene = amplicon.split('_')[0]
@@ -111,7 +111,7 @@ for sample in sample_amplicon_cn.keys():
 			sample_gene_cn[sample][gene] = []
 		gain_value = sample_amplicon_cn[sample][amplicon]["gain"]
 		loss_value = sample_amplicon_cn[sample][amplicon]["loss"]
-		
+
 		if gain_value == 2.0 and loss_value == 2.0:
 			sample_gene_cn[sample][gene].append(2.0)
 		elif gain_value == 2.0:
@@ -120,7 +120,7 @@ for sample in sample_amplicon_cn.keys():
 			sample_gene_cn[sample][gene].append(gain_value)
 		else:
 			print "Problem : both gain and loss for %s - %s" % (sample,amplicon)
-	
+
 # Ecriture resultats
 gene_index = 2
 gene2column = {}
@@ -145,10 +145,6 @@ for sample in sample_gene_cn.keys():
 			cell_format(results_sheet.cell(row=current_row,column=gene2column[gene]), mean_copy, amp_colors, del_colors, border="medium")
 	current_row = current_row + 1
 
-
-#ioncopy_file.seek(1)
-### GRISEE LIGNE mauvais sequencage en utilisant donnees du ioncopy_input#####################
-#ioncopy_input_path = cna_folder.replace('/_CNA','/ioncopy_input.tsv')
 ioncopy_input_path = cna_folder + '/ioncopy_input.tsv'
 ioncopy_input = open(ioncopy_input_path,'r')
 ioncopy_input_reader = csv.reader(ioncopy_input,delimiter='\t')
@@ -159,7 +155,7 @@ samples = data[0]
 for i in range(1,len(samples)):
 	inf300X = 0
 	for j in range(1,row_number):
-		if int(data[j][i]) < 300:
+		if int(float(data[j][i])) < 300:
 			inf300X = inf300X + 1
 	if inf300X >= int(row_number/4): # un quart des cibles < 300X... a voir. Aussi si grand panel, 300X est peut-etre trop
 		try:
@@ -174,9 +170,6 @@ for i in range(1,len(samples)):
 			cell.fill = openpyxl.styles.PatternFill(fill_type='lightUp')
 ##############################################################################################
 
-#run_name = cna_folder.split("/")[-4].replace("Auto_user_","")
-#run_name = run_name.split("_")[0]
-#CNV_finalreport.save(cna_folder+"/CNV_finalReport_%s.xlsx" % run_name)
 CNV_finalreport.save(cna_folder+"/CNV_finalReport.xlsx")
 
 ##amp_colors = {3:'d3d6f2', 4:'ccbeee', 5:'c5a6eb', 6:'be8ee8', 7:'b776e5', 8:'a159d4', 9:'8c3cc4', 10:'761fb3', 11:'6103a3', 12:'53038a', 13:'450472', 14:'37055a', 15:'290642'}

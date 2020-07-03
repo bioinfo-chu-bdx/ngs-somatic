@@ -79,7 +79,7 @@ favorite_nm_path = '%s/reference_files/annotate_bed/favorite_NM_list.tsv' % pipe
 
 bed_path = sys.argv[1]
 bed_reader = open(bed_path,'r')
-bed_writer = open(bed_path.split('.bed')[0]+'.annotated.bed','w')
+bed_writer = open(bed_path.split('.bed')[0]+'.anno.bed','w')
 
 knownToRefSeq_file = open(knownToRefSeq_path,'r')
 knownToRefSeq_reader = csv.reader(knownToRefSeq_file,delimiter='\t')

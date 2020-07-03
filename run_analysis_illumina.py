@@ -74,7 +74,7 @@ db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
 control_names = ['H2O','H20','NTC'] # liste des noms possibles pour les temoins negatifs
-sampleask = False
+sampleask = True
 checkconta_bamlist = []
 fastq_data = {}
 
@@ -154,8 +154,15 @@ for fastqfile in sorted(fastqlist) :
 		logging.warning("\t -- Warning : run type (panel) not found for %s. Sample will not be processed." % sample)
 		continue
 	reference = global_param['run_type'][run_type]['reference']
+	covered_bed = global_param['run_type'][run_type].get('covered_bed','target_bed') # si covered existe, sinon utiliser le target
 	target_bed = global_param['run_type'][run_type]['target_bed']
-	bed_merged = global_param['run_type'][run_type]['merged_bed']
+	if not covered_bed == target_bed:
+		logging.info("WARNING : covered_bed is also roi_bed")
+	merged_bed = global_param['run_type'][run_type]['merged_bed']
+	intervals = global_param['run_type'][run_type].get('intervals',False)
+	if not intervals:
+		logging.info("WARNING intervals file missing, cannot analyse this fastq")
+		continue
 	param = global_param['run_type'][run_type]['vc_parameters']
 	param_hotspot_only = global_param['run_type'][run_type]['vc_parameters_hotspot_only']
 	if 'PL' in sample_id : # cDNA sample
@@ -172,14 +179,11 @@ for fastqfile in sorted(fastqlist) :
 	elif not os.path.isdir(intermediate_folder):
 		subprocess.call(['mkdir', intermediate_folder])
 
-	intervals = None
-	if os.path.isfile(target_bed.replace('/reference_files/','/reference_files/mutect/').replace('.bed','.intervals')):
-		intervals = target_bed.replace('/reference_files/','/reference_files/mutect/').replace('.bed','.intervals')
-	else:
-		logging.info("WARNING intervals file missing, cannot analyse this fastq")
-		continue
+	fastq_data[fastqfile] = {
+	'barcode':barcode,'sample':sample,'sample_id':sample_id,'analysis_id':analysis_id,'run_type':run_type,'reference':reference,
+	'sample_folder':sample_folder,'intermediate_folder':intermediate_folder,'target_bed':target_bed,'intervals':intervals,'merged_bed':merged_bed,
+	'covered_bed':covered_bed,'param':param,'param_hotspot_only':param_hotspot_only,'hotspot_vcf':hotspot_vcf}
 
-	fastq_data[fastqfile] = {'barcode':barcode,'sample':sample,'sample_id':sample_id,'analysis_id':analysis_id,'run_type':run_type,'reference':reference,'sample_folder':sample_folder,'intermediate_folder':intermediate_folder,'target_bed':target_bed,'intervals':intervals,'bed_merged':bed_merged,'param':param,'param_hotspot_only':param_hotspot_only,'hotspot_vcf':hotspot_vcf}
 db_con.close()
 
 ###   __   __   ___     __   __   __   __   ___  __   __          __    ###
@@ -187,33 +191,55 @@ db_con.close()
 ###  |    |  \ |___    |    |  \ \__/ \__, |___ .__/ .__/ | | \| \__>   ###
 
 logging.info("\n- [%s] PRE-PROCESSING ..." % (time.strftime("%H:%M:%S")))
+
 for fastqfile in fastq_data:
 	logging.info("\t- %s :" % (fastq_data[fastqfile]['sample']))
-	fastq_r1 = fastqfile
-	fastq_r2 = None
-	if os.path.isfile(fastqfile.replace('R1_001','R2_001')):
-		fastq_r2 = fastqfile.replace('R1_001','R2_001')
-	fastq_data[fastqfile]['fastq_r2'] = fastq_r2
-
-	bam = '%s/%s_%s.bam' % (fastq_data[fastqfile]['sample_folder'],fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode'])
-	
-	read_group = '@RG\\tID:%s\\tLB:%s\\tPL:%s\\tPU:%s\\tSM:%s' % ('1','lib1','illumina','unit1',fastq_data[fastqfile]['sample'])
-	#TODO : real READ GROUP (which reflects which library a read belongs to and what lane it was sequenced in on the flowcell)
-	#Maybe auto on fastq produced by nextseq?
-
 	prep_folder = '%s/pre-processing' % fastq_data[fastqfile]['intermediate_folder']
 	if not os.path.isdir(prep_folder):
 		subprocess.call(['mkdir', prep_folder])
 
-	# FASTQ TO SAM
+	fastq_r1 = fastqfile
+	paired_end_classic = False
+	paired_end_mbc = False
+	# RUN PAIRED END WITH MBC
+	if os.path.isfile(fastqfile.replace('R1_001','R3_001')):
+		paired_end_mbc = True
+		fastq_data[fastqfile]['fastq_r2'] = fastqfile.replace('R1_001','R2_001')
+		fastq_data[fastqfile]['fastq_r3'] = fastqfile.replace('R1_001','R3_001')
+	# RUN PAIRED END NO MBC
+	elif os.path.isfile(fastqfile.replace('R1_001','R2_001')):
+		paired_end_classic = True
+		fastq_data[fastqfile]['fastq_r2'] = fastqfile.replace('R1_001','R2_001')
+
+	# (OPTIONAL) AGENT TRIM
+	if paired_end_mbc:
+		logging.info("\t\t- [%s] Trim MBC ..." % time.strftime("%H:%M:%S"))
+		cmd = subprocess.Popen(['%s/agent/agent.sh' % pipeline_folder,'trim','-xt','-fq1',fastq_r1,'-fq2',fastq_data[fastqfile]['fastq_r3'],'-out_loc',prep_folder], stdout=open('%s/trim.stdout.txt' % prep_folder,'w'), stderr=open('%s/trim.stderr.txt' % prep_folder,'w'))
+		cmd.communicate()
+		fastq_r1 = glob.glob('%s/*_R1_*fastq*' % prep_folder)[0]
+		fastq_data[fastqfile]['fastq_r3'] = glob.glob('%s/*_R3_*fastq*' % prep_folder)[0]
+
+	# # QC : FASTQC (FASTQ)
+	# logging.info("\t\t- [%s] FastQC ..." % (time.strftime("%H:%M:%S")))
+	# fastqc_folder = '%s/fastqc' % fastq_data[fastqfile]['intermediate_folder']
+	# if not os.path.isdir(fastqc_folder):
+		# subprocess.call(['mkdir', fastqc_folder])
+	# cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % fastq_r1,'--outdir',fastqc_folder],stdout=open('%s/fastqc_r1.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_r1.stderr.txt' % fastqc_folder,'w'))
+	# cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % fastq_data[fastqfile]['fastq_r3'],'--outdir',fastqc_folder],stdout=open('%s/fastqc_r3.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_r3.stderr.txt' % fastqc_folder,'w'))
+
+	# ALIGNMENT - FASTQ TO SAM
 	logging.info("\t\t- [%s] BWA-MEM Alignment ..." % time.strftime("%H:%M:%S"))
-	if fastq_r2 != None:
-		cmd = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1,fastq_r2], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
+	read_group = '@RG\\tID:%s\\tLB:%s\\tPL:%s\\tPU:%s\\tSM:%s' % ('%s' % fastq_data[fastqfile]['sample_id'],'Target-Myeloid-v1','illumina','NDX550372',fastq_data[fastqfile]['sample']) # READ GROUP (which reflects which library a read belongs to and what lane it was sequenced in on the flowcell)
+	if paired_end_mbc :
+		cmd = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1,fastq_data[fastqfile]['fastq_r3']], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
+	elif paired_end_classic:
+		cmd = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1,fastq_data[fastqfile]['fastq_r2']], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
 	else:
-		cmd = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
+		cmd = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['reference'],fastq_r1], stdout=open('%s/bwa_mem.stdout.txt' % prep_folder,'w'), stderr=open('%s/bwa_mem.stderr.txt' % prep_folder,'w'))
 	cmd.communicate()
 
-	if fastq_r2 != None:
+	bam = '%s/%s_%s.bam' % (fastq_data[fastqfile]['sample_folder'],fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode'])
+	if paired_end_classic :
 		## MARKDUPLICATESSPARK (& SORT)
 		logging.info("\t\t- [%s] Marking duplicates and sorting BAM ..." % time.strftime("%H:%M:%S"))
 		cmd = subprocess.Popen(['docker','exec','-it','gatk','gatk','MarkDuplicatesSpark','--verbosity','ERROR','-I','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),'-O','%s/%s.markdup.sorted.bam' % (prep_folder,fastq_data[fastqfile]['sample'])], stdout=open('%s/markduplicates.stdout.txt' % prep_folder,'w'), stderr=open('%s/markduplicates.stderr.txt' % prep_folder,'w'))
@@ -226,10 +252,16 @@ for fastqfile in fastq_data:
 		cmd = subprocess.Popen(['docker','exec','-it','gatk','gatk','ApplyBQSRSpark','-I','%s/%s.markdup.sorted.bam' % (prep_folder,fastq_data[fastqfile]['sample']),'-R',fastq_data[fastqfile]['reference'],'--bqsr-recal-file','%s/%s.recal_data.table' % (prep_folder,fastq_data[fastqfile]['sample']),'-O',bam], stdout=open('%s/applybqsr.stdout.txt' % prep_folder,'w'), stderr=open('%s/applybqsr.stderr.txt' % prep_folder,'w'))
 		cmd.communicate()
 	else:
-		# SAM TO BAM
-		logging.info("\t\t- [%s] Converting SAM to BAM ..." % time.strftime("%H:%M:%S"))
-		cmd = subprocess.Popen(['samtools','view','-@','12','-bS','-o','%s/%s.markdup.sorted.bam' % (prep_folder,fastq_data[fastqfile]['sample']),'%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample'])], stdout=open('%s/samtools_view.stdout.txt' % prep_folder,'w'), stderr=open('%s/samtools_view.stderr.txt' % prep_folder,'w'))
-		cmd.communicate()
+		if paired_end_mbc:
+			# PROCESS MBC
+			logging.info("\t\t- [%s] Process MBC ..." % time.strftime("%H:%M:%S"))
+			cmd = subprocess.Popen(['%s/agent/agent.sh' % pipeline_folder,'locatit','-i','-C','-m','1','-U','-r','-IS','-OB','-c','100','-q','20','-c','100','-l',fastq_data[fastqfile]['covered_bed'],'-o','%s/%s.markdup.sorted.bam' % (prep_folder,fastq_data[fastqfile]['sample']),'%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample']),fastq_data[fastqfile]['fastq_r2']], stdout=open('%s/locatit.stdout.txt' % prep_folder,'w'), stderr=open('%s/locatit.stderr.txt' % prep_folder,'w'))
+			cmd.communicate()
+		else:
+			# SAM TO BAM
+			logging.info("\t\t- [%s] Converting SAM to BAM ..." % time.strftime("%H:%M:%S"))
+			cmd = subprocess.Popen(['samtools','view','-@','12','-bS','-o','%s/%s.markdup.sorted.bam' % (prep_folder,fastq_data[fastqfile]['sample']),'%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample'])], stdout=open('%s/samtools_view.stdout.txt' % prep_folder,'w'), stderr=open('%s/samtools_view.stderr.txt' % prep_folder,'w'))
+			cmd.communicate()
 
 		# SORT BAM
 		logging.info("\t\t- [%s] Sorting BAM ..." % time.strftime("%H:%M:%S"))
@@ -241,7 +273,7 @@ for fastqfile in fastq_data:
 		cmd = subprocess.Popen(['samtools','index',bam], stdout=open('%s/samtools_index.stdout.txt' % prep_folder,'w'), stderr=open('%s/samtools_index.stderr.txt' % prep_folder,'w'))
 		cmd.communicate()
 
-	# remove SAM and BAM temp files (if bam correctly produced)
+	# remove SAM and BAM temp files (if bam correctly produced) # A METTRE PLUTOT EN FIN D'ANALYSE
 	if os.path.exists(bam):
 		subprocess.call(['rm','%s/%s.sam' % (prep_folder,fastq_data[fastqfile]['sample'])],stdout=FNULL,stderr=FNULL)
 		subprocess.call(['rm','%s/%s.markdup.sorted.bam' % (prep_folder,fastq_data[fastqfile]['sample'])],stdout=FNULL,stderr=FNULL)
@@ -249,7 +281,6 @@ for fastqfile in fastq_data:
 		subprocess.call(['rm','%s/%s.markdup.sorted.bam.sbi' % (prep_folder,fastq_data[fastqfile]['sample'])],stdout=FNULL,stderr=FNULL)
 
 	fastq_data[fastqfile]['bam'] = bam
-
 
 	###  __   __        ___  __        __   ___                             __     __  ###
 	### /  ` /  \ \  / |__  |__)  /\  / _` |__      /\  |\ |  /\  |    \ / /__` | /__` ###
@@ -265,7 +296,7 @@ for fastqfile in fastq_data:
 	cmd = subprocess.Popen([
 		'bash', '%s/coverageAnalysis/run_coverage_analysis.sh' % pipeline_folder,
 		'-L', 'hg19', # attention ABL1?
-		'-ag', # '-g' seulement ? a pour amplicons.
+		'-dg', # '-g' seulement ? a pour amplicons. # -d = ignore duplicates (pour target coverage)
 		'-D',coverage_folder,
 		'-B',fastq_data[fastqfile]['target_bed'],
 		fastq_data[fastqfile]['reference'],
@@ -274,42 +305,83 @@ for fastqfile in fastq_data:
 		stdout=open('%s/run_coverage_analysis.stdout.txt' % coverage_folder,'w'), 
 		stderr=open('%s/run_coverage_analysis.stderr.txt' % coverage_folder,'w'))
 	cmd.communicate()
+	
+	# also compute samtools depth
+	cmd = subprocess.Popen(['samtools', 'depth','-b',fastq_data[fastqfile]['target_bed'],fastq_data[fastqfile]['bam']],stdout=open('%s/depth.txt' % coverage_folder,'w'), stderr=open('%s/samtools_depth.stderr.txt' % coverage_folder,'w'))
+	cmd.communicate()
+
+# QC : FASTQC BAM
+	logging.info("\t\t- [%s] FastQC (BAM)..." % (time.strftime("%H:%M:%S")))
+	fastqc_folder = '%s/fastqc' % fastq_data[fastqfile]['intermediate_folder']
+	if not os.path.isdir(fastqc_folder):
+		subprocess.call(['mkdir', fastqc_folder])
+	cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % pipeline_folder,'--outdir',fastqc_folder,fastq_data[fastqfile]['bam']],stdout=open('%s/fastqc_bam.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_bam.stderr.txt' % fastqc_folder,'w'))
+
 
 #####  __        __  ___  __   __        ___  __        __   ___ ###
 ##### |__) |    /  \  |  /  ` /  \ \  / |__  |__)  /\  / _` |__  ###
 ##### |    |___ \__/  |  \__, \__/  \/  |___ |  \ /~~\ \__> |___ ###
 
-#if options.run and os.path.isfile('%s/barcodes.json' % run_folder):
-	#logging.info(" [%s] plotCoverage ..." % time.strftime("%H:%M:%S"))
-
-	#cmd = subprocess.Popen(['python', '%s/plotCoverage/plotCoverage.py' % pipeline_folder,'--run-folder', run_folder],
-	#stdout=open('%s/_plotCoverage/plotCoverage.stdout.txt' % run_folder,'w'), 
-	#stderr=open('%s/_plotCoverage/plotCoverage.stderr.txt' % run_folder,'w'))
-	#cmd.communicate()
-	#with open('%s/_plotCoverage/plotCoverage.stderr.txt' % run_folder,'r') as stderr:
-		#for line in stderr.readlines():
-			#print line.replace('\n','')
+if options.run and os.path.isfile('%s/barcodes.json' % run_folder):
+	logging.info(" [%s] plotCoverage ..." % time.strftime("%H:%M:%S"))
+	cmd = subprocess.Popen(['python', '%s/plotCoverage/plotCoverage.py' % pipeline_folder,'--run-folder', run_folder],stdout=open('%s/_plotCoverage/plotCoverage.stdout.txt' % run_folder,'w'), stderr=open('%s/_plotCoverage/plotCoverage.stderr.txt' % run_folder,'w'))
+	cmd.communicate()
+	with open('%s/_plotCoverage/plotCoverage.stderr.txt' % run_folder,'r') as stderr:
+		for line in stderr.readlines():
+			print line.replace('\n','')
 
 #####  __            ###
 ##### /  ` |\ | \  / ###
 ##### \__, | \|  \/  ###
 
-#if options.run:
-	#logging.info(" [%s] CNV Analysis ..." % (time.strftime("%H:%M:%S")))
-	#if not os.path.isdir('%s/_CNA' % run_folder):
-		#subprocess.call(['mkdir', '%s/_CNA' % run_folder])
-	#cmd = subprocess.Popen(['python','%s/CNV/run_cna.py' % pipeline_folder, run_folder], 
-	#stdout=open('%s/_CNA/run_cna.stdout.txt' % run_folder,'w'), 
-	#stderr=open('%s/_CNA/run_cna.stderr.txt' % run_folder,'w'))
-	#cmd.communicate()
-	#with open('%s/_CNA/run_cna.stderr.txt' % run_folder,'r') as stderr:
-		#for line in stderr.readlines():
-			#print line.replace('\n','')
+if options.run:
+	logging.info(" [%s] CNV Analysis ..." % (time.strftime("%H:%M:%S")))
+	if not os.path.isdir('%s/_CNA' % run_folder):
+		subprocess.call(['mkdir', '%s/_CNA' % run_folder])
+	cmd = subprocess.Popen(['python','%s/CNV/run_cna.py' % pipeline_folder, run_folder], stdout=open('%s/_CNA/run_cna.stdout.txt' % run_folder,'w'), stderr=open('%s/_CNA/run_cna.stderr.txt' % run_folder,'w'))
+	cmd.communicate()
+	with open('%s/_CNA/run_cna.stderr.txt' % run_folder,'r') as stderr:
+		for line in stderr.readlines():
+			print line.replace('\n','')
 
+##### #####            __              ___     __                         __                __                     __  ___      ___    __       ##### ##### 
+##### ##### \  /  /\  |__) |  /\  |\ |  |  __ /  `  /\  |    |    | |\ | / _`     /\  |\ | |  \     /\  |\ | |\ | /  \  |   /\   |  | /  \ |\ | ##### ##### 
+##### #####  \/  /~~\ |  \ | /~~\ | \|  |     \__, /~~\ |___ |___ | | \| \__>    /~~\ | \| |__/    /~~\ | \| | \| \__/  |  /~~\  |  | \__/ | \| ##### ##### 
+##### #####                                                                                                                                     ##### ##### 
 
 logging.info("\n- [%s] VARIANT-CALLING AND ANNOTATION ..." % (time.strftime("%H:%M:%S")))
 for fastqfile in fastq_data:
 	logging.info("\t- %s :" % (fastq_data[fastqfile]['sample']))
+
+	# FOR SKIPING SAMPLES # WARNING check-contamination will not work #
+	if sampleask:
+		proceed = raw_input('continue? (y/n/stopask)\n')              
+		if proceed == 'y' or proceed == 'yes':                        
+			pass
+		elif proceed == 'stopask':
+			sampleask = False
+			pass                                                       
+		else:                                                         
+			continue                                                  
+
+	### __   ___  ___  __             __              ___ 
+	### |  \ |__  |__  |__) \  /  /\  |__) |  /\  |\ |  |  
+	### |__/ |___ |___ |     \/  /~~\ |  \ | /~~\ | \|  |  
+
+	logging.info("\t\t - [%s] DeepVariant ..." % time.strftime("%H:%M:%S"))
+	deepvariant_folder = '%s/deepvariant' % fastq_data[fastqfile]['intermediate_folder']
+	if not os.path.isdir(deepvariant_folder):
+		subprocess.call(['mkdir', deepvariant_folder])
+
+	cmd = subprocess.Popen(['docker','exec','-it','deepvariant','/opt/deepvariant/bin/run_deepvariant',
+	'--model_type=WES',
+	'--ref=%s' % fastq_data[fastqfile]['reference'],
+	'--reads=%s' % fastq_data[fastqfile]['bam'],
+	'--output_vcf=%s/%s.deepvariant.vcf' % (deepvariant_folder,fastq_data[fastqfile]['sample']),
+	'--regions=%s' % fastq_data[fastqfile]['merged_bed'],
+	'--num_shards=12'
+	],stdout=open('%s/deepvariant.stdout.txt'%deepvariant_folder,'w'),stderr=open('%s/deepvariant.stderr.txt'%deepvariant_folder,'w'))
+	cmd.communicate()
 
 	###            __   __   __            ###
 	### \  /  /\  |__) /__` /  `  /\  |\ | ###
@@ -333,8 +405,8 @@ for fastqfile in fastq_data:
 	'--min-coverage','10',
 	'--min-reads2', '2',
 	'--min-strands2','1',
-	'--min-avg-qual','20',
-	'--min-var-freq','0.02',
+	'--min-avg-qual','10',
+	'--min-var-freq','0.01',
 	'--output-file','%s/%s.varscan2.filtered.vcf' % (varscan2_folder,fastq_data[fastqfile]['sample'])
 	],stdout=open('%s/varscan2.filter.stdout.txt'%varscan2_folder,'w'),stderr=open('%s/varscan2.filter.stderr.txt'%varscan2_folder,'w'))
 	cmd.communicate()
@@ -365,7 +437,13 @@ for fastqfile in fastq_data:
 	cmd.communicate()
 
 	logging.info("\t\t\t - [%s] filter ..." % time.strftime("%H:%M:%S"))
-	cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'filter','-i','%s/%s.lofreq.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),'-o','%s/%s.lofreq.filtered.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),'--cov-min','10','--af-min','0.02'],stdout=open('%s/lofreq.filter.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.filter.stderr.txt'%lofreq_folder,'w'))
+	cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'filter',
+	'-i','%s/%s.lofreq.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),
+	'-o','%s/%s.lofreq.filtered.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),
+	'--cov-min','10',
+	'--af-min','0.01',
+	'--snvqual-thresh','10'
+	],stdout=open('%s/lofreq.filter.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.filter.stderr.txt'%lofreq_folder,'w'))
 	cmd.communicate()
 
 	# remove temp indelqual bam
@@ -396,7 +474,13 @@ for fastqfile in fastq_data:
 			interval_chunk = '%s/%04d-scattered.interval_list'%(mutect2_folder,i)
 			vcf_chunk = '%s/%s.mutect2.chunk%04d.vcf' % (mutect2_folder,fastq_data[fastqfile]['sample'],i)
 			vcf_chunk_list.append(vcf_chunk)
-			cmd = subprocess.Popen(['docker','exec','-it','gatk','gatk','Mutect2','-I',fastq_data[fastqfile]['bam'],'-R',fastq_data[fastqfile]['reference'],'-L',interval_chunk,'--max-mnp-distance','0','--max-reads-per-alignment-start','0','--min-base-quality-score','1','-O',vcf_chunk],stdout=open('%s/mutect2.chunk%04d.stdout.txt' % (mutect2_folder,i),'w'),stderr=open('%s/mutect2.chunk%04d.stderr.txt' % (mutect2_folder,i),'w'))
+			cmd = subprocess.Popen(['docker','exec','-it','gatk','gatk','Mutect2',
+			'-I',fastq_data[fastqfile]['bam'],
+			'-R',fastq_data[fastqfile]['reference'],
+			'-L',interval_chunk,
+			'--max-mnp-distance','0',
+			'--max-reads-per-alignment-start','0',
+			'-O',vcf_chunk],stdout=open('%s/mutect2.chunk%04d.stdout.txt' % (mutect2_folder,i),'w'),stderr=open('%s/mutect2.chunk%04d.stderr.txt' % (mutect2_folder,i),'w'))
 			ps.append(cmd)
 		for p in ps:
 			p.wait()
@@ -430,7 +514,9 @@ for fastqfile in fastq_data:
 		'-V','%s/%s.mutect2.vcf' % (mutect2_folder,fastq_data[fastqfile]['sample']),
 		'-R',fastq_data[fastqfile]['reference'],
 		'--max-events-in-region', '20',
-		'--min-allele-fraction', '0.02',
+		'--min-allele-fraction', '0.01',
+		'--min-median-base-quality','10',
+		'--unique-alt-read-count','10',
 		'-O','%s/%s.mutect2.filtered.vcf' % (mutect2_folder,fastq_data[fastqfile]['sample'])
 		#'--panel-of-normals', '%s/reference_files/mutect/colon_lung_pon.vcf.gz' % pipeline_folder
 	], stdout=open('%s/filtermutectcalls.stdout.txt' % mutect2_folder,'w'),stderr=open('%s/filtermutectcalls.stderr.txt' % mutect2_folder,'w'))
@@ -452,6 +538,7 @@ for fastqfile in fastq_data:
 		'--vcf', '%s/%s.mutect2.filtered.vcf' % (mutect2_folder,fastq_data[fastqfile]['sample']),
 		'--vcf', '%s/%s.varscan2.filtered.vcf' % (varscan2_folder,fastq_data[fastqfile]['sample']),
 		'--vcf', '%s/%s.lofreq.filtered.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),
+		'--vcf', '%s/%s.deepvariant.vcf' % (deepvariant_folder,fastq_data[fastqfile]['sample']),
 		'--abl1', abl1
 		], 
 		stdout=open('%s/insert_db_variants.stdout.txt' % fastq_data[fastqfile]['intermediate_folder'],'w'), 
@@ -541,6 +628,16 @@ for fastqfile in fastq_data:
 		#i+=1
 
 	# SAMTOOLS? PISCES?
+
+
+# MUTLIQC
+if options.run:
+	logging.info("\t- [%s] MultiQC ..." % (time.strftime("%H:%M:%S")))
+	multiqc_folder = '%s/_multiqc' % run_folder
+	if not os.path.isdir(multiqc_folder):
+		subprocess.call(['mkdir', multiqc_folder])
+	cmd = subprocess.Popen(['multiqc',run_folder,'-f','--outdir',multiqc_folder],stdout=open('%s/multiqc.stdout.txt' % multiqc_folder,'w'),stderr=open('%s/multiqc.stderr.txt' % multiqc_folder,'w'))
+	cmd.communicate()
 
 	###        ___  ___  __   __   ___  __  ___          __   ___  __  ###
 	### | |\ |  |  |__  |__) /__` |__  /  `  |     \  / /  ` |__  /__` ###

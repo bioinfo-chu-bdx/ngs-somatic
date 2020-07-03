@@ -50,8 +50,8 @@ panels = [
 	('%s/reference_files/reannoted/IAD108862_231_Designed.with_NM.bed' % pipeline_folder			,'SBT',			5),
 	('%s/reference_files/reannoted/IAD94971_233_Designed.with_NM.bed' % pipeline_folder				,'SBT',			4),
 	('%s/reference_files/reannoted/IAD72953_231_Designed.with_NM.bed' % pipeline_folder				,'SBT',			3),
-	('%s/reference_files/reannoted/SureSelect-HEMATO-v5.sorted.annotated.bed' % pipeline_folder				,'TEST',		1),
-	
+	('%s/reference_files/reannoted/SureSelect-HEMATO-v5.sorted.annotated.bed' % pipeline_folder		,'TEST',		1),
+	('%s/reference_files/Target-Myeloid_v1-SureSelect.roi.anno.bed' % pipeline_folder				,'LAM-illumina',1),
 ]
 
 db_con = sqlite3.connect(db_path)

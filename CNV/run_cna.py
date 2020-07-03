@@ -43,8 +43,12 @@ runtypes = []
 oncotests_B = []
 oncotests_T = []
 for bamfile in bamlist:
-	sample = bamfile.split('/')[-1].split('_IonXpress')[0]
-	barcode = 'IonXpress_' + bamfile.split('IonXpress_')[-1].split('.bam')[0]
+	if '_IonXpress' in bamfile:
+		sample = bamfile.split('/')[-1].split('_IonXpress')[0]
+		barcode = 'IonXpress_' + bamfile.split('IonXpress_')[-1].split('.bam')[0]
+	else:
+		sample = bamfile.split('/')[-1].split('_S')[0]
+		barcode = 'S%s' % bamfile.split('_S')[-1].split('.bam')[0]
 	target = barcodes_json[barcode]['target_region_filepath'].split('/')[-1]
 	for runtype in global_param['run_type']:
 		if global_param['run_type'][runtype]['target_bed'].split('/')[-1] == target:

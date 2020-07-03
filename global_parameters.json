@@ -40,8 +40,10 @@
 		},
 		"LAM-illumina":{
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
-			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.annotated.bed",
-			"merged_bed": "",
+			"covered_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.covered.bed",
+			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.roi.anno.bed",
+			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.roi.bed",
+			"intervals": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.roi.intervals",
 			"vc_parameters": "",
 			"vc_parameters_hotspot_only": "",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_LAM_v3.vcf",

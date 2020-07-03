@@ -1,0 +1,14 @@
+DISCLAIMER: The Agilent Genomics NextGen Toolkit (AGeNT) module has been
+designed to provide the adaptor trimming and duplicate read removal
+capabilities in a flexible command-line interface for
+integration into your bioinformatics pipeline. Agilent does not guarantee the
+usability of third party tools (open- or closed-source) in
+upstream/downstream analysis of data in conjunction with AGeNT. AGeNT is
+explicitly designed and fine-tuned for customers with established in-house
+bioinformatics experts with the capability to build, integrate, maintain, and
+troubleshoot internal analysis pipelines. Moreover, the module is designed
+specifically for customers with sufficient computing infrastructure and IT
+support to troubleshoot all issues unrelated to the execution of the
+AgeNT algorithms. 
+
+For Research Use Only. Not for use in diagnostic procedures.

@@ -103,7 +103,15 @@ for vcf_path in options.vcfs:
 				continue
 			pos_cov = int(line[9].split(':')[2])
 			var_covs = [int(line[9].split(':')[5])]
-			
+		elif 'deepvariant' in vcf_path:
+			vc_name = 'deepvariant'
+			filters = line[6]
+			if filters != 'PASS':
+				continue
+			pos_cov = int(line[9].split(':')[2])
+			var_covs = line[9].split(':')[3].split(',')[1:] # premiere valeur est ref count
+			var_covs = [int(v) for v in var_covs]
+
 		for a in range(len(alts)): # si multiallelic
 			ref = oref
 			alt = alts[a]
@@ -178,20 +186,24 @@ for vcf_path in options.vcfs:
 					'genomicDescription':genomicDescription
 				}
 			elif vc_name not in variants[variant]['call']: # evite lofreq lignes en double...
-				variants[variant]['pos_cov'].append(pos_cov)			
-				variants[variant]['var_cov'].append(var_cov)			
-				variants[variant]['call'].append(vc_name)			
-#pprint(variants)
+				variants[variant]['pos_cov'].append(pos_cov)
+				variants[variant]['var_cov'].append(var_cov)
+				variants[variant]['call'].append(vc_name)
+
 print " - total all vc : %s variants" % len(variants)
-z = 0
+x = 0
 y = 0
+z = 0
 for variant in variants:
 	if len(variants[variant]['call']) >= 2:
-		z+=1
-	if len(variants[variant]['call']) == 3:
+		x+=1
+	if len(variants[variant]['call']) >= 3:
 		y+=1
-print " - total 2+ vc : %s variants" % z
-print " - total 3  vc : %s variants" % y
+	if len(variants[variant]['call']) == 4:
+		z+=1
+print " - total 4  vc : %s variants" % z
+print " - total 3+  vc : %s variants" % y
+print " - => total 2+ vc : %s variants <=" % x
 
 # IF ANALYSIS PREVIOUSLY DONE, DELETE OLD VARIANTMETRICS FIRST
 db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s'" % analysis_id)
@@ -201,7 +213,7 @@ if db_vms:
 	for db_vm in db_vms:
 		db_cur.execute("DELETE FROM VariantMetrics WHERE variantMetricsID='%s'" % db_vm['variantMetricsID'])
 		
-#print " - [%s] %s variants" % (time.strftime("%H:%M:%S"),len(variants.keys()))
+
 #   ___                     __                __              ___    ___       __        ___ 
 #  |__  | |    |    | |\ | / _`    \  /  /\  |__) |  /\  |\ |  |      |   /\  |__) |    |__  
 #  |    | |___ |___ | | \| \__>     \/  /~~\ |  \ | /~~\ | \|  |      |  /~~\ |__) |___ |___ 
@@ -225,13 +237,13 @@ for variant in variants:
 				print "\t - warning (VARIANT table)** %s"%e
 		elif db_variant['hgvs'] == 'no':
 			variant_id = db_variant['hgvsInfo']
-					
+
 		#   ___                     __                __              ___        ___ ___  __     __   __     ___       __        ___ 
 		#  |__  | |    |    | |\ | / _`    \  /  /\  |__) |  /\  |\ |  |   |\/| |__   |  |__) | /  ` /__`     |   /\  |__) |    |__  
 		#  |    | |___ |___ | | \| \__>     \/  /~~\ |  \ | /~~\ | \|  |   |  | |___  |  |  \ | \__, .__/     |  /~~\ |__) |___ |___ 
-							
+
 		db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s' and variant='%s'" % (analysis_id,variant_id))
-		if db_cur.fetchone() is None:																					  
+		if db_cur.fetchone() is None:
 			random_uuid = uuid.uuid1()
 			variantmetrics_id = 'M-'+random_uuid.hex[:8]
 			try:

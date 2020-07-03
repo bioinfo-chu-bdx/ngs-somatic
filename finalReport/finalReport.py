@@ -187,7 +187,7 @@ parser.add_option('-x', '--xmin',		help="Min X for amplicon coverage",	dest='xmi
 (options, args) = parser.parse_args()
 
 analysis_id = options.analysis
-minX = int(options.xmin)
+minX = float(options.xmin)
 
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
@@ -207,6 +207,8 @@ sample_id = db_analysis['sample']
 panel = db_analysis['panel']
 db_cur.execute("SELECT panelProject FROM Panel WHERE panelID='%s'"% (panel))
 run_type = db_cur.fetchone()['panelProject']
+db_cur.execute("SELECT chromosome,start,stop,targetedRegionName,gene,details FROM TargetedRegion INNER JOIN Panel ON TargetedRegion.panel = Panel.panelID WHERE panel='%s' ORDER BY start" % panel)
+db_target_regions = db_cur.fetchall()
 bam_path = db_analysis['bamPath']
 sample_folder = os.path.dirname(bam_path)
 sample = sample_folder.split('/')[-1]
@@ -223,18 +225,20 @@ finalReport = openpyxl.Workbook()
 annotationSheet = finalReport.create_sheet(title='Annotation')
 cnvSheet = finalReport.create_sheet(title='CNV')
 plotSheet = finalReport.create_sheet(title='Plot Coverage')
-coverageSheet = finalReport.create_sheet(title='Amplicon Coverage')
+coverageSheet = finalReport.create_sheet(title='Target Coverage')
 baseCoverageSheet = finalReport.create_sheet(title='Base Coverage')
-vcfSheet1 = finalReport.create_sheet(title='VCF (de novo)')
+# vcfSheet1 = finalReport.create_sheet(title='VCF (de novo)') # a la fin
 	
 try:
 	del finalReport['Sheet']
 except:
 	pass
 
-########################
-## FEUILLE ANNOTATION ##
-########################
+
+#                 __  ___      ___    __           __        ___  ___ ___ 
+#  /\  |\ | |\ | /  \  |   /\   |  | /  \ |\ |    /__` |__| |__  |__   |  
+# /~~\ | \| | \| \__/  |  /~~\  |  | \__/ | \|    .__/ |  | |___ |___  |  
+#                                                                         
 
 aheader = ['Commentaire','Gene','Exon','Transcript','Chr','Position','Ref','Alt','c.','p.','Region','Consequence','Freq','Var.Cov.','Depth','InterVar','ClinVar','COSMIC','dbSNP','gnomAD','1000G_ALL','1000G_EUR','NCI60','ESP','ExAC','SIFT','POLYPHEN2','PROVEAN','PubMed','VEP_Consequence','VEP_Impact','VEP_Diff','Class.','VC_CALL','c.(annovar)','p.(annovar)','annoWarning']
 
@@ -454,9 +458,10 @@ if 'SBT' in run_type:
 	annotationSheet.cell(row=l+2,column=1).value = "Amplicons < 300X: "
 	cell_format(annotationSheet.cell(row=l+2,column=1))
 
-#########
-## CNV ##
-#########
+#  __                __        ___  ___ ___ 
+# /  ` |\ | \  /    /__` |__| |__  |__   |  
+# \__, | \|  \/     .__/ |  | |___ |___  |  
+#                                           
 
 if os.path.isfile('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,run_type)):
 	print " - [%s] CNV sheet ..." % time.strftime("%H:%M:%S")
@@ -482,13 +487,17 @@ else:
 	cnvSheet.cell(row=1,column=1).value = "CNV finalReport file not found for %s. " % sample
 	print "\t - CNV finalReport file not found"
 
-###################
-## PLOT COVERAGE ##
-###################
+#  __        __  ___     __   __        ___  __        __   ___ 
+# |__) |    /  \  |     /  ` /  \ \  / |__  |__)  /\  / _` |__  
+# |    |___ \__/  |     \__, \__/  \/  |___ |  \ /~~\ \__> |___ 
+#                                                               
 
 sample_read_len_histo = '%s/_plotCoverage/read_len_histograms/%s_rawlib.read_len_histogram.png' % (run_folder,barcode)
+amplicon_plots = sorted(glob.glob('%s/_plotCoverage/%s/amplicons_S*_all_samples.png' % (run_folder, run_type)))
+
+z = 1
 if os.path.isfile(sample_read_len_histo):
-	print " - [%s] Plot Coverage sheet ..." % time.strftime("%H:%M:%S")
+	z = 10
 	plotSheet.merge_cells(start_row=1, start_column=3, end_row=1, end_column=18)
 	plotSheet.cell(row=1,column=3).value = '%s READ LENGTH' % sample
 	plotSheet.merge_cells(start_row=1, start_column=20, end_row=1, end_column=35)
@@ -507,8 +516,9 @@ if os.path.isfile(sample_read_len_histo):
 	img = Image(run_read_len_histo.replace('.png','.thumb.png'))
 	plotSheet.add_image(img,'T2')
 
-	z = 10
-	amplicon_plots = sorted(glob.glob('%s/_plotCoverage/%s/amplicons_S*_all_samples.png' % (run_folder, run_type)))
+if amplicon_plots:
+	print " - [%s] Plot Coverage sheet ..." % time.strftime("%H:%M:%S")
+	# z = 10
 	for ap in amplicon_plots:
 		plotSheet.merge_cells(start_row=z, start_column=1, end_row=z, end_column=32)
 		plotSheet.cell(row=z,column=1).value = os.path.basename(ap)
@@ -520,52 +530,62 @@ if os.path.isfile(sample_read_len_histo):
 		img = Image(ap.replace('.png','.thumb.png'))
 		plotSheet.add_image(img,'B%s' % z)
 		z += 14
-		
+
 	for c in range(1,38): # 40/40 pixel cube
 		plotSheet.column_dimensions[plotSheet.cell(row=1,column=c).column].width = 5.71
 	for r in range(1,plotSheet.max_row+15):# 40/40 pixel cube
 		plotSheet.row_dimensions[plotSheet.cell(row=r,column=1).row].height = 30
 		for cell in plotSheet["%s:%s" % (r,r)]:
 			cell_format(cell,font='bigBold',alignment='center',color='DarkGrey')
-else:
-	plotSheet.cell(row=1,column=1).value = "plotCoverage not found for %s. " % sample
-	print "\t - plotCoverage histograms not found"
-	
-######################
-## FEUILLE COVERAGE ##
-######################
+# else:
+	# plotSheet.cell(row=1,column=1).value = "plotCoverage not found for %s. " % sample
+	# print "\t - plotCoverage histograms not found"
+
+#  __   __        ___  __        __   ___     __        ___  ___ ___ 
+# /  ` /  \ \  / |__  |__)  /\  / _` |__     /__` |__| |__  |__   |  
+# \__, \__/  \/  |___ |  \ /~~\ \__> |___    .__/ |  | |___ |___  |  
+#                                                                    
 
 cov_file = False
+amplicon_run = False
 if os.path.isfile('%s/coverage/%s_%s.amplicon.cov.xls' % (intermediate_folder,sample,barcode)):
 	cov_file = open('%s/coverage/%s_%s.amplicon.cov.xls' % (intermediate_folder,sample,barcode),'r')
+	amplicon_run = True
+elif os.path.isfile('%s/coverage/%s_%s.target.cov.xls' % (intermediate_folder,sample,barcode)):
+	cov_file = open('%s/coverage/%s_%s.target.cov.xls' % (intermediate_folder,sample,barcode),'r')
 elif os.path.isfile('%s.zip' % intermediate_folder):
 	archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
 	if 'coverage/%s_%s.amplicon.cov.xls' % (sample,barcode) in archive.namelist():
 		cov_file = archive.open('coverage/%s_%s.amplicon.cov.xls' % (sample,barcode))
-	
+		amplicon_run = True
+	if 'coverage/%s_%s.target.cov.xls' % (sample,barcode) in archive.namelist():
+		cov_file = archive.open('coverage/%s_%s.target.cov.xls' % (sample,barcode))
+
 if cov_file:
 	print " - [%s] Coverage sheet ..." % time.strftime("%H:%M:%S")
 	cov_file_reader = csv.reader(cov_file,delimiter='\t')
-
 	header = cov_file_reader.next()
 	header[4] = 'gene_id'
-	header.append('300x_fwd_rev')
+
+	if amplicon_run:
+		coverageSheet.title = 'Amplicon Coverage'
+		header.append('300x_fwd_rev')
 	for i in range(len(header)):
 		coverageSheet.cell(row=1,column=i+1).value = header[i]
 		cell_format(coverageSheet.cell(row=1,column=i+1),font='bold',border='thin',color='DarkGrey')
-	
+
 	cov_lines = [] # if from zip cannot seek(), so keep lines in list
 	for cov_line in cov_file_reader:
 		cov_lines.append(cov_line)
-		
+
 	l=2
-	red_amplicons = []
+	red_regions = []
 	## HEMATO LAM : MALE / FEMALE (chrY)
 	if 'LAM' in run_type or 'LAM_2018' in run_type or 'FLT3' in run_type:
 		for cov_line in cov_lines:
 			if cov_line[0] == 'chrY':
-				cov_line[4] = cov_line[4].split(';')[0].split('GENE_ID=')[-1]
-				if int(cov_line[9]) > 20:
+				# cov_line[4] = cov_line[4].split(';')[0].split('GENE_ID=')[-1]
+				if float(cov_line[9]) > 20.0:
 					cov_line.append('MALE')
 					for i in range(len(cov_line)):
 						cell_val = representsInt(cov_line[i])
@@ -580,21 +600,27 @@ if cov_file:
 				cov_lines.remove(cov_line)
 				l=l+1
 				break
-				
-	sorted_reader = sorted(cov_lines, key=lambda x: int(x[9]))
+
+	region2geneex = {}
+	for db_target_region in db_target_regions:
+		region2geneex[db_target_region['targetedRegionName']] = '%s_%s' % (db_target_region['gene'],db_target_region['details'])
+
+	sorted_reader = sorted(cov_lines, key=lambda x: float(x[9]))
 	for cov_line in sorted_reader:
-		attributes = cov_line[4]
-		gene_id = attributes.split('GENE=')[-1].split(';')[0]
-		details = attributes.split('DETAILS=')[-1].split(';')[0]
-		cov_line[4] = '%s_%s' % (gene_id,details)
-		# YES / NO FORWARD REVERSE 300X
-		if int(cov_line[10]) >= minX and int(cov_line[11]) >= minX:
-			cov_line.append('yes')
-		else:
-			cov_line.append('no')
+		# attributes = cov_line[4]
+		# gene_id = attributes.split('GENE=')[-1].split(';')[0]
+		# details = attributes.split('DETAILS=')[-1].split(';')[0]
+		# cov_line[4] = '%s_%s' % (gene_id,details)
+		cov_line[4] = region2geneex[cov_line[3]]
+		if amplicon_run:
+			# YES / NO FORWARD REVERSE 300X
+			if float(cov_line[10]) >= minX and float(cov_line[11]) >= minX:
+				cov_line.append('yes')
+			else:
+				cov_line.append('no')
 		# TOTAL READS > minX GREEN, < minX RED
-		if int(cov_line[9]) < minX:
-			red_amplicons.append(cov_line[3])
+		if float(cov_line[9]) < minX:
+			red_regions.append(cov_line[3])
 			for i in range(len(cov_line)):
 				cell_val = representsInt(cov_line[i])
 				coverageSheet.cell(row=l,column=i+1).value = cell_val
@@ -605,10 +631,10 @@ if cov_file:
 				cell_val = representsInt(cov_line[i])
 				coverageSheet.cell(row=l,column=i+1).value = cell_val
 				cell_format(coverageSheet.cell(row=l,column=i+1),color='LightGreen')
-			if int(cov_line[10]) < minX:
+			if float(cov_line[10]) < minX:
 				cell_format(coverageSheet.cell(row=l,column=11),color='LightRed')
 				cell_format(coverageSheet.cell(row=l,column=16),color='LightRed')
-			if int(cov_line[11]) < minX:
+			if float(cov_line[11]) < minX:
 				cell_format(coverageSheet.cell(row=l,column=12),color='LightRed')
 				cell_format(coverageSheet.cell(row=l,column=16),color='LightRed')
 		if cov_line[3] in ['AMPL7156804406','AMPL7156804405','AMPL7159095228','AMPL7159376611','AMPL7155781411']:
@@ -617,22 +643,30 @@ if cov_file:
 				coverageSheet.cell(row=l,column=i+1).value = cell_val
 				cell_format(coverageSheet.cell(row=l,column=i+1),font='BlueBold')
 		l=l+1
+	# else:
+		# # target cov capture version here
+		# print "capture"
 	cov_file.close()
 else:
-	coverageSheet.cell(row=1,column=1).value = "Amplicon Coverage file not found for %s. " % sample
+	coverageSheet.cell(row=1,column=1).value = "Region Coverage file not found for %s. " % sample
 	print "\t - coverage file not found"
 
-###########################
-## FEUILLE BASE COVERAGE ##
-###########################
+#  __        __   ___     __   __        ___  __        __   ___     __        ___  ___ ___ 
+# |__)  /\  /__` |__     /  ` /  \ \  / |__  |__)  /\  / _` |__     /__` |__| |__  |__   |  
+# |__) /~~\ .__/ |___    \__, \__/  \/  |___ |  \ /~~\ \__> |___    .__/ |  | |___ |___  |  
+#                                                                                           
 
 base_cov_file = False
 if os.path.isfile('%s/tvc_de_novo/depth.txt' % intermediate_folder):
 	base_cov_file = open('%s/tvc_de_novo/depth.txt' % intermediate_folder,'r')
+elif os.path.isfile('%s/coverage/depth.txt' % intermediate_folder):
+	base_cov_file = open('%s/coverage/depth.txt' % intermediate_folder,'r')
 elif os.path.isfile('%s.zip' % intermediate_folder):
 	archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
 	if 'tvc_de_novo/depth.txt' in archive.namelist():
 		base_cov_file = archive.open('tvc_de_novo/depth.txt')
+	elif 'coverage/depth.txt' in archive.namelist():
+		base_cov_file = archive.open('coverage/depth.txt')
 
 l = 1
 if base_cov_file:
@@ -641,30 +675,27 @@ if base_cov_file:
 	base_cov_lines = [] # if from zip cannot seek(), so keep lines in list
 	for base_cov_line in base_cov_file_reader:
 		base_cov_lines.append(base_cov_line)
-	
-	header = ['Chr','Start','End','Number of bases','Amplicon','Gene','Exon','Hotspots']
+
+	header = ['Chr','Start','End','Number of bases','Region','Gene','Exon','Hotspots']
 	if run_type == 'Lymphome_B' or run_type == 'Lymphome_T':
 		header.append('Cosmic occurences (haematopoietic_and_lymphoid_tissue)')
-	
-	xlist_full = [minX,2000,500,300,100,20]
+
+	xlist_full = [int(minX),2000,500,300,100,20]
 	xlist_full = sorted(xlist_full,reverse=True)
-	xlist = [minX]
+	xlist = [int(minX)]
 	for x in xlist_full:
-		if x >= minX:
+		if x >= int(minX):
 			continue
 		xlist.append(x)
 		if len(xlist) >= 3:
 			break
-			
+
 	# CREATE DICT WITH ALL TARGETED BASES (0 depth if not in depth.txt file)
 	targeted_regions = []
-	chrom_list = ['chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrX','chrY']
+	chrom_list = ['chr%s' % i for i in range(1,23)+['X','Y']]
 	targeted_base_depth = {}
 	for chrom in chrom_list:
 		targeted_base_depth[chrom] = {} # {chr:{position1:depth,position2:depth}}...
-	
-	db_cur.execute("SELECT chromosome,start,stop,targetedRegionName,gene,details FROM TargetedRegion INNER JOIN Panel ON TargetedRegion.panel = Panel.panelID WHERE panel='%s' ORDER BY start" % panel)
-	db_target_regions = db_cur.fetchall()
 
 	z = 0
 	for db_target_region in db_target_regions:
@@ -673,7 +704,7 @@ if base_cov_file:
 			if position not in targeted_base_depth[db_target_region['chromosome']]:
 				targeted_base_depth[db_target_region['chromosome']][position] = 0
 				z+=1
-	
+
 	# PARSE DEPTH.TXT FILE
 	for base_cov_line in base_cov_lines:
 		chrom = base_cov_line[0]
@@ -682,7 +713,7 @@ if base_cov_file:
 		position = int(base_cov_line[1])
 		depth = int(base_cov_line[2])
 		targeted_base_depth[chrom][position] = depth
-	
+
 	for minx in xlist: # 300, 100, 20...
 		region_minx =  []
 		start = False
@@ -698,7 +729,7 @@ if base_cov_file:
 							tggene = tg[4]
 							tgdetails = tg[5]
 							continue
-					
+
 					if not start:
 						start = position
 						ampl = tgampl
@@ -706,7 +737,7 @@ if base_cov_file:
 						details = tgdetails
 						end = position
 						continue
-						
+
 					if ampl and (ampl != tgampl):
 						numOfBase = (end-start)+1
 						region_minx.append([chrom,start,end,numOfBase,ampl,gene,details])
@@ -763,7 +794,7 @@ if base_cov_file:
 		red_line = []
 		white_line = []
 		for region in region_minx:
-			if region[4] in red_amplicons:
+			if region[4] in red_regions:
 				red_line.append(region)
 			else:
 				white_line.append(region)
@@ -779,7 +810,7 @@ if base_cov_file:
 			
 		l+=1
 		for region in region_minx:
-			if region[4] in red_amplicons:
+			if region[4] in red_regions:
 				for i in range(len(region)):
 					baseCoverageSheet.cell(row=l,column=i+1).value = region[i]
 					cell_format(baseCoverageSheet.cell(row=l,column=i+1),color='LightRed')
@@ -796,27 +827,6 @@ if base_cov_file:
 				baseCoverageSheet.cell(row=l,column=i+1).value = '-'
 			l+=1
 		l=l+1
-			
-		#l+=1
-		#for line in sorted(white_line, key = lambda x: x[3], reverse = True):
-			#for i in range(len(line)):
-				#baseCoverageSheet.cell(row=l,column=i+1).value = line[i]
-				#cell_format(baseCoverageSheet.cell(row=l,column=i+1))
-			#if baseCoverageSheet.cell(row=l,column=8).value:
-				#cell_format(baseCoverageSheet.cell(row=l,column=8),color='DarkRed',alignment='wrap')
-			#l+=1
-		#for line in sorted(red_line, key = lambda x: x[3], reverse = True):
-			#for i in range(len(line)):
-				#baseCoverageSheet.cell(row=l,column=i+1).value = line[i]
-				#cell_format(baseCoverageSheet.cell(row=l,column=i+1),color='LightRed')
-			#if baseCoverageSheet.cell(row=l,column=8).value:
-				#cell_format(baseCoverageSheet.cell(row=l,column=8),color='DarkRed',alignment='wrap')
-			#l+=1
-			
-		#if white_line == [] and red_line == []:
-			#for i in range(len(header)):
-				#baseCoverageSheet.cell(row=l,column=i+1).value = '-'
-			#l+=1
 
 	base_cov_file.close()
 
@@ -824,77 +834,84 @@ else:
 	baseCoverageSheet.cell(row=1,column=1).value = "WARNING : Base Coverage file not found for %s (or error parsing the base coverage file). " % sample
 	print "\t - base coverage file not found."
 
-#########################
-## FEUILLE VCF DE NOVO ##
-#########################
+#       __   ___ 
+# \  / /  ` |__  
+#  \/  \__, |    
+#                
 
-vcf_file = False
-if os.path.isfile('%s/tvc_de_novo/TSVC_variants.vcf' % intermediate_folder):
-	vcf_file = open('%s/tvc_de_novo/TSVC_variants.vcf' % intermediate_folder,'r')
-elif os.path.isfile('%s.zip' % intermediate_folder):
-	archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
-	if 'tvc_de_novo/TSVC_variants.vcf' in archive.namelist():
-		vcf_file = archive.open('tvc_de_novo/TSVC_variants.vcf')	
+print " - [%s] Copying VCFs ..." % time.strftime("%H:%M:%S")
+vc_data = {'tvc_de_novo/TSVC_variants':'tvc_de_novo','tvc_only_hotspot/TSVC_variants':'tvc_only_hotspot','mutect2/%s.mutect2.filtered' % sample:'mutect2','varscan2/%s.varscan2.filtered' % sample:'varscan2','lofreq/%s.lofreq.filtered' % sample:'lofreq','deepvariant/%s.deepvariant' % sample:'deepvariant'}
+for vc in vc_data.keys():
+	vcf_file = False
+	if os.path.isfile('%s/%s.vcf' % (intermediate_folder,vc)):
+		vcf_file = open('%s/%s.vcf' % (intermediate_folder,vc),'r')
+	elif os.path.isfile('%s.zip' % intermediate_folder):
+		archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
+		if '%s.vcf' % vc in archive.namelist():
+			vcf_file = archive.open('%s.vcf' % vc)
 
-if vcf_file:
-	print " - [%s] Copying VCFs ..." % time.strftime("%H:%M:%S")
-	vcf_file_reader = csv.reader(vcf_file,delimiter='\t')
+	if vcf_file:
+		vcfSheet = finalReport.create_sheet(title='VCF (%s)' % vc_data[vc])
+		vcf_file_reader = csv.reader(vcf_file,delimiter='\t')
 
-	l=1
-	for vcf_line in vcf_file_reader:
-		for i in range(len(vcf_line)):
-			cell_val = representsInt(vcf_line[i])
-			vcfSheet1.cell(row=l,column=i+1).value = cell_val
-			cell_format(vcfSheet1.cell(row=l,column=i+1))
-		l=l+1
-	vcf_file.close()
-else:
-	vcfSheet1.cell(row=1,column=1).value = "WARNING : VCF file not found for %s (or error parsing the VCF file). " % sample
-	print "\t - vcf file not found"
-	
-##############################
+		l=1
+		for vcf_line in vcf_file_reader:
+			for i in range(len(vcf_line)):
+				cell_val = representsInt(vcf_line[i])
+				vcfSheet.cell(row=l,column=i+1).value = cell_val
+				cell_format(vcfSheet.cell(row=l,column=i+1))
+			l=l+1
+		vcf_file.close()
+	# else:
+		# vcfSheet.cell(row=1,column=1).value = "WARNING : VCF file not found for %s (or error parsing the VCF file). " % sample
+		# print "\t - vcf file not found"
+
+
 ## FEUILLE VCF ONLY HOTSPOT ##
-##############################
 
-vcf_file = False
-if os.path.isfile('%s/tvc_only_hotspot/TSVC_variants.vcf' % intermediate_folder):
-	vcf_file = open('%s/tvc_only_hotspot/TSVC_variants.vcf' % intermediate_folder,'r')
-elif os.path.isfile('%s.zip' % intermediate_folder):
-	archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
-	if 'tvc_only_hotspot/TSVC_variants.vcf' in archive.namelist():
-		vcf_file = archive.open('tvc_only_hotspot/TSVC_variants.vcf')	
+# vcf_file = False
+# if os.path.isfile('%s/tvc_only_hotspot/TSVC_variants.vcf' % intermediate_folder):
+	# vcf_file = open('%s/tvc_only_hotspot/TSVC_variants.vcf' % intermediate_folder,'r')
+# elif os.path.isfile('%s.zip' % intermediate_folder):
+	# archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
+	# if 'tvc_only_hotspot/TSVC_variants.vcf' in archive.namelist():
+		# vcf_file = archive.open('tvc_only_hotspot/TSVC_variants.vcf')	
 
-if vcf_file:
-	vcfSheet2 = finalReport.create_sheet(title='VCF (only hotspot)')
-	vcf_file_reader = csv.reader(vcf_file,delimiter='\t')
-	l=1
-	for vcf_line in vcf_file_reader:
-		for i in range(len(vcf_line)):
-			cell_val = representsInt(vcf_line[i])
-			vcfSheet2.cell(row=l,column=i+1).value = cell_val
-			cell_format(vcfSheet2.cell(row=l,column=i+1))
-		l=l+1
-	vcf_file.close()
+# if vcf_file:
+	# vcfSheet2 = finalReport.create_sheet(title='VCF (only hotspot)')
+	# vcf_file_reader = csv.reader(vcf_file,delimiter='\t')
+	# l=1
+	# for vcf_line in vcf_file_reader:
+		# for i in range(len(vcf_line)):
+			# cell_val = representsInt(vcf_line[i])
+			# vcfSheet2.cell(row=l,column=i+1).value = cell_val
+			# cell_format(vcfSheet2.cell(row=l,column=i+1))
+		# l=l+1
+	# vcf_file.close()
 #else:
 	#print "WARNING : TSVC_variants.vcf file not found for %s. VCF sheet is skiped." % sample
 
-############
-## LAYOUT ##
-############
+#                __       ___ 
+# |     /\  \ / /  \ |  |  |  
+# |___ /~~\  |  \__/ \__/  |  
+#                             
 
 #print " - [%s] Layout ..." % time.strftime("%H:%M:%S")
 #### AUTO-SIZE COLUMNS ####
-sns = ['Annotation','Amplicon Coverage','Base Coverage','VCF (de novo)']
-if os.path.isfile('%s/tvc_only_hotspot/TSVC_variants.vcf' % intermediate_folder):
-	sns.append('VCF (only hotspot)')
+sns = ['Annotation','Target Coverage','Amplicon Coverage','Base Coverage']
+# if os.path.isfile('%s/tvc_only_hotspot/TSVC_variants.vcf' % intermediate_folder):
+	# sns.append('VCF (only hotspot)')
 	
 for sn in sns:
+	try:
+		ws = finalReport[sn]
+	except:
+		continue
 	maxsize = 20
 	if sn == 'Base Coverage':
 		maxsize = 120
-	elif sn == 'VCF (de novo)' or sn == 'VCF (only hotspot)':
-		maxsize = 12
-	ws = finalReport[sn]
+	# elif sn == 'VCF (de novo)' or sn == 'VCF (only hotspot)':
+		# maxsize = 12
 	dims = {}
 	for row in ws.rows:
 		for cell in row:
@@ -949,9 +966,11 @@ ws.column_dimensions['A'].width = 20
 for col_name in ['B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG']:
 	ws.column_dimensions[col_name].width = 12
 
-###########################
-## VIRTUAL BASIC SCRIPTS ##
-###########################
+#         __  ___                    __        __     __      __   __   __     __  ___  __  
+# \  / | |__)  |  |  |  /\  |       |__)  /\  /__` | /  `    /__` /  ` |__) | |__)  |  /__` 
+#  \/  | |  \  |  \__/ /~~\ |___    |__) /~~\ .__/ | \__,    .__/ \__, |  \ | |     |  .__/ 
+#                                                                                           
+
 print " - [%s] VBS scripts ..." % time.strftime("%H:%M:%S")
 try:
 	alamut_variants_vbscript(sample_folder,vb_variant_list)
@@ -960,10 +979,8 @@ try:
 except:
 	print "\t - warning : alamut vbscript creation FAILED "
 
-###########################
-###### SAVE WORKBOOK ######
-###########################
 
+###### SAVE WORKBOOK ######
 output = '%s/%s_%s.finalReport.xlsx' % (sample_folder,sample.split('/')[-1],barcode)
 finalReport.save(output)
 

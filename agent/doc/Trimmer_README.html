@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>README.md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="trimmer">Trimmer</h1>
+<p>Prior to alignment, Trimmer processes the read sequences to identify and remove the adaptor sequences and also extracts molecular barcodes (for SureSelect XT HS2).</p>
+<p><em>Note: This jar was compiled using Java version 8. Please make sure your Java Runtime Environment is at least at version 8 by running the command “java -version”.</em><br>
+<br><br>
+<br></p>
+<p><strong>Command-line syntax:</strong></p>
+<pre><code>java -jar trimmer.jar [mandatory options] [options] -fq1 &lt;read1_filename&gt; -fq2 &lt;read2_filename&gt;
+</code></pre>
+<br>
+<p><strong>Required parameters:</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>‑fq1&nbsp;&lt;filename&gt;</code></td>
+<td>Read1 FASTQ file (Multiple files can be provided separated by a comma).</td>
+</tr>
+<tr>
+<td><code>‑fq2&nbsp;&lt;filename&gt;</code></td>
+<td>Read2 FASTQ file (Multiple files can be provided separated by a comma).</td>
+</tr>
+</tbody>
+</table><p><em><strong>Note:</strong></em>  <em>Even though -fq1 and -fq2 accept multiple files separated by a comma, the program will output results in a single file for each read.</em></p>
+<br>
+At least one of the following available library prep types is also
+mandatory to set the correct adaptor sequences for trimming.
+
+<table>
+<thead>
+<tr>
+<th>Mandatory Option</th>
+<th>Library Prep Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-halo</code></td>
+<td>HaloPlex</td>
+</tr>
+<tr>
+<td><code>-hs</code></td>
+<td>HaloPlexHS</td>
+</tr>
+<tr>
+<td><code>-xt</code></td>
+<td>SureSelect XT, XT2, XT HS</td>
+</tr>
+<tr>
+<td><code>-v2</code></td>
+<td>SureSelect XT HS2</td>
+</tr>
+<tr>
+<td><code>-qxt</code></td>
+<td>SureSelect QXT</td>
+</tr>
+</tbody>
+</table><br>
+<p><strong>Optional Parameters:</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>‑minFractionRead&nbsp;&lt;n&gt;</code></td>
+<td>Sets the minimum read length as a fraction of the original read length after trimming.<br>Value range permitted is 0 to 99. Default value is 30.</td>
+</tr>
+<tr>
+<td><code>-idee_fixe</code></td>
+<td>Indicates that the fastq files are in the older Illumina fastq format (v1.5 or earlier). In addition to handling the older style read names, this option also assumes that the base qualities are encoded using the Illumina v1.5+ Phred+64 format and will attempt to convert bases to Phred+33.</td>
+</tr>
+<tr>
+<td><code>-out_loc</code></td>
+<td>Directory path for output files.</td>
+</tr>
+</tbody>
+</table><br>
+<p><strong>Usage Examples:</strong><br></p>
+<pre><code>java -jar trimmer.jar \
+     -fq1 ./ICCG-repl1_S1_L001_R1_001.fastq.gz,./ICCG-repl1_S1_L001_R1_002.fastq.gz
+     -fq2 ./ICCG-repl1_S1_L001_R2_001.fastq.gz,./ICCG-repl1_S1_L001_R2_002.fastq.gz
+     -halo -minFractionRead 50 -idee_fixe \
+     -out_loc result/outputFastqs/
+</code></pre>
+<br>
+<p><strong>Tags for SureSelect XT HS2:</strong></p>
+<p>For SureSelect XT HS2 option, trimmed molecular barcodes (MBCs) will be annotated in the readname. These annotation tags are:</p>
+<ul>
+<li>BC:Z:<em>sample barcode</em></li>
+<li>ZA:Z:<em>3 bases of MBC (first half of dual MBC) followed by 1 or 2 dark base(s)</em></li>
+<li>ZB:Z:<em>3 bases of MBC (second half of dual MBC) followed by 1 or 2 dark base(s)</em></li>
+<li>RX:Z:<em>first half of MBC + second half of MBC concatenated with a “-”)</em></li>
+<li>QX:Z:<em>base quality of sequence in RX:Z (concatenated with a space)</em></li>
+</ul>
+<p>e.g.<br>
+<code>@D00266:1113:HTWK5BCX2:1:1102:9976:2206 BC:Z:CTACCGAA+AAGTGTCT ZA:Z:TTAGT ZB:Z:TCCT RX:Z:TTA-TCC QX:Z:DDD DDA</code></p>
+<p>note:<br>
+The MBC bases are masked as <strong>N</strong> and corresponding base qualities marked as <strong>$</strong> in some annotations if they are not recognized as a valid XT HS2 MBC.</p>
+<p>e.g.<br>
+<code>@K00336:80:HW7GLBBXX:7:1115:1184:3688 BC:Z:CTACCGAA+AGACACTT ZA:Z:NNNNN ZB:Z:AAAGT RX:Z:NNN-AAA QX:Z:$$$ &lt;AA</code></p>
+<p><strong>Output for SureSelect XT HS2:</strong></p>
+<p>In SureSelect XT HS2 mode (-v2), for every two FASTQ files (read 1 FASTQ file and read 2 FASTQ file) the program outputs three compressed files:</p>
+<ul>
+<li>trimmed read 1 FASTQ file (.fastq.gz)</li>
+<li>trimmed read 2 FASTQ file (.fastq.gz)</li>
+<li>MBC sequence file (.txt.gz).</li>
+</ul>
+</div>
+</body>
+
+</html>

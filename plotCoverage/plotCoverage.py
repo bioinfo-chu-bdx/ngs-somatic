@@ -49,8 +49,12 @@ barcode2sample = {}
 barcode2covfile = {}
 barcode2bamfile = {}
 for bamfile in bamlist:
-	sample = bamfile.split('/')[-1].split('_IonXpress')[0]
-	barcode = 'IonXpress_' + bamfile.split('IonXpress_')[-1].split('.bam')[0]
+	if '_IonXpress' in bamfile:
+		sample = bamfile.split('/')[-1].split('_IonXpress')[0]
+		barcode = 'IonXpress_' + bamfile.split('IonXpress_')[-1].split('.bam')[0]
+	else:
+		sample = bamfile.split('/')[-1].split('_S')[0]
+		barcode = 'S%s' % bamfile.split('_S')[-1].split('.bam')[0]
 	barcode2sample[barcode] = sample
 	barcode2bamfile[barcode] = bamfile
 	target = barcodes_json[barcode]['target_region_filepath'].split('/')[-1]
@@ -59,19 +63,20 @@ for bamfile in bamlist:
 			barcode2runtype[barcode] = _run_type
 			barcode2target[barcode] = global_param['run_type'][_run_type]['target_bed']
 			break
-			
-	#covfile = '%s/%s/intermediate_files/coverage/%s_%s.amplicon.cov.xls' % (options.run_folder,sample,sample,barcode)
-	#if os.path.isfile(covfile):
-		#barcode2covfile[barcode] = covfile
-		
+
 	cov_file = False
 	if os.path.isfile('%s/%s/intermediate_files/coverage/%s_%s.amplicon.cov.xls' % (options.run_folder,sample,sample,barcode)):
 		cov_file = open('%s/%s/intermediate_files/coverage/%s_%s.amplicon.cov.xls' % (options.run_folder,sample,sample,barcode),'r')
+	elif os.path.isfile('%s/%s/intermediate_files/coverage/%s_%s.target.cov.xls' % (options.run_folder,sample,sample,barcode)):
+		cov_file = open('%s/%s/intermediate_files/coverage/%s_%s.target.cov.xls' % (options.run_folder,sample,sample,barcode),'r')
 	elif os.path.isfile('%s/%s/intermediate_files.zip' % (options.run_folder,sample)):
 		archive = zipfile.ZipFile('%s/%s/intermediate_files.zip' % (options.run_folder,sample), 'r')
 		if 'coverage/%s_%s.amplicon.cov.xls' % (sample,barcode) in archive.namelist():
 			cov_file = archive.open('coverage/%s_%s.amplicon.cov.xls' % (sample,barcode))
+		elif 'coverage/%s_%s.target.cov.xls' % (sample,barcode) in archive.namelist():
+			cov_file = archive.open('coverage/%s_%s.target.cov.xls' % (sample,barcode))
 	barcode2covfile[barcode] = cov_file
+	print '%s/%s/intermediate_files/coverage/%s_%s.target.cov.xls' % (options.run_folder,sample,sample,barcode)
 
 ################################
 # PROCESS POUR CHAQUE RUN TYPE #
@@ -84,7 +89,7 @@ for runtype in list(set(barcode2runtype.values())):
 	plotcov_runtype_dir = '%s/%s' % (plotcov_dir,runtype)
 	if not os.path.isdir(plotcov_runtype_dir):
 		subprocess.call(['mkdir',plotcov_runtype_dir])
-		
+
 	ampliconlist = [] # genomic ordered list of panel amplicons, for ploting
 	barcode_sample = [] # liste de tuples (barcode, sample) pour l'etape de ploting
 	barcode2amplcov = {} # key = barcode, value = amplicons
@@ -98,7 +103,7 @@ for runtype in list(set(barcode2runtype.values())):
 			g = line[7].split('GENE=')[-1].split(';')[0]
 			d = line[7].split('DETAILS=')[-1].split(';')[0]
 			ampl2gene[line[3]] = '%s_%s' % (g,d)
-		
+
 	for barcode in barcode2covfile.keys():
 		sample = barcode2sample[barcode]
 		if barcode2runtype[barcode] != runtype: # check if barcode is in runtype
@@ -109,30 +114,30 @@ for runtype in list(set(barcode2runtype.values())):
 				iscontrol = True
 		if iscontrol:
 			continue
-			
+
 		print "\t -analysing %s coverage" % sample
 		barcode_sample.append((barcode,sample))
 		barcode2amplcov[barcode] = {}
 		for amplicon in ampliconlist:
 			barcode2amplcov[barcode][amplicon] = ''
-			
+
 		# get total read for coverageAnalysis file
 		#with open(barcode2covfile[barcode],'r') as cov_file:
 		cov_file_reader = csv.reader(barcode2covfile[barcode], delimiter='\t')
 		cov_file_reader.next() # header
 		for line in cov_file_reader:
 			amplicon_id = line[3]
-			total_reads = line[9]
-			if int(total_reads) != 0:
-				barcode2amplcov[barcode][amplicon_id] = math.log10(int(total_reads))
+			total_reads = int(float(line[9]))
+			if total_reads > 0.0:
+				barcode2amplcov[barcode][amplicon_id] = math.log10(total_reads)
 			else:
 				barcode2amplcov[barcode][amplicon_id] = 0
-		
+
 	################################
 	# create amplicons cov graphes #
 	################################
+
 	print "\t -generating plots..."
-	
 	ampl2pool = {}
 	try:
 		pool_file = open(pool_file_path,'r')

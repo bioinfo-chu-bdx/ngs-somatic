@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>README.md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="agent">AGeNT</h1>
+<p>The <strong>A</strong>gilent <strong>Ge</strong>nomics <strong>T</strong>oolKit (AGeNT) is a collection of command-line tools, developed by Agilent, for NGS data processing. With minimal configuration, you can start using these tools on the Linux or Windows command-line.<br>
+<br></p>
+<h2 id="command-line-syntax">Command-line syntax</h2>
+<h3 id="getting-help-with-agent">Getting help with AGeNT</h3>
+<p>To get help with any command while using AGeNT, simply type help at the end of any command name.</p>
+<p>For example, this command displays help for the general AGeNT options and the available top-level commands:<br>
+<code>$ agent help</code></p>
+<p>The following command displays the specific help message for the LocatIt module:<br>
+<code>$ agent locatit help</code></p>
+<h3 id="command-structure-in-agent">Command Structure in AGeNT</h3>
+<p>AGeNT uses a multipart structure on the command line that must be specified in this order:</p>
+<ol>
+<li>The base call to the AGeNT program.</li>
+<li>The top-level command, which typically corresponds to a tool supported by AGeNT.</li>
+<li>The subcommand that specifies which operation to perform.</li>
+<li>General CLI options or parameters required by the operation.</li>
+</ol>
+<p>Structure:<br>
+<code>$ agent &lt;command&gt; &lt;subcommand&gt; [subcommand-specific options and parameters]<br>
+</code></p>
+<p>Input parameters can consist of any arguments supported by the AGeNT modules, such as numbers, strings, lists, maps, and JSON structures. The supported arguments depend upon the specific command and subcommand specified.</p>
+<h3 id="example">Example</h3>
+<code>
+$ agent locatit -v2Only -d 1 -m 3 -q 25 \<br>
+-l /Users/uname/data/Covered.bed \<br>
+-o /Users/uname/data/test_output.bam \<br>
+/Users/uname/data/test_input.bam
+</code>
+<br>
+<p><strong>Note:</strong> <em>Paths and filenames should also contain no spaces or other non-permissible characters on a Unix or Windows command-line.</em></p>
+</div>
+</body>
+
+</html>
