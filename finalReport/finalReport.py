@@ -19,10 +19,10 @@ from optparse import OptionParser
 import sqlite3
 
 def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
 
 def alamut_variants_vbscript(intermediate_folder, variant_list):
 	request = ','.join(variant_list)
@@ -32,20 +32,26 @@ def alamut_variants_vbscript(intermediate_folder, variant_list):
 	vbs.write('objHTTP.Open "GET", URL, False\r\n')
 	vbs.write('objHTTP.send ("")\r\n')
 	vbs.close()
-	
-def alamut_bam_vbscript(intermediate_folder, sample, barcode):
-	vbs = open("%s/ALAMUT_load_processed_bam.vbs" % intermediate_folder, 'w')
+
+def alamut_bam_vbscript(intermediate_folder, sample, barcode, processed=False):
+	if processed:
+		vbs = open("%s/ALAMUT_load_processed_bam.vbs" % intermediate_folder, 'w')
+	else:
+		vbs = open("%s/ALAMUT_load_bam.vbs" % intermediate_folder, 'w')
 	vbs.write('Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP")\r\n')
 	vbs.write('dim fso: set fso = CreateObject("Scripting.FileSystemObject")\r\n')
 	vbs.write('dim CurrentDirectory\r\n')
 	vbs.write('CurrentDirectory = fso.GetAbsolutePathName(".")\r\n')
 	vbs.write('dim BamPath\r\n')
-	vbs.write('BamPath= fso.BuildPath(CurrentDirectory, "%s_%s.processed.bam")\r\n' % (sample,barcode))
+	if processed:
+		vbs.write('BamPath= fso.BuildPath(CurrentDirectory, "%s_%s.processed.bam")\r\n' % (sample,barcode))
+	else:
+		vbs.write('BamPath= fso.BuildPath(CurrentDirectory, "%s_%s.bam")\r\n' % (sample,barcode))
 	vbs.write('URL = "http://localhost:10000/show?request=BAM<" & BamPath\r\n')
 	vbs.write('objHTTP.Open "GET", URL, False\r\n')
 	vbs.write('objHTTP.send ("")\r\n')
 	vbs.close()
-	
+
 def print_vbscript(intermediate_folder, sample, barcode, run_type):
 	vbs = open("%s/PRINT_finalReport.vbs" % intermediate_folder, 'w')
 	vbs.write('Dim iAnswer\r\n')
@@ -182,7 +188,7 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 ### GATHERING PARAMETERS ############################################################
 
 parser = OptionParser()
-parser.add_option('-a', '--analysis', 	help="DB AnalysisID", 				dest='analysis')
+parser.add_option('-a', '--analysis', 	help="DB AnalysisID",				dest='analysis')
 parser.add_option('-x', '--xmin',		help="Min X for amplicon coverage",	dest='xmin', default=300)
 (options, args) = parser.parse_args()
 
@@ -446,10 +452,12 @@ for variant in variants:
 	
 	# SENSITIVITY VERT / ROUGE
 	if 'Sensitivity' in aheader and variant['Sensitivity'] != None:
-		if 'resistante' in variant['Sensitivity'].lower():
-			cell_format(annotationSheet.cell(row=l,column=aheader.index('Sensitivity')+1),font='DarkRed')
-		elif 'sensible' in variant['Sensitivity'].lower():
+		s = variant['Sensitivity'].lower()
+		if s.startswith('sensible'):
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('Sensitivity')+1),font='DarkGreen')
+		elif s.startswith('resistante'):
+			cell_format(annotationSheet.cell(row=l,column=aheader.index('Sensitivity')+1),font='DarkRed')
+
 	
 	l=l+1 # NEXT LINE
 	
@@ -974,7 +982,10 @@ for col_name in ['B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q'
 print " - [%s] VBS scripts ..." % time.strftime("%H:%M:%S")
 try:
 	alamut_variants_vbscript(sample_folder,vb_variant_list)
-	alamut_bam_vbscript(sample_folder,sample,barcode)
+	if os.path.isfile(bam_path.replace('.bam','.processed.bam')):
+		alamut_bam_vbscript(sample_folder,sample,barcode,processed=True)
+	else:
+		alamut_bam_vbscript(sample_folder,sample,barcode)
 	print_vbscript(sample_folder,sample,barcode,run_type)
 except:
 	print "\t - warning : alamut vbscript creation FAILED "

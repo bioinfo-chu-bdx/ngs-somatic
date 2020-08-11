@@ -23,12 +23,12 @@ import hgvs.parser
 ############################################################################################
 
 def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
-	
-def get_offset_dup_del(chrom,start,stop):	# determiner si sequence est situe dans homopol et calculer decalage necessaire
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
+
+def get_offset_dup_del(chrom,start,stop): # determiner si sequence est situe dans homopol et calculer decalage necessaire
 	left_offset = 0
 	right_offset = 0
 	base = pysam.faidx(ref,'%s:%s-%s' % (chrom,start,stop)).split('\n')[1]
@@ -45,23 +45,23 @@ def get_offset_dup_del(chrom,start,stop):	# determiner si sequence est situe dan
 		else:
 			break
 	return (left_offset,right_offset)
-	
+
 def reverse(seq):
 	seq = seq.replace('A','W').replace('T','X').replace('G','Y').replace('C','Z')
 	seq = seq.replace('W','T').replace('X','A').replace('Y','C').replace('Z','G')
 	seq = seq[::-1]
 	return seq
-	
+
 def printing(text,mytext):
 	print text
 	txtoutput.write(text + '\n')
 	mytext = mytext + text + '\n'
 	return mytext
-	
+
 # ===============================================================================
 parser = OptionParser()
 parser.add_option('-f', '--run-folder', help='Run folder ', 								dest='run_folder')
-#parser.add_option('-n', '--transcript', 		help='NM transcipt (ex : NM_005228)', 				dest='transcript')
+#parser.add_option('-n', '--transcript', help='NM transcipt (ex : NM_005228)', 				dest='transcript')
 parser.add_option('-c', '--cpos', 		help='c position in HGVS (ex : c.38G>A)', 			dest='cpos')
 parser.add_option('-g', '--gene', 		help='use gene instead of NM',			 			dest='gene', default=False)
 parser.add_option('-t', '--run-type', 	help='filter sample by run type. ex:LAM,TP53', 		dest='runtype', default=False)
@@ -73,7 +73,7 @@ parser.add_option('-z', '--min-sample', help='min samples to compare (use others
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
-	
+
 ref = global_param['default_reference']
 
 db_path = global_param['VariantBase']
@@ -85,29 +85,36 @@ if not options.run_folder:
 	print "- Error : need --run-folder arg"
 	exit()
 
-bamlist = glob.glob(options.run_folder+'/*/*.bam')
-bamlist = [item for item in bamlist if not 'processed' in item]
-added_bam = []
-	
+with open(options.run_folder+'/barcodes.json', 'r') as g:
+	barcodes_json = json.load(g)
+
 if options.runtype:
 	options.runtype.replace(' ','')
 	options.runtype = options.runtype.split(',')
-	filtered_bamlist = []
-	with open(options.run_folder+'/barcodes.json', 'r') as g:
-		barcodes_json = json.load(g)
-	for bamfile in bamlist:
-		barcode = 'IonXpress_' + bamfile.split('IonXpress_')[-1].split('.bam')[0]
+
+bamlist = []
+for barcode in barcodes_json:
+	bamfile = '%s/%s/%s_%s.bam' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
+	if options.runtype:
 		target = barcodes_json[barcode]['target_region_filepath'].split('/')[-1]
 		for _run_type in global_param['run_type']:
 			if global_param['run_type'][_run_type]['target_bed'].split('/')[-1] == target:
 				if _run_type in options.runtype:
-					 filtered_bamlist.append(bamfile)
-				break
-	bamlist = filtered_bamlist
+					if os.path.isfile(bamfile):
+						bamlist.append(bamfile)
+					else:
+						print "(warning : %s not found)" % bamfile
+	else:
+		if os.path.isfile(bamfile):
+			bamlist.append(bamfile)
+		else:
+			print "(warning : %s not found)" % bamfile
+
 if not bamlist:
 	print "- CheckMut : no BAM found to process, exit"
 	exit()
-	
+
+added_bam = []
 if options.min_sample:
 	try:
 		min_sample = int(options.min_sample)
@@ -147,7 +154,7 @@ db_gene = db_cur.fetchone()
 transcript = db_gene['transcript']
 transcript_version = db_gene['transcriptVersion']
 strand = db_gene['strand']
-	
+
 if os.path.isfile('%s/_checkMut.txt' % checkMut_folder):
 	txtoutput = open('%s/_checkMut.txt' % checkMut_folder,'a')
 else:
@@ -295,7 +302,7 @@ mytext = printing("= SAMPLES ====================== FREQ(%) ===== COUNT(FWD/REV)
 sample_names = []
 sample_freqs = []
 for bam in sorted(bamlist):
-	sample = bam.split('/')[-1].split('_IonXpress')[0]
+	sample = bam.split('/')[-1].split('_S')[0]
 	if bam in added_bam:
 		sample = '(+)%s' % sample
 	try:

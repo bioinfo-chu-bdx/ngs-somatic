@@ -221,7 +221,7 @@ if db_vms:
 new_var_count = 0
 new_vm_count = 0
 for variant in variants:
-	if len(variants[variant]['call']) >= 2:
+	if (len(variants[variant]['call']) >= 2) or (variants[variant]['gene'] == 'CEBPA'):
 		variant_id = variant
 		pos_cov = int(mean(variants[variant]['pos_cov']))
 		var_cov = int(mean(variants[variant]['var_cov']))
@@ -244,8 +244,12 @@ for variant in variants:
 
 		db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s' and variant='%s'" % (analysis_id,variant_id))
 		if db_cur.fetchone() is None:
-			random_uuid = uuid.uuid1()
-			variantmetrics_id = 'M-'+random_uuid.hex[:8]
+			exists = True
+			while exists != None:
+				random_uuid = uuid.uuid1()
+				variantmetrics_id = 'M-'+random_uuid.hex[:8]
+				db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE variantMetricsID='%s'" % (variantmetrics_id))
+				exists = db_cur.fetchone()
 			try:
 				#print "- [VariantMetrics] : adding %s in DB (%s <-> %s)" % (variantmetrics_id,variant_id,analysis_id)
 				db_cur.execute("INSERT INTO VariantMetrics (variantMetricsID, variant, analysis, positionReadDepth, variantReadDepth, variantCallingTool, call) VALUES ('%s', '%s', '%s', %s, %s, '%s', '%s')" % (variantmetrics_id, variant_id, analysis_id, pos_cov, var_cov, vc_tool, call))

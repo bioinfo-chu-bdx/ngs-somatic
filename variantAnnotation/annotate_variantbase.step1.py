@@ -53,7 +53,8 @@ if options.update:
 	exit()
 	#db_cur.execute("SELECT * FROM Variant WHERE lastUpdate is NULL")  # option pas prete # ici faire test WHERE lastUpdate > 6 mois
 if options.new:
-	db_cur.execute("SELECT * FROM Variant WHERE lastUpdate is NULL")
+	# db_cur.execute("SELECT * FROM Variant WHERE lastUpdate is NULL")
+	db_cur.execute("SELECT * FROM Variant WHERE (lastUpdate is NULL) OR (region is NULL)")
 if options.full:
 	db_cur.execute("SELECT * FROM Variant") #WHERE hgvs = 'yes' OR hgvs = 'warning'
 	

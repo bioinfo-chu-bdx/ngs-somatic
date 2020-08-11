@@ -77,7 +77,8 @@ if options.update:
 	# db_cur.execute("SELECT * FROM Variant WHERE lastUpdate > date('now', 'start of day','-5 days')")
 	# UTILISER DATETIME https://stackoverflow.com/questions/1975737/sqlite-datetime-comparison
 if options.new:
-	db_cur.execute("SELECT * FROM Variant WHERE hgvs is NULL")
+	# db_cur.execute("SELECT * FROM Variant WHERE hgvs is NULL")
+	db_cur.execute("SELECT * FROM Variant WHERE (hgvs is NULL) OR (hgvs='yes' AND region is NULL)")
 if options.full:
 	db_cur.execute("SELECT * FROM Variant")
 db_variants = db_cur.fetchall()

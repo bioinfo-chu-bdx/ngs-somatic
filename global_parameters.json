@@ -16,17 +16,17 @@
 		"SBT":{
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
 			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_ColonLung_v10_IAD172906_231.bed",
-			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_ColonLung_v10_IAD172906_231.merged.plain.bed",	
+			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_ColonLung_v10_IAD172906_231.merged.plain.bed",
 			"vc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.json",
 			"vc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_only.json",
-			"vc_parameters_hotspot_cdna": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_cDNA.json",	
+			"vc_parameters_hotspot_cdna": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_cDNA.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_ColonLung_v5.vcf",
-			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_08-01-2020.xls",
+			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
 			"checkContamination_read_len":100
 		},
-		"LAM":{
+		"LAM-iontorrent":{
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
 			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/LAM2018_IAD143291_236_Designed_with_NM.bed",
 			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/LAM2018_IAD143291_236_Designed_with_NM.merged.plain.bed",
@@ -38,7 +38,7 @@
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
 			"checkContamination_read_len":150
 		},
-		"LAM-illumina":{
+		"LAM":{
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
 			"covered_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.covered.bed",
 			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_v1-SureSelect.roi.anno.bed",
@@ -169,7 +169,7 @@
 			"vc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_only.json",
 			"vc_parameters_hotspot_cdna": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_cDNA.json",			
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_ColonLung_v5.vcf",
-			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_08-01-2020.xls",
+			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
 			"checkContamination_read_len":100
@@ -181,7 +181,7 @@
 			"vc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.json",
 			"vc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.hotspot_only.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/Hotspots_ColonLung_v4.vcf",
-			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_08-01-2020.xls",
+			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
 			"checkContamination_read_len":100
@@ -193,7 +193,7 @@
 			"vc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.json",
 			"vc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.hotspot_only.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/Hotspots_ColonLung_v4.vcf",
-			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_08-01-2020.xls",
+			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
 			"checkContamination_read_len":100
@@ -205,7 +205,7 @@
 			"vc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.json",
 			"vc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.hotspot_only.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/Hotspots_ColonLung_v4.vcf",
-			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_08-01-2020.xls",
+			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
 			"checkContamination_read_len":100
@@ -217,7 +217,7 @@
 			"vc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.json",
 			"vc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.hotspot_only.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/Hotspots_ColonLung_v4.vcf",
-			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_08-01-2020.xls",
+			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
 			"checkContamination_read_len":100
@@ -229,7 +229,7 @@
 			"vc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.json",
 			"vc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/TVC_Parameters_ColonLung_5.4.hotspot_only.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/old_ref_files/Hotspots_ColonLung_v4.vcf",
-			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_08-01-2020.xls",
+			"sbt_sensitivity":"$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
 			"checkContamination_read_len":100

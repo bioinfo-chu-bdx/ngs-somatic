@@ -37,6 +37,20 @@ subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample'
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.743G>A','--run-type','TP53,LAM'])
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.796G>A','--run-type','TP53,LAM'])
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','TP53','--cpos','c.817C>T','--run-type','TP53,LAM'])
+## ILLUMINA
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.23A>C','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.29A>C','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.292A>C','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.323A>C','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.564_566del','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.688A>C','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.700A>T','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.722T>G','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.737T>G','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.747T>G','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CEBPA','--cpos','c.751A>C','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','RUNX1','--cpos','c.1265A>C','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','RUNX1','--cpos','c.1270T>G','--run-type','LAM'])
 
 # DIVERS LYMPHOME B
 subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','MYD88','--cpos','c.794T>C','--run-type','Lymphome_B'])

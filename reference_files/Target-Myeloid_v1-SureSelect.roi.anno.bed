@@ -1,4 +1,3 @@
-track name="Myeloid-capture-v1" description="Regions of interest with padding 10" db=hg19
 chr1	1737902	1737987	Region1	0	+	.	GENE=GNB1;DETAILS=ex6;TRANSCRIPT=NM_002074;STRAND=reverse
 chr1	1747183	1747311	Region2	0	+	.	GENE=GNB1;DETAILS=ex5;TRANSCRIPT=NM_002074;STRAND=reverse
 chr1	36931949	36932519	Region3	0	+	.	GENE=CSF3R;DETAILS=ex17;TRANSCRIPT=NM_156039;STRAND=reverse

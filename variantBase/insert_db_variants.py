@@ -264,8 +264,12 @@ for variant in variants:
 						
 	db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s' and variant='%s'" % (analysis_id,variant_id))
 	if db_cur.fetchone() is None:																					  
-		random_uuid = uuid.uuid1()
-		variantmetrics_id = 'M-'+random_uuid.hex[:8]
+		exists = True
+		while exists != None:
+			random_uuid = uuid.uuid1()
+			variantmetrics_id = 'M-'+random_uuid.hex[:8]
+			db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE variantMetricsID='%s'" % (variantmetrics_id))
+			exists = db_cur.fetchone()
 		try:
 			#print "- [VariantMetrics] : adding %s in DB (%s <-> %s)" % (variantmetrics_id,variant_id,analysis_id)
 			db_cur.execute("INSERT INTO VariantMetrics (variantMetricsID, variant, analysis, positionReadDepth, variantReadDepth, variantCallingTool, call) VALUES ('%s', '%s', '%s', %s, %s, '%s', '%s')" % (variantmetrics_id, variant_id, analysis_id, variants[variant]['pos_cov'], variants[variant]['var_cov'], vc_tool, variants[variant]['call']))

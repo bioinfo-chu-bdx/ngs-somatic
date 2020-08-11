@@ -310,12 +310,71 @@ for fastqfile in fastq_data:
 	# cmd = subprocess.Popen(['samtools', 'depth','-b',fastq_data[fastqfile]['target_bed'],fastq_data[fastqfile]['bam']],stdout=open('%s/depth.txt' % coverage_folder,'w'), stderr=open('%s/samtools_depth.stderr.txt' % coverage_folder,'w'))
 	# cmd.communicate()
 
+# # QUALIMAP
+	# logging.info("\t\t- [%s] qualimap ..." % (time.strftime("%H:%M:%S")))
+	# qualimap_folder = '%s/qualimap' % fastq_data[fastqfile]['intermediate_folder']
+	# qualimap_sub_folder = '%s/%s_%s' % (qualimap_folder,fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode'])
+	# if not os.path.isdir(qualimap_folder):
+		# subprocess.call(['mkdir', qualimap_folder])
+	# if not os.path.isdir(qualimap_sub_folder):
+		# subprocess.call(['mkdir', qualimap_sub_folder])
+
+	# cmd = subprocess.Popen([
+		# 'bash', '%s/qualimap/qualimap' % pipeline_folder,
+		# 'bamqc',
+		# '-bam', fastq_data[fastqfile]['bam'],
+		# '--genome-gc-distr','hg19',
+		# '--skip-duplicated', 
+		# '--collect-overlap-pairs',
+		# '--feature-file', fastq_data[fastqfile]['target_bed'],
+		# '-outdir', qualimap_sub_folder,
+		# '--java-mem-size=2G'
+		# ],
+		# stdout=open('%s/qualimap.stdout.txt' % qualimap_sub_folder,'w'), 
+		# stderr=open('%s/qualimap.stderr.txt' % qualimap_sub_folder,'w'))
+# cmd.communicate()
+
+# SAMTOOLS STATS
+	logging.info("\t\t- [%s] samtools stats ..." % (time.strftime("%H:%M:%S")))
+	cmd = subprocess.Popen([
+		'samtools', 'stats',
+		'-d',
+		'-t', fastq_data[fastqfile]['target_bed'],#'-@', '2',
+		fastq_data[fastqfile]['bam']
+		],
+		stdout=open('%s/%s_%s.stats.txt' % (fastq_data[fastqfile]['intermediate_folder'],fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode']),'w'))
+
+# SAMTOOLS FLAGSTAT
+	# logging.info("\t\t- [%s] samtools flagstat ..." % (time.strftime("%H:%M:%S")))
+	# cmd = subprocess.Popen([
+		# 'samtools', 'flagstat',
+		# '-@', '2',
+		# fastq_data[fastqfile]['bam']
+		# ],
+		# stdout=open('%s/%s_%s.flagstat.txt' % (fastq_data[fastqfile]['intermediate_folder'],fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode']),'w'))
+
+# MOSDEPTH
+	# logging.info("\t\t- [%s] mosdepth ..." % (time.strftime("%H:%M:%S")))
+	# mosdepth_folder = '%s/mosdepth' % fastq_data[fastqfile]['intermediate_folder']
+	# if not os.path.isdir(mosdepth_folder):
+		# subprocess.call(['mkdir', mosdepth_folder])
+	# os.chdir(mosdepth_folder)
+	# cmd = subprocess.Popen([
+		# '%s/mosdepth/mosdepth' % pipeline_folder,
+		# '-b', fastq_data[fastqfile]['target_bed'],
+		# '%s_%s' % (fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode']),
+		# fastq_data[fastqfile]['bam']
+		# ],
+		# stdout=open('%s/mosdepth.stdout.txt' % mosdepth_folder,'w'), 
+		# stderr=open('%s/mosdepth.stderr.txt' % mosdepth_folder,'w'))
+# cmd.communicate()
+
 # QC : FASTQC BAM
-	logging.info("\t\t- [%s] FastQC (BAM)..." % (time.strftime("%H:%M:%S")))
-	fastqc_folder = '%s/fastqc' % fastq_data[fastqfile]['intermediate_folder']
-	if not os.path.isdir(fastqc_folder):
-		subprocess.call(['mkdir', fastqc_folder])
-	cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % pipeline_folder,'--outdir',fastqc_folder,fastq_data[fastqfile]['bam']],stdout=open('%s/fastqc_bam.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_bam.stderr.txt' % fastqc_folder,'w'))
+	# logging.info("\t\t- [%s] FastQC (BAM)..." % (time.strftime("%H:%M:%S")))
+	# fastqc_folder = '%s/fastqc' % fastq_data[fastqfile]['intermediate_folder']
+	# if not os.path.isdir(fastqc_folder):
+		# subprocess.call(['mkdir', fastqc_folder])
+	# cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % pipeline_folder,'--outdir',fastqc_folder,fastq_data[fastqfile]['bam']],stdout=open('%s/fastqc_bam.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_bam.stderr.txt' % fastqc_folder,'w'))
 
 #####  __        __  ___  __   __        ___  __        __   ___ ###
 ##### |__) |    /  \  |  /  ` /  \ \  / |__  |__)  /\  / _` |__  ###
@@ -342,6 +401,32 @@ for fastqfile in fastq_data:
 	# with open('%s/_CNA/run_cna.stderr.txt' % run_folder,'r') as stderr:
 		# for line in stderr.readlines():
 			# print line.replace('\n','')
+
+# QUALIMAP
+# logging.info("\n- [%s] Qualimap ..." % (time.strftime("%H:%M:%S")))
+# qualimap_folder = '%s/_qualimap' % run_folder
+# if not os.path.isdir(qualimap_folder):
+	# subprocess.call(['mkdir', qualimap_folder])
+
+# qualimap_data_path = '%s/qualimap-data.tsv' % qualimap_folder
+# qualimap_input = open(qualimap_data_path,'w')
+# for fastqfile in fastq_data:
+	# qualimap_input.write('%s_%s\t%s\n' % (fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode'],fastq_data[fastqfile]['bam']))
+# qualimap_input.close()
+
+# cmd = subprocess.Popen([
+	# 'bash', '%s/qualimap/qualimap' % pipeline_folder,
+	# 'multi-bamqc',
+	# '-data', qualimap_data_path,
+	# '--genome-gc-distr','hg19',
+	# '--skip-duplicated', #--collect-overlap-pairs??
+	# '--feature-file', fastq_data[fastqfile]['target_bed'],
+	# '-outdir', qualimap_folder,
+	# '--java-mem-size=12G'
+	# ],
+	# stdout=open('%s/qualimap.stdout.txt' % qualimap_folder,'w'), 
+	# stderr=open('%s/qualimap.stderr.txt' % qualimap_folder,'w'))
+# cmd.communicate()
 
 ##### #####            __              ___     __                         __                __                     __  ___      ___    __       ##### ##### 
 ##### ##### \  /  /\  |__) |  /\  |\ |  |  __ /  `  /\  |    |    | |\ | / _`     /\  |\ | |  \     /\  |\ | |\ | /  \  |   /\   |  | /  \ |\ | ##### ##### 

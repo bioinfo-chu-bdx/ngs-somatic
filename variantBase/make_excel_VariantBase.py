@@ -151,7 +151,7 @@ dataSheet['A2'].value = len(runs)
 
 ## MAKE ALL GENE SHEET
 print "- making gene sheets..."
-db_cur.execute("SELECT DISTINCT geneID FROM Gene INNER JOIN TargetedRegion ON TargetedRegion.gene = Gene.geneID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelProject in %s" % in_projects)
+db_cur.execute("SELECT DISTINCT geneID FROM Gene INNER JOIN TargetedRegion ON TargetedRegion.gene = Gene.geneID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelProject in %s ORDER BY geneID" % in_projects)
 db_genes = db_cur.fetchall()
 genes = []
 geneTemplateSheet = excelVB['Gene']

@@ -74,7 +74,7 @@ db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
 control_names = ['H2O','H20','NTC'] # liste des noms possibles pour les temoins negatifs
-sampleask = True
+sampleask = False
 checkconta_bamlist = []
 fastq_data = {}
 
@@ -156,7 +156,7 @@ for fastqfile in sorted(fastqlist) :
 	reference = global_param['run_type'][run_type]['reference']
 	covered_bed = global_param['run_type'][run_type].get('covered_bed','target_bed') # si covered existe, sinon utiliser le target
 	target_bed = global_param['run_type'][run_type]['target_bed']
-	if not covered_bed == target_bed:
+	if covered_bed == target_bed:
 		logging.info("WARNING : covered_bed is also roi_bed")
 	merged_bed = global_param['run_type'][run_type]['merged_bed']
 	intervals = global_param['run_type'][run_type].get('intervals',False)
@@ -192,7 +192,7 @@ db_con.close()
 
 logging.info("\n- [%s] PRE-PROCESSING ..." % (time.strftime("%H:%M:%S")))
 
-for fastqfile in fastq_data:
+for fastqfile in sorted(fastq_data.keys()):
 	logging.info("\t- %s :" % (fastq_data[fastqfile]['sample']))
 	prep_folder = '%s/pre-processing' % fastq_data[fastqfile]['intermediate_folder']
 	if not os.path.isdir(prep_folder):
@@ -218,14 +218,6 @@ for fastqfile in fastq_data:
 		cmd.communicate()
 		fastq_r1 = glob.glob('%s/*_R1_*fastq*' % prep_folder)[0]
 		fastq_data[fastqfile]['fastq_r3'] = glob.glob('%s/*_R3_*fastq*' % prep_folder)[0]
-
-	# # QC : FASTQC (FASTQ)
-	# logging.info("\t\t- [%s] FastQC ..." % (time.strftime("%H:%M:%S")))
-	# fastqc_folder = '%s/fastqc' % fastq_data[fastqfile]['intermediate_folder']
-	# if not os.path.isdir(fastqc_folder):
-		# subprocess.call(['mkdir', fastqc_folder])
-	# cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % fastq_r1,'--outdir',fastqc_folder],stdout=open('%s/fastqc_r1.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_r1.stderr.txt' % fastqc_folder,'w'))
-	# cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % fastq_data[fastqfile]['fastq_r3'],'--outdir',fastqc_folder],stdout=open('%s/fastqc_r3.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_r3.stderr.txt' % fastqc_folder,'w'))
 
 	# ALIGNMENT - FASTQ TO SAM
 	logging.info("\t\t- [%s] BWA-MEM Alignment ..." % time.strftime("%H:%M:%S"))
@@ -289,14 +281,33 @@ for fastqfile in fastq_data:
 	logging.info("\t\t- [%s] coverageAnalysis ..." % (time.strftime("%H:%M:%S")))
 	cmd_list = []
 
+	fastqc_folder = '%s/fastqc' % fastq_data[fastqfile]['intermediate_folder']
 	coverage_folder = '%s/coverage' % fastq_data[fastqfile]['intermediate_folder']
-	if not os.path.isdir(coverage_folder):
-		subprocess.call(['mkdir', coverage_folder])
+	mosdepth_folder = '%s/mosdepth' % fastq_data[fastqfile]['intermediate_folder']
 
+	for f in [fastqc_folder,coverage_folder,mosdepth_folder]:
+		if not os.path.isdir(f):
+			subprocess.call(['mkdir',f])
+
+# QC : FASTQC BAM
+	logging.info("\t\t- [%s] FastQC (BAM)..." % (time.strftime("%H:%M:%S")))
+	cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % pipeline_folder,'--outdir',fastqc_folder,fastq_data[fastqfile]['bam']],stdout=open('%s/fastqc_bam.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_bam.stderr.txt' % fastqc_folder,'w'))
+
+# SAMTOOLS STATS & DEPTH
+	logging.info("\t\t- [%s] Samtools stats ..." % (time.strftime("%H:%M:%S")))
+	cmd = subprocess.Popen(['samtools', 'stats','-d','-t', fastq_data[fastqfile]['target_bed'],fastq_data[fastqfile]['bam']],stdout=open('%s/%s_%s.stats.txt' % (fastq_data[fastqfile]['intermediate_folder'],fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode']),'w'))
+	cmd = subprocess.Popen(['samtools', 'depth','-b',fastq_data[fastqfile]['target_bed'],fastq_data[fastqfile]['bam']],stdout=open('%s/depth.txt' % coverage_folder,'w'), stderr=open('%s/samtools_depth.stderr.txt' % coverage_folder,'w'))
+
+# MOSDEPTH
+	logging.info("\t\t- [%s] mosdepth ..." % (time.strftime("%H:%M:%S")))
+	os.chdir(mosdepth_folder)
+	cmd = subprocess.Popen(['%s/mosdepth/mosdepth' % pipeline_folder,'-b', fastq_data[fastqfile]['target_bed'],'%s_%s' % (fastq_data[fastqfile]['sample'],fastq_data[fastqfile]['barcode']),fastq_data[fastqfile]['bam']],stdout=open('%s/mosdepth.stdout.txt' % mosdepth_folder,'w'), stderr=open('%s/mosdepth.stderr.txt' % mosdepth_folder,'w'))
+
+# BBCTOOLS
 	cmd = subprocess.Popen([
 		'bash', '%s/coverageAnalysis/run_coverage_analysis.sh' % pipeline_folder,
-		'-L', 'hg19', # attention ABL1?
-		'-dg', # '-g' seulement ? a pour amplicons. # -d = ignore duplicates (pour target coverage)
+		'-L', 'hg19',
+		'-dg', # -d = ignore duplicates (pour target coverage)
 		'-D',coverage_folder,
 		'-B',fastq_data[fastqfile]['target_bed'],
 		fastq_data[fastqfile]['reference'],
@@ -305,18 +316,19 @@ for fastqfile in fastq_data:
 		stdout=open('%s/run_coverage_analysis.stdout.txt' % coverage_folder,'w'), 
 		stderr=open('%s/run_coverage_analysis.stderr.txt' % coverage_folder,'w'))
 	cmd.communicate()
-	
-	# also compute samtools depth
-	cmd = subprocess.Popen(['samtools', 'depth','-b',fastq_data[fastqfile]['target_bed'],fastq_data[fastqfile]['bam']],stdout=open('%s/depth.txt' % coverage_folder,'w'), stderr=open('%s/samtools_depth.stderr.txt' % coverage_folder,'w'))
-	cmd.communicate()
 
-# QC : FASTQC BAM
-	logging.info("\t\t- [%s] FastQC (BAM)..." % (time.strftime("%H:%M:%S")))
-	fastqc_folder = '%s/fastqc' % fastq_data[fastqfile]['intermediate_folder']
-	if not os.path.isdir(fastqc_folder):
-		subprocess.call(['mkdir', fastqc_folder])
-	cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % pipeline_folder,'--outdir',fastqc_folder,fastq_data[fastqfile]['bam']],stdout=open('%s/fastqc_bam.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_bam.stderr.txt' % fastqc_folder,'w'))
+#####                ___    __   __  
+##### |\/| |  | |     |  | /  \ /  ` 
+##### |  | \__/ |___  |  | \__X \__, 
 
+if options.run:
+	logging.info(" [%s] MultiQC ..." % time.strftime("%H:%M:%S"))
+	multiqc_folder = '%s/_multiqc' % fastq_data[fastqfile]['intermediate_folder']
+	if not os.path.isdir(multiqc_folder):
+		subprocess.call(['mkdir', multiqc_folder])
+
+	cmd = subprocess.Popen(['bash', '%s/multiqc/run_multiqc.sh' % pipeline_folder,run_folder],stdout=open('%s/multiqc.stdout.txt' % multiqc_folder,'w'), stderr=open('%s/multiqc.stderr.txt' % multiqc_folder,'w'))
+	# cmd.communicate()
 
 #####  __        __  ___  __   __        ___  __        __   ___ ###
 ##### |__) |    /  \  |  /  ` /  \ \  / |__  |__)  /\  / _` |__  ###
@@ -324,6 +336,8 @@ for fastqfile in fastq_data:
 
 if options.run and os.path.isfile('%s/barcodes.json' % run_folder):
 	logging.info(" [%s] plotCoverage ..." % time.strftime("%H:%M:%S"))
+	if not os.path.isdir('%s/_plotCoverage' % run_folder):
+		subprocess.call(['mkdir', '%s/_plotCoverage' % run_folder])
 	cmd = subprocess.Popen(['python', '%s/plotCoverage/plotCoverage.py' % pipeline_folder,'--run-folder', run_folder],stdout=open('%s/_plotCoverage/plotCoverage.stdout.txt' % run_folder,'w'), stderr=open('%s/_plotCoverage/plotCoverage.stderr.txt' % run_folder,'w'))
 	cmd.communicate()
 	with open('%s/_plotCoverage/plotCoverage.stderr.txt' % run_folder,'r') as stderr:
@@ -350,19 +364,19 @@ if options.run:
 ##### #####                                                                                                                                     ##### ##### 
 
 logging.info("\n- [%s] VARIANT-CALLING AND ANNOTATION ..." % (time.strftime("%H:%M:%S")))
-for fastqfile in fastq_data:
+for fastqfile in sorted(fastq_data.keys()):
 	logging.info("\t- %s :" % (fastq_data[fastqfile]['sample']))
 
 	# FOR SKIPING SAMPLES # WARNING check-contamination will not work #
 	if sampleask:
-		proceed = raw_input('continue? (y/n/stopask)\n')              
-		if proceed == 'y' or proceed == 'yes':                        
+		proceed = raw_input('continue? (y/n/stopask)\n')
+		if proceed == 'y' or proceed == 'yes':
 			pass
 		elif proceed == 'stopask':
 			sampleask = False
-			pass                                                       
-		else:                                                         
-			continue                                                  
+			pass
+		else:
+			continue
 
 	### __   ___  ___  __             __              ___ 
 	### |  \ |__  |__  |__) \  /  /\  |__) |  /\  |\ |  |  
@@ -470,7 +484,6 @@ for fastqfile in fastq_data:
 		logging.info("\t\t\t - [%s] Running %s chunks ..." % (time.strftime("%H:%M:%S"),mutect_chunk))
 		FNULL = open(os.devnull, 'w')
 		for i in range(mutect_chunk):
-			# interval_chunk = fastq_data[fastqfile]['intervals'].replace('.intervals','.%04d-scattered.intervals'%i)
 			interval_chunk = '%s/%04d-scattered.interval_list'%(mutect2_folder,i)
 			vcf_chunk = '%s/%s.mutect2.chunk%04d.vcf' % (mutect2_folder,fastq_data[fastqfile]['sample'],i)
 			vcf_chunk_list.append(vcf_chunk)
@@ -505,9 +518,6 @@ for fastqfile in fastq_data:
 		cmd = subprocess.Popen('docker exec -it gatk gatk Mutect2 -I %s -R %s -L %s --max-mnp-distance 0 --max-reads-per-alignment-start 0 --min-base-quality-score 1 -O %s/%s.mutect2.vcf' % (fastq_data[fastqfile]['bam'],fastq_data[fastqfile]['reference'],fastq_data[fastqfile]['intervals'],mutect2_folder,fastq_data[fastqfile]['sample']),shell=True,stdout=open('%s/mutect2.stdout.txt'%mutect2_folder,'w'),stderr=open('%s/mutect2.stderr.txt'%mutect2_folder,'w'))
 		cmd.communicate()
 
-	#print "\t\t - [%s] Tabix ..." % time.strftime("%H:%M:%S")
-	#subprocess.call(['tabix','-p','vcf',mutect2],stdout=open('%s/tabix.stdout.txt' % mutect2_folder,'w'),stderr=open('%s/tabix.stderr.txt' % mutect2_folder,'w'))
-
 	logging.info("\t\t\t - [%s] FilterMutectCalls ..." % time.strftime("%H:%M:%S"))
 	cmd = subprocess.Popen([
 		'docker','exec','-it','gatk','gatk', 'FilterMutectCalls',
@@ -526,8 +536,6 @@ for fastqfile in fastq_data:
 ### | |\ | /__` |__  |__)  |     |  \ |__) ### 
 ### | | \| .__/ |___ |  \  |     |__/ |__) ### 
 
-	# add variantmetrics for each variant (if analysis already done, delete old variantmetrics first)
-	# add new entries for new variants in db
 	logging.info("\t\t - [%s] insert new variants and metrics into DB ..." % (time.strftime("%H:%M:%S")))
 	abl1 = 'no'
 	if 'ABL1_NM_005157.fasta' in fastq_data[fastqfile]['reference']:
@@ -585,7 +593,7 @@ for fastqfile in fastq_data:
 		with open('%s/annotate_variantbase.step2.stderr.txt' % fastq_data[fastqfile]['intermediate_folder'],'r') as stderr:
 			for line in stderr.readlines():
 				print '\t\t\t' + line.replace('\n','')
-				
+
 ###  ___                   __   ___  __   __   __  ___ ###
 ### |__  | |\ |  /\  |    |__) |__  |__) /  \ |__)  |  ###
 ### |    | | \| /~~\ |___ |  \ |___ |    \__/ |  \  |  ###
@@ -614,49 +622,26 @@ for fastqfile in fastq_data:
 		for line in stderr.readlines():
 			print '\t\t\t' + line.replace('\n','')
 
-	#################################################
-	
-	
-		# CLEAN
-	#i=0
-	#for vcf_chunk in vcf_chunk_list:
-		#subprocess.call(['rm',vcf_chunk+'.stats'])
-		#subprocess.call(['rm',vcf_chunk+'.tbi'])
-		#subprocess.call(['rm',vcf_chunk])
-		#subprocess.call(['rm','%s/mutect2.chunk%04d.stderr.txt' % (mutect2_folder,i)])
-		#subprocess.call(['rm','%s/mutect2.chunk%04d.stdout.txt' % (mutect2_folder,i)])
-		#i+=1
+###  __        ___  __           __   __       ___                        ___    __       ###
+### /  ` |__| |__  /  ` |__/    /  ` /  \ |\ |  |   /\   |\/| | |\ |  /\   |  | /  \ |\ | ###
+### \__, |  | |___ \__, |  \    \__, \__/ | \|  |  /~~\  |  | | | \| /~~\  |  | \__/ | \| ###
 
-	# SAMTOOLS? PISCES?
+	# checkconta_folder = '%s/_checkContamination' % run_folder
+	# if not os.path.isdir(checkconta_folder):
+		# subprocess.call(['mkdir', checkconta_folder])
 
+	# for controlbam in checkconta_bamlist:
+		# logging.info(" [%s] checkContamination <%s> ..." % (time.strftime("%H:%M:%S"),controlbam.split('/')[-1].split('_IonXpress')[0]))
+		# cmd = subprocess.Popen(['python','%s/checkContamination/checkContamination.py' % pipeline_folder,'--bam', controlbam,'--read-len', str(checkconta_read_len)],stdout=open('%s/checkContamination.stdout.txt' % checkconta_folder,'w'),stderr=open('%s/checkContamination.stderr.txt' % checkconta_folder,'w'))
+		# cmd.communicate()
+		# check_stderr('%s/checkContamination.stderr.txt' % checkconta_folder,indent=1)
 
-# MUTLIQC
-if options.run:
-	logging.info("\t- [%s] MultiQC ..." % (time.strftime("%H:%M:%S")))
-	multiqc_folder = '%s/_multiqc' % run_folder
-	if not os.path.isdir(multiqc_folder):
-		subprocess.call(['mkdir', multiqc_folder])
-	cmd = subprocess.Popen(['multiqc',run_folder,'-f','--outdir',multiqc_folder],stdout=open('%s/multiqc.stdout.txt' % multiqc_folder,'w'),stderr=open('%s/multiqc.stderr.txt' % multiqc_folder,'w'))
-	cmd.communicate()
+####  __        ___  __                  ___ ###
+#### /  ` |__| |__  /  ` |__/  |\/| |  |  |  ###
+#### \__, |  | |___ \__, |  \  |  | \__/  |  ###
 
-	###        ___  ___  __   __   ___  __  ___          __   ___  __  ###
-	### | |\ |  |  |__  |__) /__` |__  /  `  |     \  / /  ` |__  /__` ###
-	### | | \|  |  |___ |  \ .__/ |___ \__,  |      \/  \__, |    .__/ ###
-
-	# logging.info("\t\t - [%s] prepare vcfs (sort, convert, bgzip, tabix) ..." % time.strftime("%H:%M:%S"))
-	#subprocess.call(['vcf-sort %s > %s' % ('%s/%s.lofreq.filtered.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),'%s/%s.lofreq.filtered.sorted.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']))],shell=True)
-
-	#subprocess.call(['cat %s | vcf-convert -v 4.2 > %s' % ('%s/%s.lofreq.filtered.sorted.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),'%s/%s.lofreq.filtered.sorted.4.2.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']))],shell=True)
-	#subprocess.call(['cat %s | vcf-convert -v 4.2 > %s' % ('%s/%s.varscan2.filtered.vcf' % (varscan2_folder,fastq_data[fastqfile]['sample']),'%s/%s.varscan2.filtered.4.2.vcf' % (varscan2_folder,fastq_data[fastqfile]['sample']))],shell=True)
-
-	#subprocess.call(['bgzip -c %s > %s' % ('%s/%s.lofreq.filtered.sorted.4.2.vcf' % (lofreq_folder,fastq_data[fastqfile]['sample']),'%s/%s.lofreq.filtered.sorted.4.2.vcf.gz' % (lofreq_folder,fastq_data[fastqfile]['sample']))],shell=True)
-	#subprocess.call(['bgzip -c %s > %s' % ('%s/%s.varscan2.filtered.4.2.vcf' % (varscan2_folder,fastq_data[fastqfile]['sample']),'%s/%s.varscan2.filtered.4.2.vcf.gz' % (varscan2_folder,fastq_data[fastqfile]['sample']))],shell=True)
-	#subprocess.call(['bgzip -c %s > %s' % ('%s/%s.mutect2.filtered.vcf' % (mutect2_folder,fastq_data[fastqfile]['sample']),'%s/%s.mutect2.filtered.vcf.gz' % (mutect2_folder,fastq_data[fastqfile]['sample']))],shell=True)
-
-	#subprocess.call(['tabix','-p','vcf','%s' % '%s/%s.lofreq.filtered.sorted.4.2.vcf.gz' % (lofreq_folder,fastq_data[fastqfile]['sample'])])
-	#subprocess.call(['tabix','-p','vcf','%s' % '%s/%s.varscan2.filtered.4.2.vcf.gz' % (varscan2_folder,fastq_data[fastqfile]['sample'])])
-	#subprocess.call(['tabix','-p','vcf','%s' % '%s/%s.mutect2.filtered.vcf.gz' % (mutect2_folder,fastq_data[fastqfile]['sample'])])
-
-	#print "\t - [%s] vcf-isec ..." % time.strftime("%H:%M:%S")
-	#cmd = subprocess.Popen(['vcf-isec','-f','-n','+2','%s/%s.mutect2.filtered.vcf.gz' % (mutect2_folder,fastq_data[fastqfile]['sample']),'%s/%s.varscan2.filtered.4.2.vcf.gz' % (varscan2_folder,fastq_data[fastqfile]['sample']),'%s/%s.lofreq.filtered.sorted.4.2.vcf.gz' % (lofreq_folder,fastq_data[fastqfile]['sample'])],stdout=open('%s/%s.final.intersected.vcf.gz' % (fastq_data[fastqfile]['intermediate_folder'],fastq_data[fastqfile]['sample']),'w'),stderr=open('%s/vcfisec.stderr.txt'%fastq_data[fastqfile]['intermediate_folder'],'w'))
-	#cmd.communicate()
+	checkMut_folder = '%s/_checkMut' % run_folder
+	if not os.path.isdir(checkMut_folder):
+		subprocess.call(['mkdir',checkMut_folder])
+	logging.info(" [%s] checkMut (routine variants) ..." % time.strftime("%H:%M:%S"))
+	subprocess.call(['python','%s/checkMut/routine_checkMut_illumina.py' % pipeline_folder,run_folder])
