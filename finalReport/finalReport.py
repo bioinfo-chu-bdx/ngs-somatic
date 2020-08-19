@@ -33,7 +33,7 @@ def alamut_variants_vbscript(intermediate_folder, variant_list):
 	vbs.write('objHTTP.send ("")\r\n')
 	vbs.close()
 
-def alamut_bam_vbscript(intermediate_folder, sample, barcode, processed=False):
+def alamut_bam_vbscript(intermediate_folder, sample, barcode, processed):
 	if processed:
 		vbs = open("%s/ALAMUT_load_processed_bam.vbs" % intermediate_folder, 'w')
 	else:
@@ -198,28 +198,31 @@ minX = float(options.xmin)
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
-	
+
 db_path = global_param['VariantBase']
 db_con = sqlite3.connect(db_path)
 db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
-db_cur.execute("SELECT * FROM Analysis WHERE analysisID='%s'"% (analysis_id))
+db_cur.execute("SELECT * FROM Analysis WHERE analysisID='%s'"% analysis_id)
 db_analysis = db_cur.fetchone()
 if db_analysis is None:
 	sys.exit("Error : analysisID %s not found in DB" % analysis_id)
 barcode = db_analysis['barcode']
 sample_id = db_analysis['sample']
+run_id = db_analysis['run']
 panel = db_analysis['panel']
-db_cur.execute("SELECT panelProject FROM Panel WHERE panelID='%s'"% (panel))
-run_type = db_cur.fetchone()['panelProject']
-db_cur.execute("SELECT chromosome,start,stop,targetedRegionName,gene,details FROM TargetedRegion INNER JOIN Panel ON TargetedRegion.panel = Panel.panelID WHERE panel='%s' ORDER BY start" % panel)
-db_target_regions = db_cur.fetchall()
 bam_path = db_analysis['bamPath']
 sample_folder = os.path.dirname(bam_path)
 sample = sample_folder.split('/')[-1]
 run_folder = os.path.dirname(sample_folder)
 intermediate_folder = sample_folder+'/intermediate_files'
+# db_cur.execute("SELECT platform FROM Run WHERE runID='%s'"% run_id)
+# platform = db_cur.fetchone()['platform']
+db_cur.execute("SELECT panelProject FROM Panel WHERE panelID='%s'"% panel)
+run_type = db_cur.fetchone()['panelProject']
+db_cur.execute("SELECT chromosome,start,stop,targetedRegionName,gene,details FROM TargetedRegion INNER JOIN Panel ON TargetedRegion.panel = Panel.panelID WHERE panel='%s' ORDER BY start" % panel)
+db_target_regions = db_cur.fetchall()
 
 cosmicDB_con = sqlite3.connect(global_param['cosmicDB'])
 cosmicDB_con.row_factory = dict_factory
@@ -233,8 +236,7 @@ cnvSheet = finalReport.create_sheet(title='CNV')
 plotSheet = finalReport.create_sheet(title='Plot Coverage')
 coverageSheet = finalReport.create_sheet(title='Target Coverage')
 baseCoverageSheet = finalReport.create_sheet(title='Base Coverage')
-# vcfSheet1 = finalReport.create_sheet(title='VCF (de novo)') # a la fin
-	
+
 try:
 	del finalReport['Sheet']
 except:
@@ -593,7 +595,8 @@ if cov_file:
 		for cov_line in cov_lines:
 			if cov_line[0] == 'chrY':
 				# cov_line[4] = cov_line[4].split(';')[0].split('GENE_ID=')[-1]
-				if float(cov_line[9]) > 20.0:
+				cov_line[9] = int(round(float(cov_line[9])))
+				if cov_line[9] > 20:
 					cov_line.append('MALE')
 					for i in range(len(cov_line)):
 						cell_val = representsInt(cov_line[i])
@@ -627,6 +630,7 @@ if cov_file:
 			else:
 				cov_line.append('no')
 		# TOTAL READS > minX GREEN, < minX RED
+		cov_line[9] = int(round(float(cov_line[9])))
 		if float(cov_line[9]) < minX:
 			red_regions.append(cov_line[3])
 			for i in range(len(cov_line)):
@@ -982,10 +986,10 @@ for col_name in ['B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q'
 print " - [%s] VBS scripts ..." % time.strftime("%H:%M:%S")
 try:
 	alamut_variants_vbscript(sample_folder,vb_variant_list)
-	if os.path.isfile(bam_path.replace('.bam','.processed.bam')):
+	if os.path.exists(bam_path.replace('.bam','.processed.bam')):
 		alamut_bam_vbscript(sample_folder,sample,barcode,processed=True)
 	else:
-		alamut_bam_vbscript(sample_folder,sample,barcode)
+		alamut_bam_vbscript(sample_folder,sample,barcode,processed=False)
 	print_vbscript(sample_folder,sample,barcode,run_type)
 except:
 	print "\t - warning : alamut vbscript creation FAILED "

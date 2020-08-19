@@ -20,65 +20,62 @@ def dict_factory(cursor, row):
 		d[col[0]] = row[idx]
 	return d
 
+
 def check_stderr(stderr_path):
 	with open(stderr_path,'r') as stderr:
 		for line in stderr.readlines():
 			logging.info(line.replace('\n',''))
-
-def load_barcodes_json(run_folder):
-	if os.path.isfile('%s/barcodes.json' % run_folder):
-		with open('%s/barcodes.json' % run_folder, 'r') as g:
-			barcodes_json = json.load(g)
-			return barcodes_json
-	else:
-		logging.error("barcodes.json file not found")
-		sys.exit()
-
-def init_log(log_path): # set up log file
-	logging.basicConfig(level=logging.INFO,format='%(levelname)-7s %(message)s',filename='/%s/analysis.log' % log_path,filemode='w')
-	console = logging.StreamHandler()
-	console.setLevel(logging.INFO)
-	logging.getLogger('').addHandler(console) # add the handler to the root logger
 
 
 ### GATHERING PARAMETERS ############################################################
 
 FNULL = open(os.devnull, 'w')
 parser = OptionParser()
-parser.add_option('-r', '--run',	help="Run folder path  for FULL RUN ANALYSIS",				dest='run') 
-parser.add_option('-f', '--fastq',	help="input fastq R1 (auto detect R2 if present)", 			dest='fastq')
-parser.add_option('-b', '--bam',	help="input bam (skip fastq pre-processing and alignment)",	dest='bam')
+parser.add_option('-f', '--fastq',	help="input fastq R1 (auto detect R2 if present)", 	dest='fastq')
+parser.add_option('-r', '--run',	help="Run folder path  for FULL RUN ANALYSIS",		dest='run') 
 (options, args) = parser.parse_args()
 
-if options.run and (options.fastq or options.bam):
-	sys.stderr.write("[run_analysis.py] Error: choose <--run> or <--fastq/--bam>\n")
+if options.fastq and options.run:
+	sys.stderr.write("[run_analysis.py] Error: <--fastq> and <--full-run> are not compatibles\n")
 	sys.exit()
 if options.run:
+	fastqlist = glob.glob('%s/*/*_R1_001.fastq*' % options.run) # .gz?
 	run_folder = options.run
-	barcodes_json = load_barcodes_json(run_folder)
-	init_log(run_folder)
-	fastqlist = ['%s/%s_%s_R1_001.fastq.gz' % (run_folder,barcodes_json[barcode]['sample'],barcode) for barcode in barcodes_json]
-	# fastqlist = glob.glob('%s/*/*_R1_001.fastq*' % options.run) # .gz?
 elif options.fastq:
-	sample_folder = os.path.dirname(options.fastq)
-	run_folder = os.path.dirname(sample_folder)
-	init_log(sample_folder)
-	barcodes_json = load_barcodes_json(run_folder)
 	fastqlist = [options.fastq]
+	run_folder = os.path.dirname(os.path.dirname(options.fastq))
 else:
 	sys.stderr.write("[run_analysis.py] Error: no <--fastq> or <--full-run> specified\n")
 	sys.exit()
 
+# set up logging to file
+if options.run:
+	logging.basicConfig(level=logging.INFO,format='%(levelname)-7s %(message)s',filename='/%s/run_analysis.log' % run_folder,filemode='w')
+else:
+	logging.basicConfig(level=logging.INFO,format='%(levelname)-7s %(message)s',filename='/%s/sample_analysis.log' % os.path.dirname(options.fastq),filemode='w')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+logging.getLogger('').addHandler(console) # add the handler to the root logger
+
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
+
+if os.path.isfile('%s/barcodes.json' % run_folder):
+	with open('%s/barcodes.json' % run_folder, 'r') as g:
+		barcodes_json = json.load(g)
+else:
+	logging.error('barcodes.json file not found')
+	sys.exit() 
 
 db_path = global_param['VariantBase']
 db_con = sqlite3.connect(db_path)
 db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
+control_names = ['H2O','H20','NTC'] # liste des noms possibles pour les temoins negatifs
 sampleask = False
+checkconta_bamlist = []
 fastq_data = {}
 
 if run_folder.endswith('/'):
@@ -154,7 +151,7 @@ for fastqfile in sorted(fastqlist) :
 
 	### RUN TYPE PARAMETERS ###
 	if not run_type:
-		logging.warning("\t -- WARNING : run type (panel) not found for %s. Sample will not be processed." % sample)
+		logging.warning("\t -- Warning : run type (panel) not found for %s. Sample will not be processed." % sample)
 		continue
 	reference = global_param['run_type'][run_type]['reference']
 	covered_bed = global_param['run_type'][run_type].get('covered_bed','target_bed') # si covered existe, sinon utiliser le target
@@ -164,7 +161,7 @@ for fastqfile in sorted(fastqlist) :
 	merged_bed = global_param['run_type'][run_type]['merged_bed']
 	intervals = global_param['run_type'][run_type].get('intervals',False)
 	if not intervals:
-		logging.info("WARNING : intervals file missing, cannot analyse this fastq")
+		logging.info("WARNING intervals file missing, cannot analyse this fastq")
 		continue
 	param = global_param['run_type'][run_type]['vc_parameters']
 	param_hotspot_only = global_param['run_type'][run_type]['vc_parameters_hotspot_only']

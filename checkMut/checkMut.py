@@ -96,14 +96,12 @@ bamlist = []
 for barcode in barcodes_json:
 	bamfile = '%s/%s/%s_%s.bam' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
 	if options.runtype:
-		target = barcodes_json[barcode]['target_region_filepath'].split('/')[-1]
-		for _run_type in global_param['run_type']:
-			if global_param['run_type'][_run_type]['target_bed'].split('/')[-1] == target:
-				if _run_type in options.runtype:
-					if os.path.isfile(bamfile):
-						bamlist.append(bamfile)
-					else:
-						print "(warning : %s not found)" % bamfile
+		project = barcodes_json[barcode]['project']
+		if barcodes_json[barcode]['project'] in options.runtype:
+			if os.path.isfile(bamfile):
+				bamlist.append(bamfile)
+			else:
+				print "(warning : %s not found)" % bamfile
 	else:
 		if os.path.isfile(bamfile):
 			bamlist.append(bamfile)
