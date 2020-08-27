@@ -68,6 +68,10 @@ mutect2_nocall = ['base_qual','low_allele_frac','map_qual','slippage','strand_bi
 #  |    /~~\ |  \ .__/ | | \| \__>     |  \ |___ .__/ \__/ |___  |  .__/ 
 
 variants = {}
+mutect2_count = 0
+lofreq_count = 0
+varscan_count = 0
+deepvariant_count = 0
 
 for vcf_path in options.vcfs:
 	vcf = open(vcf_path,'r')
@@ -91,11 +95,13 @@ for vcf_path in options.vcfs:
 			pos_cov = int(line[9].split(':')[3])
 			var_covs = line[9].split(':')[1].split(',')[1:] # premiere valeur est ref count
 			var_covs = [int(v) for v in var_covs]
+			mutect2_count += 1
 		elif 'lofreq' in vcf_path:# 1 seul variant par ligne avec lofreq
 			vc_name = 'lofreq'
 			dp4 = line[7].split('DP4=')[-1].split(';')[0].split(',') 
 			pos_cov = int(dp4[0])+int(dp4[1])+int(dp4[2])+int(dp4[3])
 			var_covs = [int(dp4[2])+int(dp4[3])]
+			lofreq_count += 1
 		elif 'varscan' in vcf_path: #VarScan calls the most-observed variant
 			vc_name = 'varscan2'
 			filters = line[6]
@@ -103,6 +109,7 @@ for vcf_path in options.vcfs:
 				continue
 			pos_cov = int(line[9].split(':')[2])
 			var_covs = [int(line[9].split(':')[5])]
+			varscan_count += 1
 		elif 'deepvariant' in vcf_path:
 			vc_name = 'deepvariant'
 			filters = line[6]
@@ -111,6 +118,7 @@ for vcf_path in options.vcfs:
 			pos_cov = int(line[9].split(':')[2])
 			var_covs = line[9].split(':')[3].split(',')[1:] # premiere valeur est ref count
 			var_covs = [int(v) for v in var_covs]
+			deepvariant_count += 1
 
 		for a in range(len(alts)): # si multiallelic
 			ref = oref
@@ -190,7 +198,11 @@ for vcf_path in options.vcfs:
 				variants[variant]['var_cov'].append(var_cov)
 				variants[variant]['call'].append(vc_name)
 
-print " - total all vc : %s variants" % len(variants)
+print " variants called by Mutect2     : %s" % mutect2_count
+print " variants called by Lofreq      : %s" % lofreq_count
+print " variants called by VarScan     : %s" % varscan_count
+print " variants called by Deepvariant : %s" % deepvariant_count
+print " - TOTAL : %s variants" % len(variants)
 x = 0
 y = 0
 z = 0
@@ -201,9 +213,9 @@ for variant in variants:
 		y+=1
 	if len(variants[variant]['call']) == 4:
 		z+=1
-print " - total 4  vc : %s variants" % z
-print " - total 3+  vc : %s variants" % y
-print " - => total 2+ vc : %s variants <=" % x
+print " - found by 4 callers  : %s variants" % z
+print " - found by 3+ callers : %s variants" % y
+print " - found by 2+ callers : %s variants" % x
 
 # IF ANALYSIS PREVIOUSLY DONE, DELETE OLD VARIANTMETRICS FIRST
 db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s'" % analysis_id)
@@ -212,7 +224,6 @@ if db_vms:
 	print " - [%s] analysisID already in DB : cleaning previous variantmetrics" % (time.strftime("%H:%M:%S"))
 	for db_vm in db_vms:
 		db_cur.execute("DELETE FROM VariantMetrics WHERE variantMetricsID='%s'" % db_vm['variantMetricsID'])
-		
 
 #   ___                     __                __              ___    ___       __        ___ 
 #  |__  | |    |    | |\ | / _`    \  /  /\  |__) |  /\  |\ |  |      |   /\  |__) |    |__  

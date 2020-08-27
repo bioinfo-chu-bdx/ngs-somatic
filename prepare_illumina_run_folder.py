@@ -10,7 +10,8 @@ import subprocess
 from datetime import date
 from optparse import OptionParser
 
-# THIS SCRIPT is auto-launched on illumina output folder after sequencing (see Systemd demon)
+# THIS SCRIPT should be launched on illumina output folder after sequencing (see Systemd demon for automation)
+# FROM BCL -> RUN FOLDER WITH FASTQ
 # USAGE : python run_bcl2fastq_illumina.py /path/to/illumina_output_folder
 
 def dict_factory(cursor, row):

@@ -204,21 +204,21 @@ if not options.skip_preprocessing:
 			if not os.path.isdir(f):
 				subprocess.call(['mkdir',f])
 
-	# QC : FASTQC BAM
+		# QC : FASTQC BAM
 		logging.info("\t\t- [%s] FastQC (BAM)..." % (time.strftime("%H:%M:%S")))
 		cmd = subprocess.Popen(['perl','%s/FastQC/fastqc' % pipeline_folder,'--outdir',fastqc_folder,barcodes_json[barcode]['bam']],stdout=open('%s/fastqc_bam.stdout.txt' % fastqc_folder,'w'),stderr=open('%s/fastqc_bam.stderr.txt' % fastqc_folder,'w'))
 
-	# SAMTOOLS STATS & DEPTH
+		# SAMTOOLS STATS & DEPTH
 		logging.info("\t\t- [%s] Samtools stats ..." % (time.strftime("%H:%M:%S")))
 		cmd = subprocess.Popen(['samtools', 'stats','-d','-t', barcodes_json[barcode]['target_bed'],barcodes_json[barcode]['bam']],stdout=open('%s/%s_%s.stats.txt' % (barcodes_json[barcode]['intermediate_folder'],barcodes_json[barcode]['sample'],barcode),'w'))
 		cmd = subprocess.Popen(['samtools', 'depth','-b',barcodes_json[barcode]['target_bed'],barcodes_json[barcode]['bam']],stdout=open('%s/depth.txt' % coverage_folder,'w'), stderr=open('%s/samtools_depth.stderr.txt' % coverage_folder,'w'))
 
-	# MOSDEPTH
+		# MOSDEPTH
 		logging.info("\t\t- [%s] mosdepth ..." % (time.strftime("%H:%M:%S")))
 		os.chdir(mosdepth_folder)
 		cmd = subprocess.Popen(['%s/mosdepth/mosdepth' % pipeline_folder,'-b', barcodes_json[barcode]['target_bed'],'%s_%s' % (barcodes_json[barcode]['sample'],barcode),barcodes_json[barcode]['bam']],stdout=open('%s/mosdepth.stdout.txt' % mosdepth_folder,'w'), stderr=open('%s/mosdepth.stderr.txt' % mosdepth_folder,'w'))
 
-	# BBCTOOLS
+		# BBCTOOLS
 		cmd = subprocess.Popen([
 			'bash', '%s/coverageAnalysis/run_coverage_analysis.sh' % pipeline_folder,
 			'-L', 'hg19',
@@ -298,20 +298,103 @@ for barcode in ordered_barcodes:
 		### |  \ |__  |__  |__) \  /  /\  |__) |  /\  |\ |  |  
 		### |__/ |___ |___ |     \/  /~~\ |  \ | /~~\ | \|  |  
 
-		logging.info("\t\t - [%s] DeepVariant ..." % time.strftime("%H:%M:%S"))
-		deepvariant_folder = '%s/deepvariant' % barcodes_json[barcode]['intermediate_folder']
-		if not os.path.isdir(deepvariant_folder):
-			subprocess.call(['mkdir', deepvariant_folder])
+		# logging.info("\t\t - [%s] DeepVariant ..." % time.strftime("%H:%M:%S"))
+		# deepvariant_folder = '%s/deepvariant' % barcodes_json[barcode]['intermediate_folder']
+		# if not os.path.isdir(deepvariant_folder):
+			# subprocess.call(['mkdir', deepvariant_folder])
 
-		cmd = subprocess.Popen(['docker','exec','-it','deepvariant','/opt/deepvariant/bin/run_deepvariant',
-		'--model_type=WES',
-		'--ref=%s' % barcodes_json[barcode]['reference'],
-		'--reads=%s' % barcodes_json[barcode]['bam'],
-		'--output_vcf=%s/%s.deepvariant.vcf' % (deepvariant_folder,barcodes_json[barcode]['sample']),
-		'--regions=%s' % barcodes_json[barcode]['merged_bed'],
-		'--num_shards=12'
-		],stdout=open('%s/deepvariant.stdout.txt'%deepvariant_folder,'w'),stderr=open('%s/deepvariant.stderr.txt'%deepvariant_folder,'w'))
+		# cmd = subprocess.Popen(['docker','exec','-it','deepvariant','/opt/deepvariant/bin/run_deepvariant',
+		# '--model_type=WES',
+		# '--ref=%s' % barcodes_json[barcode]['reference'],
+		# '--reads=%s' % barcodes_json[barcode]['bam'],
+		# '--output_vcf=%s/%s.deepvariant.vcf' % (deepvariant_folder,barcodes_json[barcode]['sample']),
+		# '--regions=%s' % barcodes_json[barcode]['merged_bed'],
+		# '--num_shards=12'
+		# ],stdout=open('%s/deepvariant.stdout.txt'%deepvariant_folder,'w'),stderr=open('%s/deepvariant.stderr.txt'%deepvariant_folder,'w'))
+		# cmd.communicate()
+
+		###            __   __     __  ___ 
+		### \  /  /\  |__) |  \ | /  `  |  
+		###  \/  /~~\ |  \ |__/ | \__,  |  
+
+		logging.info("\t\t - [%s] VarDict ..." % time.strftime("%H:%M:%S"))
+		vardict_folder = '%s/vardict' % barcodes_json[barcode]['intermediate_folder']
+		if not os.path.isdir(vardict_folder):
+			subprocess.call(['mkdir', vardict_folder])
+
+		vardict_chunk = 12
+		logging.info("\t\t\t - [%s] split_bed.py ..." % time.strftime("%H:%M:%S"))
+		os.chdir(vardict_folder)
+		cmd = subprocess.Popen(['python','%s/scripts/split_bed.py' % pipeline_folder,'--bed',barcodes_json[barcode]['target_bed'],'--scatter-count',str(vardict_chunk),'--output-folder',vardict_folder],stdout=open('%s/split_bed.stdout.txt'%vardict_folder,'w'),stderr=open('%s/split_bed.stderr.txt'%vardict_folder,'w'))
 		cmd.communicate()
+
+		ps = []
+		vcf_chunk_list = []
+		logging.info("\t\t\t - [%s] Running %s chunks ..." % (time.strftime("%H:%M:%S"),vardict_chunk))
+		FNULL = open(os.devnull, 'w')
+		for i in range(vardict_chunk):
+			bed_chunk = '%s/%04d-scattered.bed'%(vardict_folder,i)
+			vcf_chunk = '%s/%s.vardict.%04d.vcf' % (vardict_folder,barcodes_json[barcode]['sample'],i)
+			vcf_chunk_list.append(vcf_chunk)
+			cmd1 = subprocess.Popen(['perl','%s/vardict/VarDictJava/VarDict/vardict' % pipeline_folder,
+				'-G', barcodes_json[barcode]['reference'],
+				'-f','0.01',
+				'-N',barcodes_json[barcode]['sample'],
+				'-b', barcodes_json[barcode]['bam'],
+				'-c','1','-S','2','-E','3','-g','4',
+				bed_chunk],
+				stdout=open('%s/vardict.%04d.stdout.txt' % (vardict_folder,i),'w'),
+				stderr=open('%s/vardict.%04d.stderr.txt' % (vardict_folder,i),'w'))
+			ps.append(cmd1)
+		for cmd1 in ps:
+			cmd1.wait()
+
+		logging.info("\t\t\t - [%s] teststrandbias.R ..." % time.strftime("%H:%M:%S"))
+		ps = []
+		for i in range(vardict_chunk):
+			cmd2 = subprocess.Popen(['%s/vardict/VarDictJava/VarDict/teststrandbias.R' % pipeline_folder],
+			stdin=open('%s/vardict.%04d.stdout.txt' % (vardict_folder,i),'r'),
+			stdout=open('%s/teststrandbias.%04d.stdout.txt' % (vardict_folder,i),'w'),
+			stderr=open('%s/teststrandbias.%04d.stderr.txt' % (vardict_folder,i),'w'))
+			ps.append(cmd2)
+		for cmd2 in ps:
+			cmd2.wait()
+
+		logging.info("\t\t\t - [%s] var2vcf_valid.pl ..." % time.strftime("%H:%M:%S"))
+		ps = []
+		for i in range(vardict_chunk):
+			cmd3 = subprocess.Popen(['perl','%s/vardict/VarDictJava/VarDict/var2vcf_valid.pl' % pipeline_folder,
+				'-N',barcodes_json[barcode]['sample'],
+				'-E',
+				'-f','0.01'],
+			stdin=open('%s/teststrandbias.%04d.stdout.txt' % (vardict_folder,i),'r'),
+			stdout=open('%s/%s.vardict.%04d.vcf' % (vardict_folder,barcodes_json[barcode]['sample'],i),'w'),
+			stderr=open('%s/var2vcf_valid.%04d.stderr.txt' % (vardict_folder,i),'w'))
+			ps.append(cmd3)
+		for cmd3 in ps:
+			cmd3.wait()
+
+		logging.info("\t\t\t - [%s] UpdateVCFSequenceDictionary ..." % time.strftime("%H:%M:%S"))
+		ps = []
+		for vcf_chunk in vcf_chunk_list:
+			cmd = subprocess.Popen(['docker','exec','-it','gatk','gatk','UpdateVCFSequenceDictionary',
+				'-V',vcf_chunk,
+				'--source-dictionary',barcodes_json[barcode]['bam'],
+				'--output',vcf_chunk.replace('.vcf','.contig.vcf')],
+			stdout=open('%s/UpdateVCFSequenceDictionary.stdout.txt' % vardict_folder,'w'),
+			stderr=open('%s/UpdateVCFSequenceDictionary.stderr.txt' % vardict_folder,'w'))
+			ps.append(cmd)
+		for cmd in ps:
+			cmd.wait()
+
+		logging.info("\t\t\t - [%s] GatherVcfs ..." % time.strftime("%H:%M:%S"))
+		args = ['docker','exec','-it','gatk','gatk','GatherVcfs','-O','%s/%s.vardict.vcf' % (vardict_folder,barcodes_json[barcode]['sample'])]
+		for vcf_chunk in vcf_chunk_list:
+			args.append('-I')
+			args.append(vcf_chunk.replace('.vcf','.contig.vcf'))
+		cmd = subprocess.Popen(args,stdout=open('%s/gathervcf.stdout.txt' % vardict_folder,'w'),stderr=open('%s/gathervcf.stderr.txt' % vardict_folder,'w'))
+		cmd.wait()
+		subprocess.call(['stty','sane'])
 
 		###            __   __   __            ###
 		### \  /  /\  |__) /__` /  `  /\  |\ | ###
