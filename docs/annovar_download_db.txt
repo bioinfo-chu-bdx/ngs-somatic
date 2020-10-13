@@ -1,0 +1,6 @@
+
+
+cd /../annovar/
+perl annotate-variation.pl -buildver hg19 -downdb -webfrom annovar avsnp150 humandb/
+perl annotate_variation.pl -buildver hg19 -downdb -webfrom annovar clinvar_20200316 humandb/
+perl annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp35a humandb/

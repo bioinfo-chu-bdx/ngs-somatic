@@ -258,8 +258,8 @@ for line in annovar_reader:
 		annotation[variant]['annoWarning'].append("Annovar : no data for %s" % annotation[variant]['transcript'])
 		#print "\t-Annovar Warning : Annovar could not find data for %s transcript" % annotation[variant]['transcript']
 
-	if line['cosmic90'] != '.':
-		annotation[variant]['cosmic'] = line['cosmic90'].split('ID=')[-1].split(';OCCURENCE=')[0]
+	if line['cosmic92'] != '.':
+		annotation[variant]['cosmic'] = line['cosmic92'].split('ID=')[-1].split(';OCCURENCE=')[0]
 	if line['avsnp150'] != '.':
 		annotation[variant]['dbsnp'] = line['avsnp150']
 	if line['InterVar_automated'] != '.':
@@ -690,8 +690,11 @@ for variant in annotation.keys():
 		annoWarning = '. '.join(annotation[variant]['annoWarning'])
 	else:
 		annoWarning = None
-		
-	db_cur.execute("""UPDATE Variant SET exon=?,intron=?,region=?,consequence=?,actionability=?,intervar=?,clinvar=?,cosmic=?,dbsnp=?,gnomad=?,milleGall=?,milleGeur=?,nci60=?,esp=?,exac=?,sift=?,polyphen2=?,provean=?,pubmed=?,vep_consequence=?,vep_impact=?,vep_diff=?,commentaire=?,highlight=?,pathoUMD=?,commentUMD=?,annovarTranscriptDescription=?,annovarProteinDescription=?,annoWarning=?,lastUpdate=? WHERE variantID=?""", (annotation[variant]['exon'],annotation[variant]['vep_intron'],annotation[variant]['region'],annotation[variant]['consequence'],annotation[variant]['actionability'],annotation[variant]['intervar'],annotation[variant]['clinsig'],annotation[variant]['cosmic'],annotation[variant]['dbsnp'],annotation[variant]['gnomad'],annotation[variant]['1000G_all'],annotation[variant]['1000G_eur'],annotation[variant]['nci60'],annotation[variant]['esp'],annotation[variant]['exac'],annotation[variant]['sift'],annotation[variant]['polyphen_hvar'],annotation[variant]['provean'],annotation[variant]['pubmed'],annotation[variant]['vep_consequence'],annotation[variant]['vep_impact'],annotation[variant]['vep_diff'],commentaire,annotation[variant]['highlight'],annotation[variant]['pathoUMD'],annotation[variant]['commentUMD'],annotation[variant]['annovar_transcriptDescription'],annotation[variant]['annovar_proteinDescription'],annoWarning,lastUpdate,variant))
+
+	try:
+		db_cur.execute("""UPDATE Variant SET exon=?,intron=?,region=?,consequence=?,actionability=?,intervar=?,clinvar=?,cosmic=?,dbsnp=?,gnomad=?,milleGall=?,milleGeur=?,nci60=?,esp=?,exac=?,sift=?,polyphen2=?,provean=?,pubmed=?,vep_consequence=?,vep_impact=?,vep_diff=?,commentaire=?,highlight=?,pathoUMD=?,commentUMD=?,annovarTranscriptDescription=?,annovarProteinDescription=?,annoWarning=?,lastUpdate=? WHERE variantID=?""", (annotation[variant]['exon'],annotation[variant]['vep_intron'],annotation[variant]['region'],annotation[variant]['consequence'],annotation[variant]['actionability'],annotation[variant]['intervar'],annotation[variant]['clinsig'],annotation[variant]['cosmic'],annotation[variant]['dbsnp'],annotation[variant]['gnomad'],annotation[variant]['1000G_all'],annotation[variant]['1000G_eur'],annotation[variant]['nci60'],annotation[variant]['esp'],annotation[variant]['exac'],annotation[variant]['sift'],annotation[variant]['polyphen_hvar'],annotation[variant]['provean'],annotation[variant]['pubmed'],annotation[variant]['vep_consequence'],annotation[variant]['vep_impact'],annotation[variant]['vep_diff'],commentaire,annotation[variant]['highlight'],annotation[variant]['pathoUMD'],annotation[variant]['commentUMD'],annotation[variant]['annovar_transcriptDescription'],annotation[variant]['annovar_proteinDescription'],annoWarning,lastUpdate,variant))
+	except Exception as e:
+		print "Error : %s" % e
 
 db_con.commit()
 db_con.close()

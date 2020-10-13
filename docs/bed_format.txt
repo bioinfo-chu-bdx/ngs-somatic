@@ -1,0 +1,5 @@
+en utilisant biomart :
+
+- 1 : attention morceau d'UTR sur dernier et premier exon à enlever (sauf si voulu)
+- 2 : attention format BED est 0-based, donc faire -1 sur start de la première base exon. En revanche le "end" est non-inclusif donc rien à changer
+- 3 : attention aux exons non-codant. A virer manuellement si non-voulus. Attention l'exon qui suit un exon non-codant a souvent un bout d'UTR à virer aussi.

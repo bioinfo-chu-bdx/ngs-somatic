@@ -60,14 +60,15 @@ def printing(text,mytext):
 
 # ===============================================================================
 parser = OptionParser()
-parser.add_option('-f', '--run-folder', help='Run folder ', 								dest='run_folder')
-#parser.add_option('-n', '--transcript', help='NM transcipt (ex : NM_005228)', 				dest='transcript')
-parser.add_option('-c', '--cpos', 		help='c position in HGVS (ex : c.38G>A)', 			dest='cpos')
+parser.add_option('-f', '--run-folder', help='Run folder ',									dest='run_folder')
+#parser.add_option('-n', '--transcript', help='NM transcipt (ex : NM_005228)',				dest='transcript')
+parser.add_option('-c', '--cpos', 		help='c position in HGVS (ex : c.38G>A)',			dest='cpos')
 parser.add_option('-g', '--gene', 		help='use gene instead of NM',			 			dest='gene', default=False)
-parser.add_option('-t', '--run-type', 	help='filter sample by run type. ex:LAM,TP53', 		dest='runtype', default=False)
-parser.add_option('-s', '--sub-folder',	help='sub-folder of results', 						dest='sub_folder')
+parser.add_option('-t', '--run-type', 	help='filter sample by run type. ex:LAM,TP53',		dest='runtype', default=False)
+parser.add_option('-s', '--sub-folder',	help='sub-folder of results',						dest='sub_folder')
 parser.add_option('-m', '--min-depth',	help='sample min depth at position',				dest='min_depth', default=20)
 parser.add_option('-z', '--min-sample', help='min samples to compare (use others runs)',	dest='min_sample', default=False)
+parser.add_option('-p', '--use-processed', help='use processed bam',						dest='processed', default=False, action='store_true')
 (options, args) = parser.parse_args()
 
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
@@ -94,10 +95,15 @@ if options.runtype:
 
 bamlist = []
 for barcode in barcodes_json:
-	bamfile = '%s/%s/%s_%s.bam' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
+	if options.processed:
+		bamfile = '%s/%s/%s_%s.processed.bam' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
+	else:
+		bamfile = '%s/%s/%s_%s.bam' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
 	if options.runtype:
-		project = barcodes_json[barcode]['project']
-		if barcodes_json[barcode]['project'] in options.runtype:
+		db_cur.execute("SELECT panelProject FROM Panel WHERE panelID='%s'" % barcodes_json[barcode]['panel'])
+		db_panel = db_cur.fetchone()
+		project = db_panel['panelProject']
+		if project in options.runtype:
 			if os.path.isfile(bamfile):
 				bamlist.append(bamfile)
 			else:
@@ -119,9 +125,12 @@ if options.min_sample:
 		db_cur.execute("SELECT * FROM Analysis INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Sample ON Sample.sampleID = Analysis.sample WHERE panelProject IN %s AND isControl=0 ORDER BY analysisDate DESC" % str(options.runtype).replace('[','(').replace(']',')'))
 		db_analyzes = db_cur.fetchall()
 		for db_analysis in db_analyzes:
-			if os.path.exists(db_analysis['bamPath']) and db_analysis['bamPath'] not in bamlist:
-				bamlist.append(db_analysis['bamPath'])
-				added_bam.append(db_analysis['bamPath'])
+			bamPath = db_analysis['bamPath']
+			if options.processed:
+				bamPath = bamPath.replace('.bam','.processed.bam')
+			if os.path.exists(bamPath) and bamPath not in bamlist:
+				bamlist.append(bamPath)
+				added_bam.append(bamPath)
 			if len(bamlist) >= min_sample:
 				break
 	except Exception as e:
@@ -276,7 +285,7 @@ elif 'dup' in cpos:
 	variant = reference+pysam.faidx(ref,'%s:%s-%s' % (chrom,start,stop)).split('\n')[1]
 	wsize = len(variant)
 	mytext = printing("* dup seq = %s -> %s" % (reference,variant),mytext)
-	
+
 if options.runtype:
 	if 'ABL1' in options.runtype:
 		chrom = 'ABL1.E5E6.NM_005157'

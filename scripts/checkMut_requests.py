@@ -20,9 +20,10 @@ for row_idx in range(10, ws.max_row+1):
 	cpos = ws.cell(row=row_idx,column=3).value.replace(' ','')
 	run_type = ws.cell(row=row_idx,column=4).value.upper().replace(' ','')
 	min_sample = ws.cell(row=row_idx,column=5).value
+	use_processed = ws.cell(row=row_idx,column=6).value
 	if min_sample != None:
 		min_sample = str(int(min_sample))
-	state = ws.cell(row=row_idx,column=6).value
+	state = ws.cell(row=row_idx,column=7).value
 
 	if (run_path and gene and cpos and run_type) and (state != 'OK'):
 		run_folder = run_path.replace('\\','/') # ex avant : \\ZISILON01\N06lbth\sauvegardes_pgm\SBT\Run_500-599\Auto_user_S5...
@@ -36,21 +37,25 @@ for row_idx in range(10, ws.max_row+1):
 		print " - run_type : %s" % run_type
 		print " - min_sample : %s" % min_sample
 
+		cmd_args = ['python',checkMut_path,'--run-folder',run_folder,'--gene',gene,'--cpos',cpos,'--run-type',run_type]
 		if min_sample != None:
-			cmd = subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--min-sample',min_sample,'--gene',gene,'--cpos',cpos,'--run-type',run_type])
-		else:
-			cmd = subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene',gene,'--cpos',cpos,'--run-type',run_type])
+			cmd_args.append('--min-sample')
+			cmd_args.append(str(min_sample))
+		if use_processed != None:
+			if use_processed.lower() == 'true':
+				cmd_args.append('--use-processed')
+		cmd = subprocess.Popen(cmd_args)
 		cmd.communicate()
 
 		fig_path = '%s/_checkMut/%s_%s.png' % (run_folder,gene,cpos.replace('>','_'))
 		if os.path.exists(fig_path):
 			state = 'OK'
 			link = fig_path.replace('/media/n06lbth/sauvegardes_pgm/','').replace('/','\\')
-			ws.cell(row=row_idx,column=7).hyperlink = link
-			ws.cell(row=row_idx,column=7).value = 'résultat'
-			ws.cell(row=row_idx,column=7).style = 'Hyperlink'
+			ws.cell(row=row_idx,column=8).hyperlink = link
+			ws.cell(row=row_idx,column=8).value = 'résultat'
+			ws.cell(row=row_idx,column=8).style = 'Hyperlink'
 		else:
 			state = 'error'
-		ws.cell(row=row_idx,column=6).value = state
+		ws.cell(row=row_idx,column=7).value = state
 
 		wb.save('/media/n06lbth/sauvegardes_pgm/checkMut_requests.xlsx')

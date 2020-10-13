@@ -32,7 +32,7 @@ parser.add_option('-z', '--abl1',		help="abl1 conversion", dest='abl1', default=
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
-	
+
 db_path = global_param['VariantBase']
 db_con = sqlite3.connect(db_path)
 db_con.row_factory = dict_factory
@@ -60,7 +60,7 @@ if options.abl1 == 'yes':
 	abl1_cdna2genomic_reader.next() # header
 	for line in abl1_cdna2genomic_reader:
 		abl1_c2g[int(line[2])] = int(line[3])
-		
+
 mutect2_nocall = ['base_qual','low_allele_frac','map_qual','slippage','strand_bias','strict_strand','weak_evidence']
 
 #   __        __   __          __       __   ___  __            ___  __  
@@ -71,7 +71,8 @@ variants = {}
 mutect2_count = 0
 lofreq_count = 0
 varscan_count = 0
-deepvariant_count = 0
+vardict_count = 0
+# deepvariant_count = 0
 
 for vcf_path in options.vcfs:
 	vcf = open(vcf_path,'r')
@@ -110,15 +111,24 @@ for vcf_path in options.vcfs:
 			pos_cov = int(line[9].split(':')[2])
 			var_covs = [int(line[9].split(':')[5])]
 			varscan_count += 1
-		elif 'deepvariant' in vcf_path:
-			vc_name = 'deepvariant'
+		elif 'vardict' in vcf_path:
+			vc_name = 'vardict'
 			filters = line[6]
 			if filters != 'PASS':
 				continue
-			pos_cov = int(line[9].split(':')[2])
+			pos_cov = int(line[9].split(':')[1])
 			var_covs = line[9].split(':')[3].split(',')[1:] # premiere valeur est ref count
 			var_covs = [int(v) for v in var_covs]
-			deepvariant_count += 1
+			vardict_count += 1
+		# elif 'deepvariant' in vcf_path:
+			# vc_name = 'deepvariant'
+			# filters = line[6]
+			# if filters != 'PASS':
+				# continue
+			# pos_cov = int(line[9].split(':')[2])
+			# var_covs = line[9].split(':')[3].split(',')[1:] # premiere valeur est ref count
+			# var_covs = [int(v) for v in var_covs]
+			# deepvariant_count += 1
 
 		for a in range(len(alts)): # si multiallelic
 			ref = oref
@@ -201,7 +211,8 @@ for vcf_path in options.vcfs:
 print " variants called by Mutect2     : %s" % mutect2_count
 print " variants called by Lofreq      : %s" % lofreq_count
 print " variants called by VarScan     : %s" % varscan_count
-print " variants called by Deepvariant : %s" % deepvariant_count
+print " variants called by VarDict     : %s" % vardict_count
+# print " variants called by Deepvariant : %s" % deepvariant_count
 print " - TOTAL : %s variants" % len(variants)
 x = 0
 y = 0
@@ -232,7 +243,7 @@ if db_vms:
 new_var_count = 0
 new_vm_count = 0
 for variant in variants:
-	if (len(variants[variant]['call']) >= 2) or (variants[variant]['gene'] == 'CEBPA'):
+	if (len(variants[variant]['call']) >= 2) or (variants[variant]['gene'] == 'CEBPA' and variants[variant]['variant_type'] != 'SNP'):
 		variant_id = variant
 		pos_cov = int(mean(variants[variant]['pos_cov']))
 		var_cov = int(mean(variants[variant]['var_cov']))

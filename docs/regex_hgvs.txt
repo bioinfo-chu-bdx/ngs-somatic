@@ -1,0 +1,6 @@
+SNP 	: c\.\d+[ATGC]>[ATGC]
+DEL1 	: c\.\d+del[ATGC]
+DELx 	: c\.\d+_\d+del[ATGC]+
+INS1 	: c\.\d+_\d+ins[ATGC]
+INSx 	: c\.\d+_\d+ins[ATGC]+
+DELINS 	: c\.\d+_\d+[ATGC]+>[ATGC]+

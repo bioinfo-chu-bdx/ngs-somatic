@@ -1,0 +1,38 @@
+1. Download from COSMIC website (or COSMIC's SFTP repository sftp-cancer.sanger.ac.uk):
+	- CosmicCodingLuts.vcf.gz
+	- CosmicMutantExport.tsv.gz
+
+2. Decompresser les fichier 
+
+3. perl prepare_annovar_user.pl -dbtype cosmic /.../CosmicMutantExport.tsv -vcf /../CosmicCodingMuts.vcf > hg19_cosmicXX.txt
+
+
+DEPUIS v90 cosmicmutantexport est différent:
+- nouvel identifiant COSV et modifications de plusieurs colonnes
+
+En attendant nouvelle version de prepare_annovar_user.pl:
+	- continuer a utiliser COSM et pas COSV car non requetable pour l'instant
+	- modifier ligne 577 578 590 
+		$mutid = $field[16];  => $mutid = $field[17];
+	- modifier ligne 577
+			if ($field[16] eq 'Mutation ID') { => if ($field[17] eq 'LEGAGY_MUTATION_ID') { 
+
+
+4. Keep only 'COSM' (coding) ID and not 'COSN' (non-coding) :
+
+>>> cosmic92 = open('variantAnnotation/annovar/humandb/hg19_cosmic92.txt','r')
+>>> cosmic92_clean = open('variantAnnotation/annovar/humandb/hg19_cosmic92.only_cosm.txt','w')
+>>> for line in cosmic92:
+...     if 'COSN' in line:
+...             continue
+...     else:
+...             cosmic92_clean.write(line)
+...
+>>> cosmic92_clean.close()
+
+
+
+5. INDEX : perl index-annovar.pl -bin 10000 /../hg19_cosmicXX.txt
+
+
+( 6. PrepareCosmic.py ? dans variantBase/ ? pour la BDD SQL)

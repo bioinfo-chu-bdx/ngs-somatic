@@ -10,18 +10,26 @@ checkMut_path = '%s/checkMut/checkMut.py' % pipeline_folder
 FNULL = open(os.devnull, 'w')
 
 ## ILLUMINA
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.23A>C','--run-type','LAM']) # '--min-sample','30'
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.29A>C','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.292A>C','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.323A>C','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.564_566del','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.688A>C','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.700A>T','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.722T>G','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.737T>G','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.747T>G','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.751A>C','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','RUNX1','--cpos','c.1265A>C','--run-type','LAM'])
-subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','RUNX1','--cpos','c.1270T>G','--run-type','LAM'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.23A>C','--run-type','LAM-capture-v2']) # '--min-sample','30'
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.29A>C','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.292A>C','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.323A>C','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.564_566del','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.688A>C','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.700A>T','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.722T>G','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.737T>G','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.747T>G','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.751A>C','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','RUNX1','--cpos','c.1265A>C','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','RUNX1','--cpos','c.1270T>G','--run-type','LAM-capture-v2'])
+
+# 01/09/2020 Lisa & Audrey
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','KMT2C','--cpos','c.2656C>T','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','KMT2C','--cpos','c.5053G>T','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','RUNX1','--cpos','c.1270T>G','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','RUNX1','--cpos','c.1265A>C','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.230_233dup','--run-type','LAM-capture-v2'])
+subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--gene','CEBPA','--cpos','c.992T>A','--run-type','LAM-capture-v2'])
 
 print "[%s] Done." % time.strftime("%H:%M:%S")

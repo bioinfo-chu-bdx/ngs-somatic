@@ -4,15 +4,15 @@ import json
 import os
 import csv
 import urllib2
+from optparse import OptionParser
 
 # THIS SCRIPT NEED THE FOLLOWING FILES (decompressed with GUNZIP) : 
 # - ncbiRefSeqCurated 	$ wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/ncbiRefSeqCurated.txt.gz %s/reference_files
 # - knownToRefSeq 		$ wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/knownToRefSeq.txt.gz %s/reference_files
 # - knownCanonical 		$ wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/knownCanonical.txt.gz %s/reference_files
 
-# USAGE : python annotate_bed.py /path/to/target.bed
-# RESULTS : path/to/target.annotated.bed
-# BED SHOULD HAVE LINUX LINE ENDING
+# USAGE : python annotate_bed.py --i /path/to/target.bed --o /path/to/target.anno.bed
+# !!! BED SHOULD HAVE LINUX LINE ENDING !!! (use dos2unix script)
 
 def find_refgene_data(transcript):
 	gene = ''
@@ -67,7 +67,10 @@ def find_refgene_data(transcript):
 		details = 'NONE'
 		return gene,strand,exonStarts,exonEnds,details
 
-
+parser = OptionParser()
+parser.add_option('-i', '--input-bed',help="Path to bed",dest='bed')
+parser.add_option('-o', '--output-bed',help="Output bed",dest='output')
+(options, args) = parser.parse_args()
 
 pipeline_folder =  os.environ['NGS_PIPELINE_BX_DIR']
 knownToRefSeq_path = '%s/reference_files/knownToRefSeq.txt' % pipeline_folder
@@ -75,11 +78,9 @@ knownCanonical_path = '%s/reference_files/knownCanonical.txt' % pipeline_folder
 refGene_path = '%s/reference_files/ncbiRefSeqCurated.txt' % pipeline_folder
 favorite_nm_path = '%s/reference_files/annotate_bed/favorite_NM_list.tsv' % pipeline_folder
 
-
-
-bed_path = sys.argv[1]
+bed_path = options.bed
 bed_reader = open(bed_path,'r')
-bed_writer = open(bed_path.split('.bed')[0]+'.anno.bed','w')
+bed_writer = open(options.output,'w')
 
 knownToRefSeq_file = open(knownToRefSeq_path,'r')
 knownToRefSeq_reader = csv.reader(knownToRefSeq_file,delimiter='\t')

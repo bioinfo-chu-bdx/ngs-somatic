@@ -30,7 +30,7 @@ parser.add_option('-z', '--abl1',		help="abl1 conversion", dest='abl1', default=
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
-	
+
 db_path = global_param['VariantBase']
 db_con = sqlite3.connect(db_path)
 db_con.row_factory = dict_factory
@@ -58,7 +58,7 @@ else:
 	if os.path.isfile('%s.zip' % intermediate_folder):
 		archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
 		if 'tvc_de_novo/alleles.xls' in archive.namelist():
-			vc_xls_file = archive.open('tvc_de_novo/alleles.xls')	
+			vc_xls_file = archive.open('tvc_de_novo/alleles.xls')
 
 vc_xls_reader = csv.reader(vc_xls_file,delimiter='\t')
 
@@ -86,11 +86,11 @@ if options.abl1 == 'yes':
 	abl1_cdna2genomic_reader.next() # header
 	for line in abl1_cdna2genomic_reader:
 		abl1_c2g[int(line[2])] = int(line[3])
-			
+
 #   __        __   __          __     ___       __      __   ___  __            ___  __  
 #  |__)  /\  |__) /__` | |\ | / _`     |  \  / /  `    |__) |__  /__` |  | |     |  /__` 
 #  |    /~~\ |  \ .__/ | | \| \__>     |   \/  \__,    |  \ |___ .__/ \__/ |___  |  .__/ 
-                                                                                      
+
 variants = {}
 
 for line in vc_xls_reader:
@@ -167,7 +167,7 @@ if vc_hotspot_xls_reader:
 			continue
 		chromosome = line[0]
 		position = int(line[1])
-		if options.abl1 == 'yes':	
+		if options.abl1 == 'yes':
 			chromosome = 'chr9'
 			position = abl1_c2g[position-192]
 		ref = line[2]
@@ -257,13 +257,13 @@ for variant in variants:
 			print "\t - warning (VARIANT table)** %s"%e
 	elif db_variant['hgvs'] == 'no':
 		variant_id = db_variant['hgvsInfo']
-				
+
 	#   ___                     __                __              ___        ___ ___  __     __   __     ___       __        ___ 
 	#  |__  | |    |    | |\ | / _`    \  /  /\  |__) |  /\  |\ |  |   |\/| |__   |  |__) | /  ` /__`     |   /\  |__) |    |__  
 	#  |    | |___ |___ | | \| \__>     \/  /~~\ |  \ | /~~\ | \|  |   |  | |___  |  |  \ | \__, .__/     |  /~~\ |__) |___ |___ 
-						
+
 	db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s' and variant='%s'" % (analysis_id,variant_id))
-	if db_cur.fetchone() is None:																					  
+	if db_cur.fetchone() is None:
 		exists = True
 		while exists != None:
 			random_uuid = uuid.uuid1()

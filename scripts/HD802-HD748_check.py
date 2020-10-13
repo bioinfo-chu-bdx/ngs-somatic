@@ -6,7 +6,7 @@ import xlwt
 from xlutils.copy import copy
 from xlutils.styles import Styles
 import subprocess
-	
+
 def representsInt(s): # pour eviter avertissement "nombre ecrit en texte" sous excel
 	try: 
 		s = int(s)

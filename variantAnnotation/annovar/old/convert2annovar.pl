@@ -6,7 +6,7 @@ use Pod::Usage;
 use File::Basename;
 
 our $REVISION = '$Revision: f98de7f0a9145baca0dd81fa66f8e3db0603abf9 $';
-our $DATE =	'$Date: 2019-10-24 00:05:27 -0400 (Thu, 24 Oct 2019) $';  
+our $DATE =	'$Date: 2018-04-16 00:48:00 -0400 (Mon, 16 Apr 2018) $';  
 our $AUTHOR =	'$Author: Kai Wang <kaichop@gmail.com> $';
 
 our ($verbose, $help, $man);
@@ -2423,10 +2423,10 @@ sub convertVCF4 {
 						($newstart, $newend, $newref, $newalt) = adjustStartEndRefAlt ($newstart, $newend, $newref, $newalt);	#20150324: further adjust when only part of alt and ref matches
 					}
 				} else {                #block substitution (only differing in the last base)
-					if ($keepindelref) {
+                                        if ($keepindelref) {
 						($newstart, $newend, $newref, $newalt) = ($start, $start+length($ref)-1, $ref, $alt);
 					} else {
-	                	$head = substr ($ref, 0, length ($ref) - 1);
+	                                        $head = substr ($ref, 0, length ($ref) - 1);
 						if ($alt =~ /^$head/) {
 							($newstart, $newend) = ($start+length($ref)-1, $start+length($ref)-1);
 							my $chopped_ref = $ref;
@@ -2485,7 +2485,6 @@ sub convertVCF4 {
 			if ($withfreq) {
 				my $fhout = $fhout[0];
 				my $freq = $count_all?($count_alt/$count_all):'.';
-				$newalt ||= 0;		#this is to handle GATK haplotype caller that sometimes have ALT allele as "."
 				length ($freq) > 6 and $freq = sprintf("%.4g", $freq);
 				if ($includeinfo) {
 					print $fhout join ("\t", $chr, $newstart, $newend, $newref, $newalt, $freq, $quality_score, $read_depth, $_), "\n";
@@ -2577,7 +2576,7 @@ sub convertVCF4 {
           convert2annovar.pl -format region -seqdir humandb/hg19_seq/ chr1:2000001-2000003 -inssize 1 -delsize 2
           convert2annovar.pl -format transcript NM_022162 -gene humandb/hg19_refGene.txt -seqdir humandb/hg19_seq/
 
- Version: $Date: 2019-10-24 00:05:27 -0400 (Thu, 24 Oct 2019) $
+ Version: $Date: 2018-04-16 00:48:00 -0400 (Mon, 16 Apr 2018) $
 
 =head1 OPTIONS
 

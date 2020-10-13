@@ -6,9 +6,9 @@ use Getopt::Long;
 use File::Spec;
 use Cwd;
 
-our $REVISION = '$Revision: 6b5656c3a8e640eea2984b2037ef4226001dcc94 $';
-our $DATE =	'$Date: 2020-06-07 23:56:37 -0400 (Sun,  7 Jun 2020) $';  
-our $AUTHOR =	'$Author: Kai Wang <kaichop@gmail.com> $';
+our $REVISION = '$Revision: de74a7d59955d769c6cbb92a0d64d12c90c8eede $';
+our $DATE =	'$Date: 2018-04-16 00:43:31 -0400 (Mon, 16 Apr 2018) $';  
+our $AUTHOR =	'$Author: kaichop <kaichop@gmail.com> $';
 
 our ($verbose, $help, $man);
 our ($queryfile, $dbloc);
@@ -37,7 +37,7 @@ our %codon3m = (TTT=>"Phe", TTC=>"Phe", TCT=>"Ser", TCC=>"Ser", TAT=>"Tyr", TAC=
 our %codonfullm = (TTT=>"Phenylalanine", TTC=>"Phenylalanine", TCT=>"Serine", TCC=>"Serine", TAT=>"Tyrosine", TAC=>"Tyrosine", TGT=>"Cysteine", TGC=>"Cysteine", TTA=>"Leucine", TCA=>"Serine", TAA=>"Stop", TGA=>"Tryptophan", TTG=>"Leucine", TCG=>"Serine", TAG=>"Stop", TGG=>"Tryptophan", CTT=>"Leucine", CTC=>"Leucine", CCT=>"Proline", CCC=>"Proline", CAT=>"Histidine", CAC=>"Histidine", CGT=>"Arginine", CGC=>"Arginine", CTA=>"Leucine", CTG=>"Leucine", CCA=>"Proline", CCG=>"Proline", CAA=>"Glutamine", CAG=>"Glutamine", CGA=>"Arginine", CGG=>"Arginine", ATT=>"Isoleucine", ATC=>"Isoleucine", ACT=>"Threonine", ACC=>"Threonine", AAT=>"Asparagine", AAC=>"Asparagine", AGT=>"Serine", AGC=>"Serine", ATA=>"Methionine", ACA=>"Threonine", AAA=>"Lysine", AGA=>"Stop", ATG=>"Methionine", ACG=>"Threonine", AAG=>"Lysine", AGG=>"Stop", GTT=>"Valine", GTC=>"Valine", GCT=>"Alanine", GCC=>"Alanine", GAT=>"Aspartic acid", GAC=>"Aspartic acid", GGT=>"Glycine", GGC=>"Glycine", GTA=>"Valine", GTG=>"Valine", GCA=>"Alanine", GCG=>"Alanine", GAA=>"Glutamic acid", GAG=>"Glutamic acid", GGA=>"Glycine", GGG=>"Glycine");
 our %codonr1m = (UUU=>"F", UUC=>"F", UCU=>"S", UCC=>"S", UAU=>"Y", UAC=>"Y", UGU=>"C", UGC=>"C", UUA=>"L", UCA=>"S", UAA=>"*", UGA=>"W", UUG=>"L", UCG=>"S", UAG=>"*", UGG=>"W", CUU=>"L", CUC=>"L", CCU=>"P", CCC=>"P", CAU=>"H", CAC=>"H", CGU=>"R", CGC=>"R", CUA=>"L", CUG=>"L", CCA=>"P", CCG=>"P", CAA=>"Q", CAG=>"Q", CGA=>"R", CGG=>"R", AUU=>"I", AUC=>"I", ACU=>"T", ACC=>"T", AAU=>"N", AAC=>"N", AGU=>"S", AGC=>"S", AUA=>"M", ACA=>"T", AAA=>"K", AGA=>"*", AUG=>"M", ACG=>"T", AAG=>"K", AGG=>"*", GUU=>"V", GUC=>"V", GCU=>"A", GCC=>"A", GAU=>"D", GAC=>"D", GGU=>"G", GGC=>"G", GUA=>"V", GUG=>"V", GCA=>"A", GCG=>"A", GAA=>"E", GAG=>"E", GGA=>"G", GGG=>"G");
 our %codonr3m = (UUU=>"Phe", UUC=>"Phe", UCU=>"Ser", UCC=>"Ser", UAU=>"Tyr", UAC=>"Tyr", UGU=>"Cys", UGC=>"Cys", UUA=>"Leu", UCA=>"Ser", UAA=>"*", UGA=>"Trp", UUG=>"Leu", UCG=>"Ser", UAG=>"*", UGG=>"Trp", CUU=>"Leu", CUC=>"Leu", CCU=>"Pro", CCC=>"Pro", CAU=>"His", CAC=>"His", CGU=>"Arg", CGC=>"Arg", CUA=>"Leu", CUG=>"Leu", CCA=>"Pro", CCG=>"Pro", CAA=>"Gln", CAG=>"Gln", CGA=>"Arg", CGG=>"Arg", AUU=>"Ile", AUC=>"Ile", ACU=>"Thr", ACC=>"Thr", AAU=>"Asn", AAC=>"Asn", AGU=>"Ser", AGC=>"Ser", AUA=>"Met", ACA=>"Thr", AAA=>"Lys", AGA=>"*", AUG=>"Met", ACG=>"Thr", AAG=>"Lys", AGG=>"*", GUU=>"Val", GUC=>"Val", GCU=>"Ala", GCC=>"Ala", GAU=>"Asp", GAC=>"Asp", GGU=>"Gly", GGC=>"Gly", GUA=>"Val", GUG=>"Val", GCA=>"Ala", GCG=>"Ala", GAA=>"Glu", GAG=>"Glu", GGA=>"Gly", GGG=>"Gly");
-our %codonrfullm = (UUU=>"Phenylalanine", UUC=>"Phenylalanine", UCU=>"Serine", UCC=>"Serine", UAU=>"Tyrosine", UAC=>"Tyrosine", UGU=>"Cysteine", UGC=>"Cysteine", UUA=>"Leucine", UCA=>"Serine", UAA=>"Stop", UGA=>"Tryptophan", UUG=>"Leucine", UCG=>"Serine", UAG=>"Stop", UGG=>"Tryptophan", CUU=>"Leucine", CUC=>"Leucine", CCU=>"Proline", CCC=>"Proline", CAU=>"Histidine", CAC=>"Histidine", CGU=>"Arginine", CGC=>"Arginine", CUA=>"Leucine", CUG=>"Leucine", CCA=>"Proline", CCG=>"Proline", CAA=>"Glutamine", CAG=>"Glutamine", CGA=>"Arginine", CGG=>"Arginine", AUU=>"Isoleucine", AUC=>"Isoleucine", ACU=>"Threonine", ACC=>"Threonine", AAU=>"Asparagine", AAC=>"Asparagine", AGU=>"Serine", AGC=>"Serine", AUA=>"Methionine", ACA=>"Threonine", AAA=>"Lysine", AGA=>"Stop", AUG=>"Methionine", ACG=>"Threonine", AAG=>"Lysine", AGG=>"Stop", GUU=>"Valine", GUC=>"Valine", GCU=>"Alanine", GCC=>"Alanine", GAU=>"Aspartic acid", GAC=>"Aspartic acid", GGU=>"Glycine", GGC=>"Glycine", GUA=>"Valine", GUG=>"Valine", GCA=>"Alanine", GCG=>"Alanine", GAA=>"Glutamic acid", GAG=>"Glutamic acid", GGA=>"Glycine", GGG=>"Glycine"); 		#"
+our %codonrfullm = (UUU=>"Phenylalanine", UUC=>"Phenylalanine", UCU=>"Serine", UCC=>"Serine", UAU=>"Tyrosine", UAC=>"Tyrosine", UGU=>"Cysteine", UGC=>"Cysteine", UUA=>"Leucine", UCA=>"Serine", UAA=>"Stop", UGA=>"Tryptophan", UUG=>"Leucine", UCG=>"Serine", UAG=>"Stop", UGG=>"Tryptophan", CUU=>"Leucine", CUC=>"Leucine", CCU=>"Proline", CCC=>"Proline", CAU=>"Histidine", CAC=>"Histidine", CGU=>"Arginine", CGC=>"Arginine", CUA=>"Leucine", CUG=>"Leucine", CCA=>"Proline", CCG=>"Proline", CAA=>"Glutamine", CAG=>"Glutamine", CGA=>"Arginine", CGG=>"Arginine", AUU=>"Isoleucine", AUC=>"Isoleucine", ACU=>"Threonine", ACC=>"Threonine", AAU=>"Asparagine", AAC=>"Asparagine", AGU=>"Serine", AGC=>"Serine", AUA=>"Methionine", ACA=>"Threonine", AAA=>"Lysine", AGA=>"Stop", AUG=>"Methionine", ACG=>"Threonine", AAG=>"Lysine", AGG=>"Stop", GUU=>"Valine", GUC=>"Valine", GCU=>"Alanine", GCC=>"Alanine", GAU=>"Aspartic acid", GAC=>"Aspartic acid", GGU=>"Glycine", GGC=>"Glycine", GUA=>"Valine", GUG=>"Valine", GCA=>"Alanine", GCG=>"Alanine", GAA=>"Glutamic acid", GAG=>"Glutamic acid", GGA=>"Glycine", GGG=>"Glycine");
 
 our %iupac = (R=>'AG', Y=>'CT', S=>'GC', W=>'AT', K=>'GT', M=>'AC', A=>'AA', C=>'CC', G=>'GG', T=>'TT', B=>'CGT', D=>'AGT', H=>'ACT', V=>'ACG', N=>'ACGT', '.'=>'-', '-'=>'-');
 
@@ -49,16 +49,16 @@ $time and printerr "NOTICE: Current time (before execution) is ", scalar (localt
 
 # print out output file names
 if ($geneanno) {
-	printerr "NOTICE: Output files are written to $outfile.variant_function, $outfile.exonic_variant_function\n";
+	printerr "NOTICE: Output files were written to $outfile.variant_function, $outfile.exonic_variant_function\n";
 } elsif ($regionanno) {
 	printerr "NOTICE: Output file is written to $outfile.${buildver}_$dbtype1\n";
 } elsif ($filter) {
-	printerr "NOTICE: Output file with variants matching filtering criteria is written to $outfile.${buildver}_${dbtype1}_dropped, and output file with other variants is written to $outfile.${buildver}_${dbtype1}_filtered\n";
+	printerr "NOTICE: Variants matching filtering criteria are written to $outfile.${buildver}_${dbtype1}_dropped, other variants are written to $outfile.${buildver}_${dbtype1}_filtered\n";
 }
 
-# check number of input lines in query, and adjust number of threads accordingly for gene-based annotation (when the user specifies -thread argument for multi-threading)
-# my general observation is that when input line is less than 1 million, multi-threading does not really improve performance and should be disabled (--mingenelinecount controls this behavior)
-# another observation is that when number of threads are too high, the program runs slower (--maxgenethread controls this); this is dependent on the I/O of the specific computing platform
+# check number of input lines in query, and adjust number of threads accordingly for gene-based annotation
+# my general observation is that when input line is less than 1 million, multi-threading does not really improve performance and should be disabled (--mingenelinecount controls this)
+# another observation is that when number of threads are too high, the program runs slower (--maxgenethread controls this)
 my ($queryfile_line_count, $chunk_line_count);
 if ($thread) {
 	($queryfile_line_count, $chunk_line_count) = calculateChunkLine ($queryfile, $thread);
@@ -122,7 +122,7 @@ if ($thread) {
 # delete invlid_input file if it has zero size, otherwise print out the number of invalid lines
 if (not $downdb) {
 	if (not -z "$outfile.invalid_input") {
-		printerr "NOTICE: Variants with invalid input format are written to $outfile.invalid_input\n";
+		printerr "NOTICE: Variants with invalid input format were written to $outfile.invalid_input\n";
 	} else {
 		unlink ("$outfile.invalid_input");
 	}
@@ -142,11 +142,11 @@ sub combineFile {
 		my $msg = qx/cat --help 2>&1/ || '';		#collect the output of the system command
 		if ($msg =~ m/^Usage/) {
 			for my $j (0 .. @suffix-1) {
-				system ("cat $outfile.$suffix[$j].$i >> $outfile.$suffix[$j]");		#if `cat` is available (in Linux/Unix, Apple Mac OS, etc), use it
+				system ("cat $outfile.$suffix[$j].$i >> $outfile.$suffix[$j]");
 			}
 		} else {
 			for my $j (0 .. @suffix-1) {
-				appendFile ("$outfile.$suffix[$j].$i", "$outfile.$suffix[$j]");		#if `cat` is not available (in Windows), use appendFile() subroutine instead, which is slower
+				appendFile ("$outfile.$suffix[$j].$i", "$outfile.$suffix[$j]");
 			}
 		}
 		for my $j (0 .. @suffix-1) {
@@ -159,15 +159,15 @@ sub combineFile {
 sub calculateChunkLine {
 	my ($queryfile, $thread) = @_;
 	my $chunk_line_count;
-	my $queryfile_line_count = `cat $queryfile | wc -l 2>&1`;		#if `cat` and `wc` are available (in Linux/Unix, Apple Mac OS, etc), use it
+	my $queryfile_line_count = `cat $queryfile | wc -l 2>&1`;
 	chomp $queryfile_line_count;
 	if ($queryfile_line_count =~ m/^\d+$/) {	#integer should be returned if the command finishes successfully
-		printerr ("NOTICE: the queryfile $queryfile contains $queryfile_line_count lines\n");
-	} else {									#if `cat` and `wc` are not available (in Windows), open the file and count the number of lines
+		printerr ("NOTICE: the queryfile contains $queryfile_line_count lines\n");
+	} else {					#otherwise, open the file and count the number of lines
 		open (QUERY, $queryfile);
 		$queryfile_line_count++ while (<QUERY>);
 		close (QUERY);
-		printerr ("NOTICE: the queryfile $queryfile contains $queryfile_line_count lines\n");
+		printerr ("NOTICE: the queryfile contains $queryfile_line_count lines\n");
 	}
 	if ($queryfile_line_count % $thread == 0) {
 		$chunk_line_count = $queryfile_line_count/$thread;
@@ -177,7 +177,7 @@ sub calculateChunkLine {
 	return ($queryfile_line_count, $chunk_line_count);
 }
 
-# Append the content of one file to another, in case "cat" system command is not availalbe in the current operating system
+# Append the content of one file to another, in case "cat" system command is not availalbe in the operating system
 sub appendFile {
 	my ($file1, $file2) = @_;
 	open (FH1, $file1) or die "Error: cannot read from file $file1: $!\n";
@@ -213,7 +213,7 @@ sub processArguments {
 	($queryfile, $dbloc) = @ARGV;
 
 	$dbloc =~ s/[\\\/]+$//;			#delete the trailing / or \ sign as part of the directory name
-	$dbloc =~ s{^~([^/]*)} { $1 ? (getpwnam($1))[7] : ( $ENV{HOME} || $ENV{LOGDIR} || (getpwuid($>))[7])}ex;		#expand the ~ tilde to full path name (sometimes, annotate_variation.pl is not executed by the shell but excuted by other environments that do not recognize ~, so it is important to expand ~ to increase system compatibility)
+	$dbloc =~ s{^~([^/]*)} { $1 ? (getpwnam($1))[7] : ( $ENV{HOME} || $ENV{LOGDIR} || (getpwuid($>))[7])}ex;		#expand the ~ tilde to full path name
 
 	
 	if (defined $batchsize) {
@@ -236,7 +236,7 @@ sub processArguments {
 		}
 	}
 
-	$verbose ||= 0;				#when it is not specified, it is zero
+	$verbose ||= 0;			#when it is not specified, it is zero
 	$neargene ||= 1_000;		#for upstream/downstream annotation of variants, specify the distance threshold between variants and genes
 	$expandbin ||= int(2_000_000/$genomebinsize);		#for gene-based annotations, when intergenic variants are found, expand to specified number of nearby bins to find closest genes
 	$outfile ||= $queryfile;	#specify the prefix of output file names
@@ -251,7 +251,7 @@ sub processArguments {
 	} else {
 		open (LOG, ">$outfile.log") or die "Error: cannot write LOG information to log file $outfile.log: $!\n";
 	}
-	print LOG "ANNOVAR Version:\n\t", q/$Date: 2020-06-07 23:56:37 -0400 (Sun,  7 Jun 2020) $/, "\n";
+	print LOG "ANNOVAR Version:\n\t", q/$Date: 2018-04-16 00:43:31 -0400 (Mon, 16 Apr 2018) $/, "\n";
 	print LOG "ANNOVAR Information:\n\tFor questions, comments, documentation, bug reports and program update, please visit http://www.openbioinformatics.org/annovar/\n";
 	print LOG "ANNOVAR Command:\n\t$0 @command_line\n";
 	print LOG "ANNOVAR Started:\n\t", scalar (localtime), "\n";
@@ -268,10 +268,12 @@ sub processArguments {
 	}
 		
 	my %dbtype1 = ('gene'=>'refGene', 'refgene'=>'refGene', 'knowngene'=>'knownGene', 'ensgene'=>'ensGene', 'band'=>'cytoBand', 'cytoband'=>'cytoBand', 'tfbs'=>'tfbsConsSites', 'mirna'=>'wgRna',
-			'mirnatarget'=>'targetScanS', 'segdup'=>'genomicSuperDups', 'omimgene'=>'omimGene', 'gwascatalog'=>'gwasCatalog',
+			'mirnatarget'=>'targetScanS', 'segdup'=>'genomicSuperDups', 'omimgene'=>'omimGene', 'gwascatalog'=>'gwasCatalog', 
 			'1000g_ceu'=>'CEU.sites.2009_04', '1000g_yri'=>'YRI.sites.2009_04', '1000g_jptchb'=>'JPTCHB.sites.2009_04', 
-			'1000g2010_ceu'=>'CEU.sites.2010_03', '1000g2010_yri'=>'YRI.sites.2010_03', '1000g2010_jptchb'=>'JPTCHB.sites.2010_03',			
-			);		#for backward compatibility when these lower-case keywords were used in previous versions of ANNOVAR (the /^1000g(20\d\d)([a-z]{3})_([a-z]+)$/ pattern is handled below)
+			'1000g2010_ceu'=>'CEU.sites.2010_03', '1000g2010_yri'=>'YRI.sites.2010_03', '1000g2010_jptchb'=>'JPTCHB.sites.2010_03',
+			'1000g2010jul_ceu'=>'CEU.sites.2010_07', '1000g2010jul_yri'=>'YRI.sites.2010_07', '1000g2010jul_jptchb'=>'JPTCHB.sites.2010_07',
+			'1000g2010nov_all'=>'ALL.sites.2010_11', '1000g2011may_all'=>'ALL.sites.2011_05'
+			);
 
 		
 	if ($geneanno) {
@@ -286,16 +288,10 @@ sub processArguments {
 		if ($dbtype1 eq 'gff3') {
 			defined $gff3dbfile or pod2usage ("Error in argument: please specify --gff3dbfile for the --dbtype of 'gff3'");
 		}
-		if ($dbtype1 eq 'generic') {
-			defined $genericdbfile or pod2usage ("Error in argument: please specify --genericdbfile for the --dbtype of 'generic'");
-		}
-		if ($dbtype1 eq 'bed') {
-			defined $bedfile or pod2usage ("Error in argument: please specify --bedfile for the --dbtype of 'bed'");
-		}
 	} elsif ($filter) {
 		defined $dbtype or pod2usage ("Error in argument: please specify --dbtype (required for the --filter operation)");
 		#as of Feb 2012, I no longer check the validity of the database name for -filter operation, to give users the maximum amount of flexibility in designing and using their own favorite databases
-		$dbtype =~ m/^avsift|1000g_(ceu|yri|jptchb)|1000g2010_(ceu|yri|jptchb)|1000g20\d\d[a-z]{3}_[a-z]+|[A-Z][A-Z][A-Z]\.sites.\d{4}_\d{2}|snp\d+\w+?|vcf|(ljb_[\w\+]+)|esp\d+_[\w]+|gnomad\w+|exac\w+|dbnsfp\w+$/ or print STDERR "NOTICE: the --dbtype $dbtype is assumed to be in generic ANNOVAR database format\n";
+		$dbtype =~ m/^avsift|generic|1000g_(ceu|yri|jptchb)|1000g2010_(ceu|yri|jptchb)|1000g20\d\d[a-z]{3}_[a-z]+|snp\d+\w+?|vcf|(ljb_[\w\+]+)|esp\d+_[\w]+$/ or print STDERR "NOTICE: the --dbtype $dbtype is assumed to be in generic ANNOVAR database format\n";
 		
 		$dbtype1 = $dbtype1{$dbtype} || $dbtype;
 		
@@ -384,7 +380,7 @@ sub processArguments {
 		$regionanno or pod2usage ("Error in argument: the --bedfile argument is supported only for the --regionanno operation");
 	}
 	if (defined $genericdbfile) {
-		$filter or $regionanno or pod2usage ("Error in argument: the --genericdbfile argument is supported only for the --filter and -region operation");
+		$filter or pod2usage ("Error in argument: the --genericdbfile argument is supported only for the --filter operation");
 	}
 	if (defined $wget) {
 		$downdb or pod2usage ("Error in argument: the --wget argument is supported only for the --downdb operation");
@@ -451,7 +447,7 @@ sub processArguments {
 	
 	if (defined $webfrom) {
 		if ($webfrom ne 'ucsc' and $webfrom ne 'annovar') {
-			$webfrom =~ m#^(http://|https://|ftp://)# or pod2usage ("Error: the --webfrom argument needs to be 'ucsc', 'annovar', or a URL");	#20191010: add https as an option
+			$webfrom =~ m#^(http://|ftp://)# or pod2usage ("Error: the --webfrom argument needs to be 'ucsc', 'annovar', or a URL");
 		}
 	} else {
 		$webfrom = 'ucsc';
@@ -563,9 +559,7 @@ sub detectInvalidInput {
 		($ref, $obs) = (uc $ref, uc $obs);
 		$zerostart and $start++;
 		$chr =~ s/^chr//;
-		$ref =~ s/^\-+$/-/;		#sometimes users use -- as the reference allele for whatever reason
-		$obs =~ s/^\-+$/-/;		#sometimes users use -- as the alternative allele for whatever reason
-		if ($chr =~ m/[^\w\.\-]/ or $start =~ m/[^\d]/ or $end =~ m/[^\d]/) {		#chr name could contain . (example: GL000212.1, or Zv9_NA###, or ERCC-3324
+		if ($chr =~ m/[^\w\.]/ or $start =~ m/[^\d]/ or $end =~ m/[^\d]/) {		#chr name could contain . (example: GL000212.1, or Zv9_NA###
 			$invalid++;
 		} elsif ($ref eq '-' and $obs eq '-' 		#both are empty allele
 			or $ref =~ m/[^ACTG0\-]/ 		#non-standard nucleotide code
@@ -694,7 +688,7 @@ sub processNextQueryBatchByGeneThread {
 				$seen{$name, $txstart}++;			#a transcript may be in two adjacent bins, so if one is already scanned, there is no need to work on it again
 				my $current_ncRNA;
 				
-				if ($transfun) {					#variant_function output contains transcript name, rather than gene name
+				if ($transfun) {				#variant_function output contains transcript name, rather than gene name
 					$name2 = $name;
 					$name2 =~ s/#\w+#\d+//;			#20140711 (issue:multimap) multimap issue
 				}
@@ -1534,7 +1528,7 @@ sub annotateExonicVariantsThread {
 	my ($refseqvar, $geneidmap, $cdslen, $mrnalen, $EXVARFUN) = @_;
 	my $refseqhash;
 	my $function = {};
-	my %varinfo;					#variants information (same as input line)
+	my %varinfo;				#variants information (same as input line)
 	my %unmatch_wtnt_ref;			#count how many user input variant has wildtype nucleotide that does not match reference genome (use hash, because if we use count, we are merely counting variant-transcript combinations)
 	my @unmatch_example;
 	
@@ -1863,7 +1857,7 @@ sub annotateExonicVariantsThread {
 
 			} elsif ($obs eq '-') {				#deletion variant involving several nucleotides
 				($wtaa, $varpos) = (translateDNA ($wtnt3, $chr), int(($refvarstart-$refcdsstart)/3)+1);		#wildtype amino acid, position of amino acid
-				my ($varposend, $canno, $panno);		#the position of the last amino acid in the deletion
+				my ($varposend, $canno);		#the position of the last amino acid in the deletion
 				if ($refvarstart<=$refcdsstart and $firstcodondel) {	#since the first amino acid is deleted, the whole gene is considered deleted
 					$function->{$index}{fsdel} .= "$geneidmap->{$seqid}:$seqid:wholegene,";	#it is exonic variant, so the varend has to hit the first exon
 				} elsif ($refvarstart<=$refcdsstart and not $firstcodondel) {	#the first amino acid is deleted but we still report the predicted functional consequence
@@ -1871,20 +1865,13 @@ sub annotateExonicVariantsThread {
 						$varposend = int ($cdslen->{$seqid}/3);
 						$canno = "c." . ($refvarstart-$refcdsstart+1) . "_" . ($cdslen->{$seqid}+$refcdsstart-1) . "del";
 						$is_fs++;
-						$panno = '';
 					} else {
 						$varposend = int (($refvarend-$refcdsstart)/3) + 1;
-						if ($refvarend-$refcdsstart > 0) {
-							$canno = "c." . 1 . "_" . ($refvarend-$refcdsstart+1) . "del";	#added 20120618
-							$panno = ":p.$wtaa${varpos}fs";
-						} else {
-							$canno = "c." . 1 . "_" . $cdslen->{$seqid} . "del";			#added 20191010 (the maximum cdot is the length of the transcript
-							$panno = '';
-						}
+						$canno = "c." . 1 . "_" . ($refvarend-$refcdsstart+1) . "del";	#added 20120618
 						($refvarend-$refvarstart+1) % 3 == 0 or $is_fs++;
 					}
 					#$function->{$index}{fsdel} .= "$geneidmap->{$seqid}:$seqid:exon$exonpos:$canno:p.${varpos}_${varposend}del,";	#per user comments, this is changed to 'fs' below 20140711 (issue:blockfs)
-					$function->{$index}{fsdel} .= "$geneidmap->{$seqid}:$seqid:exon$exonpos:$canno$panno,";
+					$function->{$index}{fsdel} .= "$geneidmap->{$seqid}:$seqid:exon$exonpos:$canno:p.$wtaa${varpos}fs,";
 				} elsif ($refvarend >= $cdslen->{$seqid}+$refcdsstart) {	#3' portion of the gene is deleted
 					$varposend = int ($cdslen->{$seqid}/3);		#cdslen should be multiples of 3, but just in case of database mis-annotation
 					#$canno = "c." . ($refvarstart-$refcdsstart+1) . "_" . ($cdslen->{$seqid}+$refcdsstart-1) . "del";	#commented 20170601 due to error on 8       8887543 8887545 AAC     - (hg19)
@@ -1950,22 +1937,15 @@ sub annotateExonicVariantsThread {
 				}
 
 			} else {							#block substitution event
-
-
-				#20191010: the block below is changed (1) add delins in the string (2) change the start number to be 1 less if cdot starts before 1
-				if ($refvarstart-$refcdsstart < 0) {	#the start is before the cds, because cdot change from -1 to 1 without 0, we have to treat it differently here
-					$canno = "c." . ($refvarstart-$refcdsstart) . "_" . ($refvarend-$refcdsstart+1) . "delins$obs";	#for example, 37_16-88923279-CCGCCATG-CA__NM_000512 should be c.-1_6T rather than c.0_6T
-				} else {
-					$canno = "c." . ($refvarstart-$refcdsstart+1) . "_" . ($refvarend-$refcdsstart+1) . "delins$obs";
-				}            
-
 				if (($refvarend-$refvarstart+1-length($obs)) % 3 == 0) {
-					$function->{$index}{nfssub} .= "$geneidmap->{$seqid}:$seqid:exon$exonpos:$canno,";
+					$function->{$index}{nfssub} .= "$geneidmap->{$seqid}:$seqid:exon$exonpos:c." . ($refvarstart-$refcdsstart+1) . "_" . ($refvarend-$refcdsstart+1) . "$obs,";
 				} else {
-					$function->{$index}{fssub} .= "$geneidmap->{$seqid}:$seqid:exon$exonpos:$canno,";
+					$function->{$index}{fssub} .= "$geneidmap->{$seqid}:$seqid:exon$exonpos:c." . ($refvarstart-$refcdsstart+1) . "_" . ($refvarend-$refcdsstart+1) . "$obs,";
 					$is_fs++;
 				}
 
+				$canno = "c." . ($refvarstart-$refcdsstart+1) . "_" . ($refvarend-$refcdsstart+1) . "$obs";
+                
 		                # padded
 		                if ($seq_padding) {
 		                    my $real_ref = ($ref eq '-' ? '' : substr($refseqhash->{$seqid}, $refvarstart-1, $refvarend-$refvarstart+1));
@@ -2130,7 +2110,7 @@ sub annotateExonicVariantsThread {
 # Clean the exonic annotation string when it has extra comment that should not be printed out
 sub cleanExonicAnnotation {
 	my ($anno) = @_;
-	$anno =~ s/#[\w\.\-]+#\d+//g;	#to handle situations where the chromosome name has dot or - sign
+	$anno =~ s/#\w+#\d+//g;
 	return $anno;
 }
 
@@ -2286,7 +2266,7 @@ sub filterNextBatchThread {
 	my $bb = {};			#a subset of %index, which corresponds to the input variants
 	my $flag_idx_search = 0;	#indicate if index-based search algorithm is used (faster speed for a small number of input variants)
 	
-	if ($dbm) {				#dbm is no longer used in ANNOVAR but we provide it here for backward compatibility, read https://en.wikipedia.org/wiki/DBM_(computing)
+	if ($dbm) {
 		if (-f "$dbfile.dir" and -f "$dbfile.pag") {
 			if (dbmopen (%index, $dbfile, 0)) {		#read only mode
 				$BIN = $index{BIN} || undef;
@@ -2498,7 +2478,7 @@ sub filterNextBatchThread {
 					}
 				}
 				$score = $rsid;
-			} elsif ($dbtype =~ m/^1000g_(\w+)/ or $dbtype =~ m/^1000g2010_(\w+)/ or $dbtype =~ m/^1000g201\d\w\w\w_(\w+)/ or $dbtype1 =~ m/[A-Z][A-Z][A-Z]\.sites.\d{4}_\d{2}/) {	#20191010: since too many users asked about FAQ #4, I decided to just allow this keyword (previously invalid) in command line
+			} elsif ($dbtype =~ m/^1000g_(\w+)/ or $dbtype =~ m/^1000g2010_(\w+)/ or $dbtype =~ m/^1000g201\d\w\w\w_(\w+)/) {	#dbtype1 should NOT be used here
 				@record = split (/\t/, $_);
 				@record == 5 or @record == 6 or die "Error: invalid record found in 1000G database file $dbfile (5 or 6 fields expected): <$_>\n";
 				($chr, $start, $ref, $obs, $af) = @record;			#there is no "END" in 1000G input file
@@ -2722,8 +2702,6 @@ sub annotateQueryByRegionThread {
 		($regiondb) = readGFF3RegionAnnotation ();
 	} elsif ($dbtype eq 'bed') {
 		($regiondb) = readBedRegionAnnotation ();
-	} elsif ($dbtype eq 'generic') {
-		($regiondb) = readGenericRegionAnnotation ();
 	} else {
 		($regiondb) = readUCSCRegionAnnotation ();
 	}
@@ -2968,60 +2946,6 @@ sub readBedRegionAnnotation {
 
 		$chr =~ s/^chr//;
 		$start++;										#due to the zero-opening coordinate system in UCSC
-		
-		my $score = '';
-		for my $i (0 .. @colsWanted-1) {
-			defined $record[$colsWanted[$i]-1] and $score ||= ',' . $record[$colsWanted[$i]-1];
-		}
-		$score =~ s/^,//;
-		$score ||= 'NA';
-
-		my ($bin1, $bin2) = (int($start/$genomebinsize), int($end/$genomebinsize));
-		for my $nextbin ($bin1 .. $bin2) {
-			push @{$regiondb{$chr, $nextbin}}, [$start, $end, 0, $score];
-		}
-		$regioncount++;
-		if ($verbose and $dbcount =~ m/000000$/) {
-			my ($availmem, $allmem) = currentAvailMemory();
-			printerr "NOTICE: Current system available memory is $availmem kb (this ANNOVAR program used $allmem kb)\n";
-		}
-	}
-	close (DB);
-	
-	for my $key (keys %regiondb) {						#pre-sort gene DB by txstart to faciliate future use
-		@{$regiondb{$key}} = sort {$a->[0] <=> $b->[0]} @{$regiondb{$key}};
-	}
-	printerr "Done with $regioncount regions\n";
-	return (\%regiondb);
-}
-
-# Read region annotation database stored in ANNOVAR generic files (five column format)
-sub readGenericRegionAnnotation {
-	my ($dbfile);
-	my ($regioncount, $dbcount) = (0, 0);
-	my (@record, %regiondb);
-	my ($chr, $start, $end);
-	
-	$dbfile = File::Spec->catfile ($dbloc, $genericdbfile);
-
-	-f $dbfile or die "Error: required genericdbfile $dbfile does not exists.\n";
-	
-	open (DB, $dbfile) or die "Error: cannot read from database file $dbfile: $!\n";
-	printerr "NOTICE: Reading annotation database $dbfile ... ";
-
-	while (<DB>) {
-		$dbcount++;
-		s/[\r\n]+$//;							#deleting the newline characters
-
-		@record = split (/\t/, $_);
-		
-		($chr, $start, $end) = @record;
-		defined $end or die "Error: invalid record found in BED file (at least 3 tab-delimited records expected): <$_>\n";
-		$start =~ m/^\d+$/ or die "Error: invalid record found in BED file (second column must be a positive integer): <$_>\n";
-		$end =~ m/^\d+$/ or die "Error: invalid record found in BED file (third column must be a positive integer): <$_>\n";
-
-		$chr =~ s/^chr//;
-		#$start++;										#due to the zero-opening coordinate system in UCSC (comment out this line since annovar use 1-based coordinate)
 		
 		my $score = '';
 		for my $i (0 .. @colsWanted-1) {
@@ -3633,21 +3557,21 @@ sub downloadDB {
 	my $count_success;
 	my %monthhash = ('jan'=>'01', 'feb'=>'02', 'mar'=>'03', 'apr'=>'04', 'may'=>'05', 'jun'=>'06', 'jul'=>'07', 'aug'=>'08', 'sep'=>'09', 'oct'=>'10', 'nov'=>'11', 'dec'=>'12');
 	my $mrna_reminder;	#remind users to generate mRNA file
-	if ($dbtype1 =~ m/^refGene/) {		#change refGene to m/^refGene/ so users can download refGeneWithVer as well
+	if ($dbtype1 eq 'refGene') {
 		if ($buildver =~ m/^hg\d+$/ and not $webfrom) {
 			print STDERR "NOTICE: data retrieval from ANNOVAR repository by default\n";
 			$webfrom = 'annovar';
 		}
 		
 		if ($buildver =~ m/^hg\d+$/ and $webfrom eq 'annovar') {
-			push @urlin, "http://www.openbioinformatics.org/annovar/download/${buildver}_$dbtype1.txt.gz";
-			push @urlin, "http://www.openbioinformatics.org/annovar/download/${buildver}_${dbtype1}Mrna.fa.gz";
-			$dbtype1 eq 'refGene' and push @urlin, "http://www.openbioinformatics.org/annovar/download/${buildver}_${dbtype1}Version.txt.gz";		#by default, add the version file to download list
+			push @urlin, "http://www.openbioinformatics.org/annovar/download/${buildver}_refGene.txt.gz";
+			push @urlin, "http://www.openbioinformatics.org/annovar/download/${buildver}_refGeneMrna.fa.gz";
+			push @urlin, "http://www.openbioinformatics.org/annovar/download/${buildver}_refGeneVersion.txt.gz";
 		} else {
 			push @urlin, "http://hgdownload.cse.ucsc.edu/goldenPath/$buildver/database/refGene.txt.gz";
 			$mrna_reminder++;
 		}
-	} elsif ($dbtype1 =~ m/^knownGene/) {
+	} elsif ($dbtype1 eq 'knownGene') {
 		if ($buildver =~ m/^hg\d+$/ and not $webfrom) {
 			print STDERR "NOTICE: data retrieval from ANNOVAR repository by default\n";
 			$webfrom = 'annovar';
@@ -3662,7 +3586,7 @@ sub downloadDB {
 			push @urlin, "http://hgdownload.cse.ucsc.edu/goldenPath/$buildver/database/kgXref.txt.gz";
 			$mrna_reminder++;
 		}		
-	} elsif ($dbtype1 =~ m/^ensGene/) {
+	} elsif ($dbtype1 eq 'ensGene') {
 		if ($buildver =~ m/^hg\d+$/ and not $webfrom) {
 			print STDERR "NOTICE: data retrieval from ANNOVAR repository by default\n";
 			$webfrom = 'annovar';
@@ -3761,7 +3685,7 @@ sub downloadDB {
 			} elsif ($urlin[$i] =~ m#^ftp://([^\\\/]+)#) {		#for hgdownload.cse.ucsc.edu, ftp-trace.ncbi.nih.gov, ftp.ensembl.org, etc
 				my $urlroot = $1;
 				if ($ftp = Net::FTP->new($urlroot, Timeout=>10, Debug=>$verbose)) {
-					$ftp->login("anonymous", 'anonymous@');		#these are the typical username and password for almost all FTP sites that offer public access
+					$ftp->login("anonymous", 'anonymous@');
 					$ftp->binary();
 					my $url = $urlin[$i];
 					$url =~ s#ftp://[\w\.\-]+/##;		#remove the URL root
@@ -3800,10 +3724,10 @@ sub downloadDB {
 				printerr "ERROR: unzip is not installed in your system.\nPlease manually uncompress the files (@filein) at the $dbloc directory", $dbtype1 eq 'seq'?".\n":", and rename them by adding ${buildver}_ prefix to the file names.\n";
 				exit (101);
 			}
-			unlink ($filein[$i]);						#delete the ZIP file
+			unlink ($filein[$i]);				#delete the ZIP file
 		} elsif ($filein[$i] =~ m/\.tar\.gz$/) {		#panTro2 FASTA sequence is stored as tar.gz rather than zip
-			$msg = qx/tar --help 2>&1/ || '';			#collect the output of the system command
-			if ($msg =~ m/Usage/i or $msg =~ m/Options/i) {	#BSD-derived version of `tar` on Mac OS does not list "Usage" information (it prints "Option" instead)
+			$msg = qx/tar --help 2>&1/ || '';		#collect the output of the system command
+			if ($msg =~ m/Usage/i or $msg =~ m/Options/i) {	#BSD-derived version of tar on Mac OS does not list "Usage" information
 				system ("tar -x -z -f $filein[$i]");
 			} else {
 				printerr "ERROR: tar/gunzip is not installed in your system.\nPlease manually uncompress the files (@filein) at the $dbloc directory", $dbtype1 eq 'seq'?".\n":", and rename them by adding ${buildver}_ prefix to the file names.\n";
@@ -3821,9 +3745,9 @@ sub downloadDB {
 	}
 
 	for my $i (0 .. @fileout-1) {
-		$fail{$i} and next;							#skip the file that failed to be downloaded
+		$fail{$i} and next;				#skip the file that failed to be downloaded
 		my $fileout = $fileout[$i];
-		$dbtype1 eq 'seq' and next;					#the zip file contains dozens of FASTA files so cannot rename them automatically
+		$dbtype1 eq 'seq' and next;			#the zip file contains dozens of FASTA files so cannot rename them automatically
 		if (not $fileout =~ m/^${buildver}_/) {		#if the buildver is not the prefix of the files
 			rename ($fileout, "${buildver}_$fileout") or die "Error: cannot rename $fileout to ${buildver}_$fileout\n";
 			$fileout = "${buildver}_$fileout";
@@ -3932,7 +3856,7 @@ sub checkProgramUpdate {
 				printerr "Cannot access version information\n";
 			} else {
 				printerr "Done\n";
-				@webcontent = <AVDATE>;		#$LAST_CHANGED_DATE =	'$Date: 2020-06-07 23:56:37 -0400 (Sun,  7 Jun 2020) $';
+				@webcontent = <AVDATE>;		#$LAST_CHANGED_DATE =	'$Date: 2018-04-16 00:43:31 -0400 (Mon, 16 Apr 2018) $';
 				close (AVDATE);
 				unlink (".annovar_date");
 			}
@@ -4069,11 +3993,11 @@ sub hasOverlap {	#deteremine whether two regions have overlaps or not
  
  Example: #download annotation databases from ANNOVAR or UCSC and save to humandb/ directory
  	  annotate_variation.pl -downdb -webfrom annovar refGene humandb/
- 	  annotate_variation.pl -downdb -buildver mm9 refGene mousedb/
- 	  annotate_variation.pl -downdb -buildver hg19 -webfrom annovar esp6500siv2_all humandb/
+ 	  annotate_variation.pl -buildver mm9 -downdb refGene mousedb/
+ 	  annotate_variation.pl -downdb -webfrom annovar esp6500siv2_all humandb/
  	
  	  #gene-based annotation of variants in the varlist file (by default --geneanno is ON)
- 	  annotate_variation.pl -geneanno -buildver hg19 ex1.avinput humandb/
+ 	  annotate_variation.pl -buildver hg19 ex1.avinput humandb/
  	  
  	  #region-based annotate variants
  	  annotate_variation.pl -regionanno -buildver hg19 -dbtype cytoBand ex1.avinput humandb/
@@ -4082,10 +4006,9 @@ sub hasOverlap {	#deteremine whether two regions have overlaps or not
  	  #filter rare or unreported variants (in 1000G/dbSNP) or predicted deleterious variants
  	  annotate_variation.pl -filter -dbtype 1000g2015aug_all -maf 0.01 ex1.avinput humandb/
  	  annotate_variation.pl -filter -buildver hg19 -dbtype snp138 ex1.avinput humandb/
- 	  annotate_variation.pl -filter -dbtype dbnsfp35a -buildver hg38 ex1.avinput humandb/
- 	  annotate_variation.pl -filter -dbtype gnomad211_exome -buildver hg19 ex1.avinput humandb/
+ 	  annotate_variation.pl -filter -dbtype dbnsfp30a -otherinfo ex1.avinput humandb/
  
- Version: $Date: 2020-06-07 23:56:37 -0400 (Sun,  7 Jun 2020) $
+ Version: $Date: 2018-04-16 00:43:31 -0400 (Mon, 16 Apr 2018) $
 
 =head1 OPTIONS
 
@@ -4547,6 +4470,6 @@ examine this file and identify sources of error.
 
 ANNOVAR is free for academic, personal and non-profit use.
 
-For questions or comments, please contact $Author: Kai Wang <kaichop@gmail.com> $. 
+For questions or comments, please contact $Author: kaichop <kaichop@gmail.com> $. 
 
 =cut

@@ -1,0 +1,9 @@
+Script "index-annovar.pl"
+
+perl index-annovar.pl -bin 10000 /path/to/db
+
+output :
+	- DB.txt.newdb
+	- DB.txt.newdb.idx
+
+Best overall binsize = 10 000

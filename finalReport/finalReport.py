@@ -373,7 +373,11 @@ for variant in variants:
 			variant['COSMIC'] = '%s;occurence(haematopoietic_and_lymphoid_tissue)=%s' % (variant['COSMIC'],occs)
 			
 	# FORMATING RESULTS
-	if ((variant['Region'] in ['exonic','splicing','ncRNA_exonic']) and (variant['Consequence'] != 'synonymous')) or ((116411873 <= variant['Position'] <= 116411902) or (116412044 <= variant['Position'] <= 116412087)):
+	condition1_green_line = (variant['Region'] in ['exonic','splicing','ncRNA_exonic']) and (variant['Consequence'] != 'synonymous')
+	condition2_green_line = (116411873 <= variant['Position'] <= 116411902) or (116412044 <= variant['Position'] <= 116412087)
+	condition3_green_line = (variant['Region'] == '') # Si pas d'annotation, mettre en vert au cas ou pour ne pas louper de variant important
+
+	if condition1_green_line or condition2_green_line or condition3_green_line:
 		vb_variant_list.append('%s:%s' % (variant['Gene'],variant['c.']))
 		if variant['hgvsInfo'] != None:
 			hgvsinfo = 'HGVS unverified (%s)' % variant['hgvsInfo']
@@ -381,6 +385,8 @@ for variant in variants:
 				variant['Commentaire'] = hgvsinfo
 			else:
 				variant['Commentaire'] = '%s. %s' % (variant['Commentaire'],hgvsinfo)
+		if condition3_green_line :
+			variant['Commentaire'] = '%s. %s' % ('Green line because Region unknown',variant['Commentaire'])
 		for columnName in aheader:
 			cell_val = variant[columnName]
 			annotationSheet.cell(row=l,column=aheader.index(columnName)+1).value = cell_val
@@ -494,8 +500,9 @@ if os.path.isfile('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,run_type)):
 			cell_format(c,color='Yellow')
 			break
 else:
-	cnvSheet.cell(row=1,column=1).value = "CNV finalReport file not found for %s. " % sample
 	print "\t - CNV finalReport file not found"
+	del finalReport['CNV']
+	# cnvSheet.cell(row=1,column=1).value = "CNV finalReport file not found for %s. " % sample
 
 #  __        __  ___     __   __        ___  __        __   ___ 
 # |__) |    /  \  |     /  ` /  \ \  / |__  |__)  /\  / _` |__  
@@ -547,9 +554,10 @@ if amplicon_plots:
 		plotSheet.row_dimensions[plotSheet.cell(row=r,column=1).row].height = 30
 		for cell in plotSheet["%s:%s" % (r,r)]:
 			cell_format(cell,font='bigBold',alignment='center',color='DarkGrey')
-# else:
+else:
+	print "\t - plotCoverage histograms not found, removing sheet"
+	del finalReport['Plot Coverage']
 	# plotSheet.cell(row=1,column=1).value = "plotCoverage not found for %s. " % sample
-	# print "\t - plotCoverage histograms not found"
 
 #  __   __        ___  __        __   ___     __        ___  ___ ___ 
 # /  ` /  \ \  / |__  |__)  /\  / _` |__     /__` |__| |__  |__   |  
@@ -692,15 +700,15 @@ if base_cov_file:
 	if run_type == 'Lymphome_B' or run_type == 'Lymphome_T':
 		header.append('Cosmic occurences (haematopoietic_and_lymphoid_tissue)')
 
-	xlist_full = [int(minX),2000,500,300,100,20]
+	xlist_full = [int(minX),2000,500,300,250,200,100]
 	xlist_full = sorted(xlist_full,reverse=True)
 	xlist = [int(minX)]
 	for x in xlist_full:
 		if x >= int(minX):
 			continue
 		xlist.append(x)
-		if len(xlist) >= 3:
-			break
+		# if len(xlist) >= 3:
+			# break
 
 	# CREATE DICT WITH ALL TARGETED BASES (0 depth if not in depth.txt file)
 	targeted_regions = []
@@ -852,7 +860,7 @@ else:
 #                
 
 print " - [%s] Copying VCFs ..." % time.strftime("%H:%M:%S")
-vc_data = {'tvc_de_novo/TSVC_variants':'tvc_de_novo','tvc_only_hotspot/TSVC_variants':'tvc_only_hotspot','mutect2/%s.mutect2.filtered' % sample:'mutect2','varscan2/%s.varscan2.filtered' % sample:'varscan2','lofreq/%s.lofreq.filtered' % sample:'lofreq','deepvariant/%s.deepvariant' % sample:'deepvariant'}
+vc_data = {'tvc_de_novo/TSVC_variants':'tvc_de_novo','tvc_only_hotspot/TSVC_variants':'tvc_only_hotspot','mutect2/%s.mutect2.filtered' % sample:'mutect2','varscan2/%s.varscan2.filtered' % sample:'varscan2','lofreq/%s.lofreq.filtered' % sample:'lofreq','vardict/%s.vardict' % sample:'vardict'} # 'deepvariant/%s.deepvariant' % sample:'deepvariant'
 for vc in vc_data.keys():
 	vcf_file = False
 	if os.path.isfile('%s/%s.vcf' % (intermediate_folder,vc)):
@@ -913,7 +921,7 @@ for vc in vc_data.keys():
 sns = ['Annotation','Target Coverage','Amplicon Coverage','Base Coverage']
 # if os.path.isfile('%s/tvc_only_hotspot/TSVC_variants.vcf' % intermediate_folder):
 	# sns.append('VCF (only hotspot)')
-	
+
 for sn in sns:
 	try:
 		ws = finalReport[sn]
@@ -935,7 +943,7 @@ for sn in sns:
 					pass
 	for col, value in dims.items():
 		ws.column_dimensions[col].width = value
-		
+
 if 'Sensitivity' in aheader:
 	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('Sensitivity')+1)].width = 11
 if 'Commentaire' in aheader:
@@ -972,11 +980,12 @@ if 'POLYPHEN2' in aheader:
 	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('POLYPHEN2')+1)].width = 12
 if 'PROVEAN' in aheader:
 	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('PROVEAN')+1)].width = 12		
-		
-ws = finalReport['CNV']
-ws.column_dimensions['A'].width = 20
-for col_name in ['B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG']:
-	ws.column_dimensions[col_name].width = 12
+
+if 'CNV' in finalReport.sheetnames:
+	ws = finalReport['CNV']
+	ws.column_dimensions['A'].width = 20
+	for col_name in ['B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG']:
+		ws.column_dimensions[col_name].width = 12
 
 #         __  ___                    __        __     __      __   __   __     __  ___  __  
 # \  / | |__)  |  |  |  /\  |       |__)  /\  /__` | /  `    /__` /  ` |__) | |__)  |  /__` 

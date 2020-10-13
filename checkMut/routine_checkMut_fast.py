@@ -3,38 +3,48 @@ import os
 import sys
 import time
 import subprocess
+from optparse import OptionParser
 
-run_folder = sys.argv[1]
+FNULL = open(os.devnull, 'w')
+parser = OptionParser()
+parser.add_option('-r', '--run-folder',	help="run folder path",dest='run_folder') 
+parser.add_option('-t', '--threads',	help="threads", dest='threads',default='12')
+(options, args) = parser.parse_args()
+
+run_folder = options.run_folder
+threads = int(options.threads)
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 checkMut_path = '%s/checkMut/checkMut.py' % pipeline_folder
 FNULL = open(os.devnull, 'w')
 
+cmd_list = []
+
 # DIVERS MUTATIONS PAR DEFAUT
-print "[%s] various SBT checkMut (9)..." % time.strftime("%H:%M:%S")
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','ERBB2','--cpos','c.2313_2324dup','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','PIK3CA','--cpos','c.3140A>G','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','PIK3CA','--cpos','c.3204_3205insA','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.169del','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.169dup','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.580G>T','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.595G>T','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','FGFR3','--cpos','c.850del','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','KIT','--cpos','c.2447A>T','--run-type','SBT'],stdout=FNULL,stderr=FNULL)
+# print "[%s] various SBT checkMut (9)..." % time.strftime("%H:%M:%S")
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','ERBB2','--cpos','c.2313_2324dup','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','PIK3CA','--cpos','c.3140A>G','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','PIK3CA','--cpos','c.3204_3205insA','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.169del','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.169dup','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.580G>T','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','STK11','--cpos','c.595G>T','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','FGFR3','--cpos','c.850del','--run-type','SBT'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','KIT','--cpos','c.2447A>T','--run-type','SBT'])
 
 # LAM HOTSPOTS HOMOPOLYMERES
-print "[%s] various LAM checkMut (12)..." % time.strftime("%H:%M:%S")
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.2535dup','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.1927dup','--run-type','LAM'],stdout=FNULL,stderr=FNULL) # dupG ASXL1
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.1927del','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.4127dup','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.4127del','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','GATA2','--cpos','c.599del','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','GATA2','--cpos','c.599dup','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','GATA2','--cpos','c.302del','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','SRSF2','--cpos','c.287del','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','TP53','--cpos','c.455dup','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','TP53','--cpos','c.455del','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
-subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','TP53','--cpos','c.454_466del','--run-type','LAM'],stdout=FNULL,stderr=FNULL)
+# print "[%s] various LAM checkMut (12)..." % time.strftime("%H:%M:%S")
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.2535dup','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.1927dup','--run-type','LAM']) # dupG ASXL1
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.1927del','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.4127dup','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','ASXL1','--cpos','c.4127del','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','GATA2','--cpos','c.599del','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','GATA2','--cpos','c.599dup','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','GATA2','--cpos','c.302del','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','SRSF2','--cpos','c.287del','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','TP53','--cpos','c.455dup','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','TP53','--cpos','c.455del','--run-type','LAM'])
+cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','TP53','--cpos','c.454_466del','--run-type','LAM'])
 
 # LISTE MUTATIONS ABL1
 abl1_c_list = [
@@ -65,10 +75,10 @@ abl1_c_list = [
 'c.1504A>C'
 ]
 
-print "[%s] ABL1 checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(abl1_c_list))
+# print "[%s] ABL1 checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(abl1_c_list))
 for c_pos in abl1_c_list:
-	subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','ABL1','--cpos',c_pos,'--run-type','ABL1','--sub-folder','ABL1'],stdout=FNULL,stderr=FNULL)
-	
+	cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','ABL1','--cpos',c_pos,'--run-type','ABL1','--sub-folder','ABL1'])
+
 # LISTE MUTATIONS TABLEAU ADN CIRCULANT AUDREY
 egfr_c_list = [
 'c.2156G>C',
@@ -98,10 +108,10 @@ egfr_c_list = [
 'c.2390G>C'	# rajout samuel
 ]
 
-print "[%s] EGFR checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(egfr_c_list))
+# print "[%s] EGFR checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(egfr_c_list))
 for c_pos in egfr_c_list:
-	subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','EGFR','--cpos',c_pos,'--run-type','SBT','--sub-folder','EGFR'],stdout=FNULL,stderr=FNULL)
-		
+	cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','EGFR','--cpos',c_pos,'--run-type','SBT','--sub-folder','EGFR'])
+
 # LISTE MUTATIONS ADNc BRAF, NRAS, KRAS CHARLINE
 braf_c_list = [
 'c.1397G>C',
@@ -118,10 +128,10 @@ braf_c_list = [
 'c.1801A>G'
 ]
 
-print "[%s] BRAF checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(braf_c_list))
+# print "[%s] BRAF checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(braf_c_list))
 for c_pos in braf_c_list:
-	subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','BRAF','--cpos',c_pos,'--run-type','SBT','--sub-folder','BRAF'],stdout=FNULL,stderr=FNULL)
-	
+	cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','BRAF','--cpos',c_pos,'--run-type','SBT','--sub-folder','BRAF'])
+
 nras_c_list = [
 'c.35G>C',
 'c.34G>T',
@@ -150,10 +160,10 @@ nras_c_list = [
 'c.437C>T'
 ]
 
-print "[%s] NRAS checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(nras_c_list))
+# print "[%s] NRAS checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(nras_c_list))
 for c_pos in nras_c_list:
-	subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','NRAS','--cpos',c_pos,'--run-type','SBT','--sub-folder','NRAS'],stdout=FNULL,stderr=FNULL)
-	
+	cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','NRAS','--cpos',c_pos,'--run-type','SBT','--sub-folder','NRAS'])
+
 kras_c_list = [
 'c.35G>C',
 'c.34G>T',
@@ -185,16 +195,22 @@ kras_c_list = [
 'c.437C>T',
 ]
 
-print "[%s] KRAS checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(kras_c_list))
+# print "[%s] KRAS checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(kras_c_list))
 for c_pos in kras_c_list:
-	subprocess.Popen(['python',checkMut_path,'--run-folder',run_folder,'--gene','KRAS','--cpos',c_pos,'--run-type','SBT','--sub-folder','KRAS'],stdout=FNULL,stderr=FNULL)
+	cmd_list.append(['python',checkMut_path,'--run-folder',run_folder,'--gene','KRAS','--cpos',c_pos,'--run-type','SBT','--sub-folder','KRAS'])
 
-pid_found = True
-while pid_found:
-	time.sleep(30)
-	try:
-		pid_found = subprocess.check_output(['pgrep','-f','%s/checkMut/checkMut.py' % pipeline_folder])
-		print "[%s] \t running pid : %s" % (time.strftime("%H:%M:%S"),pid_found.replace('\n',','))
-	except subprocess.CalledProcessError, e:
-		pid_found = False
+
+cmd_index = 0
+while cmd_index != len(cmd_list)-1:
+	ps_list = []
+	for i in range(threads):
+		ps = subprocess.Popen(cmd_list[cmd_index],stdout=FNULL,stderr=FNULL)
+		print "[%s] - %s..." % (time.strftime("%H:%M:%S"),cmd_list[cmd_index][4:])
+		ps_list.append(ps)
+		cmd_index += 1
+		if cmd_index == len(cmd_list)-1:
+			break
+	for ps in ps_list:
+		ps.wait()
+
 print "[%s] Done." % time.strftime("%H:%M:%S")

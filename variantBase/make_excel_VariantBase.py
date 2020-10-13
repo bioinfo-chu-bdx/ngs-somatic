@@ -6,13 +6,13 @@ import json
 import sqlite3
 import openpyxl
 from optparse import OptionParser
-	
+
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
-    return d	
-	
+    return d
+
 def cell_format(cell, alignment='left', style=None, font=None):
 	if alignment == 'center':
 		cell.alignment = openpyxl.styles.Alignment(horizontal='center')
@@ -55,7 +55,8 @@ def cell_format(cell, alignment='left', style=None, font=None):
 
 #####################################################################################################	
 parser = OptionParser()
-parser.add_option('-p', '--project', help='one or more project comma separated. ex:(LAM,FLT3)', dest='project')
+parser.add_option('-p', '--project', help='one or more project comma separated. ex:(LAM,FLT3)', dest='project',default=False)
+parser.add_option('-x', '--panel', help='one or more panel comma separated. ex:(LAM-illumina-v1,LAM-illumina-v2)', dest='panel',default=False)
 parser.add_option('-o', '--output', help='output folder', dest='output')
 (options, args) = parser.parse_args()
 
@@ -64,10 +65,27 @@ db_con = sqlite3.connect('%s/variantBase/VariantBase.db' % pipeline_folder)
 db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
-projects = options.project.split(',')
-in_projects = str(projects).replace('[','(').replace(']',')')
+if options.project and options.pane:
+	sys.stderr.write("Error: choose either <--project> or <--panel>, not both\n")
+	sys.exit()
 
-if options.project == 'SBT':
+vbformat = 'Classic'
+if options.project:
+	projects = options.project.split(',')
+	in_projects = str(projects).replace('[','(').replace(']',')')
+	if options.project == 'SBT': # Si project SBT uniquement; format special avec colon lung mela colums.
+		vbformat = 'ColonLungMela'
+elif options.panel:
+	panels = options.panel.split(',')
+	in_panels = str(panels).replace('[','(').replace(']',')')
+	db_cur.execute("SELECT DISTINCT panelProject FROM Panel WHERE panelID in %s" % in_panels)
+	db_panels = db_cur.fetchall()
+	for db_panel in db_panels:
+		if db_panel['panelProject'] == 'SBT' and len(db_panels) == 1:
+			vbformat = 'ColonLungMela'
+			break
+
+if vbformat == 'ColonLungMela':
 	excelVB = openpyxl.load_workbook('%s/variantBase/excel_files/VariantBase_EMPTY_SBT.xlsx' % pipeline_folder)
 else:
 	excelVB = openpyxl.load_workbook('%s/variantBase/excel_files/VariantBase_EMPTY.xlsx' % pipeline_folder)
@@ -75,7 +93,6 @@ normal = excelVB._named_styles['Normal']
 normal.font.name = 'Calibri'
 normal.font.size = 11
 
-#output = '/media/stuff/VariantBase_%s.xlsx' % options.project.replace(',','_')
 output = options.output
 
 #####################################################################################################
@@ -83,7 +100,10 @@ output = options.output
 ## DATA SHEET
 print "- filling data sheet..."
 dataSheet = excelVB['Data']
-db_cur.execute("SELECT DISTINCT runID FROM Run INNER JOIN Analysis ON Analysis.run = Run.runID INNER JOIN Panel ON Panel.panelID = Analysis.panel WHERE panelProject in %s ORDER BY runDate" % in_projects)
+if options.project:
+	db_cur.execute("SELECT DISTINCT runID FROM Run INNER JOIN Analysis ON Analysis.run = Run.runID INNER JOIN Panel ON Panel.panelID = Analysis.panel WHERE panelProject in %s ORDER BY runDate" % in_projects)
+elif options.panel:
+	db_cur.execute("SELECT DISTINCT runID FROM Run INNER JOIN Analysis ON Analysis.run = Run.runID INNER JOIN Panel ON Panel.panelID = Analysis.panel WHERE panelID in %s ORDER BY runDate" % in_panels)
 db_runs = db_cur.fetchall()
 runs = []
 
@@ -91,10 +111,13 @@ for db_run in db_runs:
 	dataSheet_newrow = dataSheet.max_row+1
 	dataSheet.cell(row=dataSheet_newrow,column=1).value = db_run['runID']
 	runs.append(db_run['runID'])
-	
-	db_cur.execute("SELECT sampleName, sampleID, pathology fROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelProject in %s AND isControl = 0" % (db_run['runID'],in_projects))
+
+	if options.project :
+		db_cur.execute("SELECT sampleName, sampleID, pathology fROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelProject in %s AND isControl = 0" % (db_run['runID'],in_projects))
+	elif options.panel:
+		db_cur.execute("SELECT sampleName, sampleID, pathology fROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelID in %s AND isControl = 0" % (db_run['runID'],in_panels))
 	db_samples = db_cur.fetchall()
-	if options.project == 'SBT':
+	if vbformat == 'ColonLungMela':
 		lsamples = []
 		csamples = []
 		msamples = []
@@ -151,7 +174,10 @@ dataSheet['A2'].value = len(runs)
 
 ## MAKE ALL GENE SHEET
 print "- making gene sheets..."
-db_cur.execute("SELECT DISTINCT geneID FROM Gene INNER JOIN TargetedRegion ON TargetedRegion.gene = Gene.geneID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelProject in %s ORDER BY geneID" % in_projects)
+if options.project:
+	db_cur.execute("SELECT DISTINCT geneID FROM Gene INNER JOIN TargetedRegion ON TargetedRegion.gene = Gene.geneID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelProject in %s ORDER BY geneID" % in_projects)
+elif options.panel:
+	db_cur.execute("SELECT DISTINCT geneID FROM Gene INNER JOIN TargetedRegion ON TargetedRegion.gene = Gene.geneID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelID in %s ORDER BY geneID" % in_panels)
 db_genes = db_cur.fetchall()
 genes = []
 geneTemplateSheet = excelVB['Gene']
@@ -209,20 +235,23 @@ header = [
 		'annoWarning'
 		]
 
-if options.project == 'SBT':
+if vbformat == 'ColonLungMela':
 	header[header.index('Count')] = 'Lung Count'
 	header.insert(header.index('Lung Count')+1,'Colon Count')
 	header.insert(header.index('Colon Count')+1,'Mela Count')
 	header.insert(header.index('Mela Count')+1,'Other Count')
 
-db_cur.execute("SELECT DISTINCT Variant.*,transcript,transcriptVersion, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM Variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Gene ON Gene.geneID = Variant.gene WHERE panelProject in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_projects)
+if options.project:
+	db_cur.execute("SELECT DISTINCT Variant.*,transcript,transcriptVersion, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM Variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Gene ON Gene.geneID = Variant.gene WHERE panelProject in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_projects)
+elif options.panel:
+	db_cur.execute("SELECT DISTINCT Variant.*,transcript,transcriptVersion, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM Variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Gene ON Gene.geneID = Variant.gene WHERE panelID in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_panels)
 db_variants = db_cur.fetchall()
 
 actualVariant = None
 for db_variant in db_variants:
 	if db_variant['variantID'] != actualVariant:
 		if actualVariant != None:
-			if options.project == 'SBT':
+			if vbformat == 'ColonLungMela':
 				sheet.cell(row=l,column=header.index('Lung Count')+1).value = lcount
 				cell_format(sheet.cell(row=l,column=header.index('Lung Count')+1),alignment='center',style='Purple',font='Bold')
 				sheet.cell(row=l,column=header.index('Colon Count')+1).value = ccount
@@ -257,7 +286,7 @@ for db_variant in db_variants:
 		variantFreqs = []
 		variantSamples = []
 		dataSheet['B2'].value += 1
-		if options.project == 'SBT':
+		if vbformat == 'ColonLungMela':
 			lcount = 0
 			ccount = 0
 			mcount = 0
@@ -319,7 +348,7 @@ for db_variant in db_variants:
 		variantDepths.append(db_variant['positionReadDepth'])
 		variantFreqs.append(int((float(db_variant['variantReadDepth'])/float(db_variant['positionReadDepth']))*100))
 		variantSamples.append('%s-%s' % (db_variant['sampleName'],db_variant['sampleID']))
-		if options.project == 'SBT':
+		if vbformat == 'ColonLungMela':
 			if db_variant['pathology'] == 'poumon':
 				lcount += 1
 			elif db_variant['pathology'] == 'colon':
@@ -333,7 +362,7 @@ for db_variant in db_variants:
 		variantDepths.append(db_variant['positionReadDepth'])
 		variantFreqs.append(int((float(db_variant['variantReadDepth'])/float(db_variant['positionReadDepth']))*100))
 		variantSamples.append('%s-%s' % (db_variant['sampleName'],db_variant['sampleID']))
-		if options.project == 'SBT':
+		if vbformat == 'ColonLungMela':
 			if db_variant['pathology'] == 'poumon':
 				lcount += 1
 			elif db_variant['pathology'] == 'colon':

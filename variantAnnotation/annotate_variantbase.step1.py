@@ -93,7 +93,7 @@ cmd = subprocess.Popen([
 	'%s/annovar/annovar_input.tsv' % options.output, '%s/variantAnnotation/annovar/humandb/' % pipeline_folder,
 	'-buildver', 'hg19',
 	'-out', '%s/annovar/annovar' % options.output,
-	'-protocol', 'refGeneWithVer,cosmic90,avsnp150,intervar_20180118,clinvar_20190305,nci60,esp6500siv2_all,1000g2015aug_all,1000g2015aug_eur,gnomad211_genome,exac03,dbnsfp33a',
+	'-protocol', 'refGeneWithVer,cosmic92,avsnp150,intervar_20180118,clinvar_20200316,nci60,esp6500siv2_all,1000g2015aug_all,1000g2015aug_eur,gnomad211_exome,exac03,dbnsfp35a',
 	'-operation', 'g,f,f,f,f,f,f,f,f,f,f,f',
 	'-argument', '--hgvs,,,,,,,,,,,',
 	'-nastring', '.',

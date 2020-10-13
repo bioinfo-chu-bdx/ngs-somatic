@@ -52,6 +52,7 @@ panels = [
 	('%s/reference_files/reannoted/IAD72953_231_Designed.with_NM.bed' % pipeline_folder				,'SBT',			3),
 	('%s/reference_files/reannoted/SureSelect-HEMATO-v5.sorted.annotated.bed' % pipeline_folder		,'TEST',		1),
 	('%s/reference_files/Target-Myeloid_v1-SureSelect.roi.anno.bed' % pipeline_folder				,'LAM-illumina',1),
+	('%s/reference_files/Target-Myeloid_capture_v2.roi.anno.padding5.bed' % pipeline_folder			,'LAM-illumina',2),
 ]
 
 db_con = sqlite3.connect(db_path)
@@ -72,10 +73,12 @@ for p in panels:
 	db_cur.execute("INSERT INTO Panel (panelID, panelProject) VALUES ('%s', '%s')" % (panel_name,panel_project))
 
 	panel_reader = open(panel_path,'r')
-	panel_reader.next()
 	chr_count = {'chr1':[],'chr2':[],'chr3':[],'chr4':[],'chr5':[],'chr6':[],'chr7':[],'chr8':[],'chr9':[],'chr10':[],'chr11':[],'chr12':[],'chr13':[],'chr14':[],'chr15':[],'chr16':[],'chr17':[],'chr18':[],'chr19':[],'chr20':[],'chr21':[],'chr22':[],'chrX':[],'chrY':[]}
 	base_count = 0
 	for line in panel_reader:
+		if line.startswith('track'):
+			continue
+		print line
 		line = line.replace('\n','').split('\t')
 		chromosome = line[0]
 		if 'ABL1' in chromosome:
@@ -103,6 +106,7 @@ for p in panels:
 			refGene_file.seek(0)
 			for rgline in refGene_reader:
 				if rgline[1].split('.')[0] == transcript and ('_' not in rgline[2]) :
+					print "\t OK"
 					transcriptionStart = rgline[4]
 					transcriptionStop = rgline[5]	# rgline[6] et rgline[7] sont CodingRegionStart et codingRegionStop
 					exons = int(rgline[8])

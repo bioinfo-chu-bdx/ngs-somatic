@@ -5,7 +5,8 @@ import time
 import subprocess
 
 run_folder = sys.argv[1]
-checkMut_path = '/DATA/work/checkMut/checkMut.py'
+pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
+checkMut_path = '%s/checkMut/checkMut.py' % pipeline_folder
 FNULL = open(os.devnull, 'w')
 
 # DIVERS MUTATIONS PAR DEFAUT

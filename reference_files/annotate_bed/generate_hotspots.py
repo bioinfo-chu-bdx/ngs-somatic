@@ -17,8 +17,8 @@ csv.field_size_limit(sys.maxsize)
 count_pass = 10
 
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
-CosmicMutantExport_tsv_path = '/media/stuff/COSMIC/v90/CosmicMutantExport.tsv'#sys.argv[1]
-CosmicCodingMuts_vcf_path = '/media/stuff/COSMIC/v90/CosmicCodingMuts.vcf'#sys.argv[2]
+CosmicMutantExport_tsv_path = '/media/stuff/COSMIC/v92/CosmicMutantExport.tsv'#sys.argv[1]
+CosmicCodingMuts_vcf_path = '/media/stuff/COSMIC/v92/CosmicCodingMuts.vcf'#sys.argv[2]
 target_bed_path = '%s/reference_files/LAM2018_IAD143291_236_Designed_with_NM.bed' % pipeline_folder #sys.argv[3]
 output = '%s/reference_files/annotate_bed/LAM2018_IAD143291_236.hotspots.10.vcf' % pipeline_folder
 
