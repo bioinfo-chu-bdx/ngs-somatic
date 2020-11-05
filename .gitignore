@@ -4,6 +4,7 @@ variantBase/VariantBase.db.*.backup
 variantBase/reannotation/*
 reference_files/hg19/*
 reference_files/mutect/af-only-gnomad.raw.sites.b37.vcf.gz
+reference_files/Trash/*
 seqrepo/*
 variantAnnotation/annovar/humandb/*
 variantAnnotation/VEP/cache/homo_sapiens/*
