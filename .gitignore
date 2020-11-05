@@ -12,3 +12,4 @@ variantAnnotation/VEP/ensembl-vep/t/testdata/*
 variantAnnotation/VEP/ensembl-vep/t/test-genome-DBs/*
 variantAnnotation/VEP/ensembl-vep/.git/*
 variantAnnotation/temp/*
+uta/*

@@ -38,7 +38,7 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 ###############################################################################
 
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
-suivi_acro_path = "/media/n06lbth/sauvegardes_pgm/LAM/EN_LAB_19_1521-Suivi_temoin_Horizon.xlsx"
+suivi_acro_path = '/media/n06lbth/sauvegardes_pgm/LAM/EN_LAB_19_1521-Suivi_temoin_Horizon.xlsx'
 horizon_finalreport_path = sys.argv[1]
 sample = sys.argv[2]
 run_name = sys.argv[3]
@@ -76,11 +76,12 @@ for i in range(len(annotation_rows[0])):
 	if annotation_rows[0][i].value == 'c.(annovar)':
 		annovar_index = i
 	if annotation_rows[0][i].value == 'Freq' or annotation_rows[0][i].value == 'Var.Freq.':
-		freq_index = i	
+		freq_index = i
 
 list_not_found = []
 for i in range(8,len(suivi_rows)):
 	variant2check = (suivi_rows[i][1].value,suivi_rows[i][5].value) # NM, c.
+	print variant2check
 	for j in range(1,len(annotation_rows)):
 		if annotation_rows[j][nm_index].value:
 			variant = (annotation_rows[j][nm_index].value.split('.')[0],annotation_rows[j][c_index].value)

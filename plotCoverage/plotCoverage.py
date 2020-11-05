@@ -1,22 +1,31 @@
 #!/usr/bin/env python
 import os
 import sys
-import subprocess
+import csv
+import glob
 import json
 import math
+import sqlite3
+import zipfile
+import subprocess
 import matplotlib
 matplotlib.use('Agg')
 from pylab import *
-import glob
-import csv
 from optparse import OptionParser
-import zipfile
+
 
 '''Script to generate coverage plots and coverage files'''
 
 def split_list(alist, wanted_parts=1):
-    length = len(alist)
-    return [ alist[i*length // wanted_parts: (i+1)*length // wanted_parts] for i in range(wanted_parts) ]
+	length = len(alist)
+	return [ alist[i*length // wanted_parts: (i+1)*length // wanted_parts] for i in range(wanted_parts) ]
+
+
+def dict_factory(cursor, row):
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
 
 ############################################################################################
 parser = OptionParser()
@@ -26,6 +35,11 @@ parser.add_option('-i', '--run-folder', help='Run folder ', dest='run_folder')
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
+
+db_path = global_param['VariantBase']
+db_con = sqlite3.connect(db_path)
+db_con.row_factory = dict_factory
+db_cur = db_con.cursor()
 
 if os.path.isfile(options.run_folder+'/barcodes.json'):
 	with open(options.run_folder+'/barcodes.json', 'r') as g:
@@ -108,9 +122,9 @@ for panel in panels:
 			else:
 				barcodes_json[barcode]['region_coverage'][region_id] = 0
 
-	################################
+	##############################
 	# create regions cov graphes #
-	################################
+	##############################
 
 	print "\t -generating plots..."
 	reg2pool = {}

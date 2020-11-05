@@ -15,21 +15,21 @@ import os
 # THIS SCRIPT RUN ANNOVAR AND VEP FOR VARIANTS IN VariantBase.db
 # USAGE : python annotate_variantbase.step1.py --option
 
-# annovar input format	:	chr1	115256572	115256572	C	T
-# vep input format		:	1		115256572	115256572	C/T	+
+# annovar input format : chr1   115256572   115256572   C   T
+# vep input format     :    1   115256572   115256572   C/T   +
 
 def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
 
 ### GATHERING PARAMETERS ############################################################
 
 parser = OptionParser()
 parser.add_option('-n', '--new',	help="annonate new variants only", 	dest='new', 	default=False, action='store_true')
 parser.add_option('-f', '--full',	help="annonate full database", 		dest='full', 	default=False, action='store_true')
-parser.add_option('-u', '--update',	help="update old variants", 		dest='update', 	default=False, action='store_true')
+# parser.add_option('-u', '--update',	help="update old variants", 		dest='update', 	default=False, action='store_true')
 parser.add_option('-o', '--output-folder',	help="output folder", 		dest='output')
 (options, args) = parser.parse_args()
 
@@ -49,15 +49,17 @@ if not os.path.isdir('%s/vep' % options.output):
 
 ###################################################################################################################################
 
-if options.update:
-	exit()
-	#db_cur.execute("SELECT * FROM Variant WHERE lastUpdate is NULL")  # option pas prete # ici faire test WHERE lastUpdate > 6 mois
+# if options.update:
+	# exit()
+	#db_cur.execute("SELECT * FROM VariantAnnotation WHERE lastUpdate is NULL")  # option pas prete # ici faire test WHERE lastUpdate > 6 mois
 if options.new:
-	# db_cur.execute("SELECT * FROM Variant WHERE lastUpdate is NULL")
-	db_cur.execute("SELECT * FROM Variant WHERE (lastUpdate is NULL) OR (region is NULL)")
+	db_cur.execute("""SELECT chromosome,genomicStart,genomicStop,referenceAllele,alternativeAllele,variantType FROM Variant 
+	INNER JOIN VariantAnnotation ON VariantAnnotation.variant=Variant.variantID 
+	WHERE (lastUpdate is NULL) OR (region is NULL)""")
 if options.full:
-	db_cur.execute("SELECT * FROM Variant") #WHERE hgvs = 'yes' OR hgvs = 'warning'
-	
+	db_cur.execute("""SELECT chromosome,genomicStart,genomicStop,referenceAllele,alternativeAllele,variantType FROM Variant 
+	INNER JOIN VariantAnnotation ON VariantAnnotation.variant=Variant.variantID """)
+
 db_variants = db_cur.fetchall()
 if not db_variants:
 	print "- 0 new variants to process"
@@ -68,7 +70,7 @@ print "- Get all variants data..."
 variant_data = []
 for db_variant in db_variants:
 	variant_data.append([db_variant['chromosome'],db_variant['genomicStart'],db_variant['genomicStop'],db_variant['referenceAllele'],db_variant['alternativeAllele'],db_variant['variantType']])
-sorted_variant_data = sorted(sorted(sorted(variant_data, key = lambda x : int(x[2])), key = lambda x : int(x[1])), key = lambda x : int(x[0].replace('chr','').replace('X','23').replace('Y','24')))	
+sorted_variant_data = sorted(sorted(sorted(variant_data, key = lambda x : int(x[2])), key = lambda x : int(x[1])), key = lambda x : int(x[0].replace('chr','').replace('X','23').replace('Y','24')))
 print "\t- %s variants to process..." % len(sorted_variant_data)
 
 print "- Generate Annovar input..."	

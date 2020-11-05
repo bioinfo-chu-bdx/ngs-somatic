@@ -52,7 +52,7 @@ def alamut_bam_vbscript(intermediate_folder, sample, barcode, processed):
 	vbs.write('objHTTP.send ("")\r\n')
 	vbs.close()
 
-def print_vbscript(intermediate_folder, sample, barcode, run_type):
+def print_vbscript(intermediate_folder, sample, barcode, project):
 	vbs = open("%s/PRINT_finalReport.vbs" % intermediate_folder, 'w')
 	vbs.write('Dim iAnswer\r\n')
 	vbs.write('iAnswer = MsgBox("Voulez-vous lancer l\'impression?", vbOKCancel + vbQuestion, "Continue")\r\n')
@@ -91,17 +91,18 @@ def print_vbscript(intermediate_folder, sample, barcode, run_type):
 	vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "End With"\r\n')
 	vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Application.PrintCommunication = True"\r\n')
 	vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "NbLignes = Sheets(""Annotation"").UsedRange.Rows.Count"\r\n')
-	if run_type == "SBT": # Tout prendre jusqu'a dbSNP, et enlever colonne "c.p.f"
+	vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""A1:AZ1"").Interior.Color = vbWhite"\r\n')
+	if project == 'SBT': # Tout prendre jusqu'a dbSNP, et enlever colonne "c.p.f"
 		vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""K:K"").EntireColumn.Hidden = True"\r\n')
 		vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""A1:U"" & NbLignes).printOut"\r\n')
-	elif run_type in ["LAM","Leuc","FLT3","ABL1"]:
+	elif project in ['LAM','Leuc','FLT3','ABL1']:
 		# ne pas prendre "Position", "Ref", "Alt", "Var.Cov." Prendre jusqu'a "dbSNP". Rajouter en fin "Class." et "c. Annovar"
 		vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""F:H,N:N,T:AF,AH:AI"").EntireColumn.Hidden = True"\r\n')
 		vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""A1:AJ"" & NbLignes).printOut"\r\n')
-	elif run_type == "TP53": # comme LAM mais decalage du aux colonnes "Patho UMD" et "Comment UMD"
+	elif project == 'TP53': # comme LAM mais decalage du aux colonnes "Patho UMD" et "Comment UMD"
 		vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""F:H,N:N,V:AH,AJ:AK"").EntireColumn.Hidden = True"\r\n')
 		vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""A1:AL"" & NbLignes).printOut"\r\n')
-	else: # finalReport sans colonnes supplementaires (sensitivity, TP53-truc...) 
+	else: # finalReport sans colonnes supplementaires (sensitivity, TP53-truc...)
 		vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "Sheets(""Annotation"").Range(""A1:S"" & NbLignes).printOut"\r\n')
 	vbs.write('num=num+1:mdle.CodeModule.InsertLines num, "End Sub"\r\n')
 	vbs.write('exl.Application.Run "PrintPage1"\r\n')
@@ -116,7 +117,7 @@ def representsInt(s): # pour eviter avertissement "nombre ecrit en texte" sous e
 		return s
 	except:
 		return s
-		
+
 def cell_format(cell, font=None, alignment=None, color=None, format=None, border=None):
 	# BORDER
 	if border == 'thin':
@@ -131,7 +132,7 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 	elif font == 'bigBold':
 		cell.font = openpyxl.styles.Font(name='Calibri', size=13, bold=True)
 	elif font == 'BlueBold':
-		cell.font = openpyxl.styles.Font(name='Calibri', size=11, color='004c99', bold=True)	
+		cell.font = openpyxl.styles.Font(name='Calibri', size=11, color='004c99', bold=True)
 	elif font == 'red':
 		cell.font = openpyxl.styles.Font(name='Calibri', size=11, color='f44242')
 	elif font == 'boldDarkRed':
@@ -164,17 +165,17 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='E6B8B7')
 	elif color == 'DarkRed':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='e89e9b')
-	elif color == 'LightOrange':	
+	elif color == 'LightOrange':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffe7e0')
-	elif color == 'LightBlue':	
+	elif color == 'LightBlue':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='add8e6')
-	elif color == 'LightPink':	
+	elif color == 'LightPink':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffc9f7')
-	elif color == 'LightPurple':	
+	elif color == 'LightPurple':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ebe7f1')
-	elif color == 'LightGrey':	
+	elif color == 'LightGrey':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='D9D9D9')
-	elif color == 'DarkGrey':	
+	elif color == 'DarkGrey':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='bfbfbf')
 	elif color == 'Yellow':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='feffa3')
@@ -217,11 +218,11 @@ sample_folder = os.path.dirname(bam_path)
 sample = sample_folder.split('/')[-1]
 run_folder = os.path.dirname(sample_folder)
 intermediate_folder = sample_folder+'/intermediate_files'
-# db_cur.execute("SELECT platform FROM Run WHERE runID='%s'"% run_id)
-# platform = db_cur.fetchone()['platform']
 db_cur.execute("SELECT panelProject FROM Panel WHERE panelID='%s'"% panel)
-run_type = db_cur.fetchone()['panelProject']
-db_cur.execute("SELECT chromosome,start,stop,targetedRegionName,gene,details FROM TargetedRegion INNER JOIN Panel ON TargetedRegion.panel = Panel.panelID WHERE panel='%s' ORDER BY start" % panel)
+project = db_cur.fetchone()['panelProject']
+db_cur.execute("""SELECT TargetedRegion.chromosome,start,stop,targetedRegionName,transcript,gene,details FROM TargetedRegion 
+INNER JOIN Transcript ON Transcript.transcriptID = TargetedRegion.transcript
+WHERE panel='%s' ORDER BY start""" % panel)
 db_target_regions = db_cur.fetchall()
 
 cosmicDB_con = sqlite3.connect(global_param['cosmicDB'])
@@ -242,27 +243,38 @@ try:
 except:
 	pass
 
-
 #                 __  ___      ___    __           __        ___  ___ ___ 
 #  /\  |\ | |\ | /  \  |   /\   |  | /  \ |\ |    /__` |__| |__  |__   |  
 # /~~\ | \| | \| \__/  |  /~~\  |  | \__/ | \|    .__/ |  | |___ |___  |  
-#                                                                         
 
-aheader = ['Commentaire','Gene','Exon','Transcript','Chr','Position','Ref','Alt','c.','p.','Region','Consequence','Freq','Var.Cov.','Depth','InterVar','ClinVar','COSMIC','dbSNP','gnomAD','1000G_ALL','1000G_EUR','NCI60','ESP','ExAC','SIFT','POLYPHEN2','PROVEAN','PubMed','VEP_Consequence','VEP_Impact','VEP_Diff','Class.','VC_CALL','c.(annovar)','p.(annovar)','annoWarning']
 
-variants = []
+aheader = ['Commentaire','Gene','Exon','Transcript','Chr','Position','Ref','Alt','c.','p.','Region','Consequence','Freq','Var.Cov.','Depth','InterVar','ClinVar','COSMIC','dbSNP','gnomAD','1000G_ALL','1000G_EUR','NCI60','ESP','ExAC','SIFT','POLYPHEN2','PROVEAN','PubMed','VEP_Consequence','VEP_Impact','VEP_Diff','Class.','VC_CALL','c.(annovar)','p.(annovar)','annoWarning','hgvsInfo']
+
+panel_transcripts = {}
+db_cur.execute("""SELECT DISTINCT gene,TranscriptID FROM Transcript 
+INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID
+WHERE panel = '%s'""" % panel)
+db_transcripts = db_cur.fetchall()
+for db_transcript in db_transcripts:
+	panel_transcripts[str(db_transcript['transcriptID'])] = str(db_transcript['gene'])
+
 db_cur.execute("SELECT * FROM VariantMetrics WHERE analysis='%s'"% (analysis_id))
 db_vms = db_cur.fetchall()
+
+variants = []
 for db_vm in db_vms :
-	db_cur.execute("SELECT * FROM Variant WHERE variantID='%s'"% (db_vm['variant']))
+	# print """SELECT * FROM VariantAnnotation 
+	# INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant
+	# WHERE variant='%s' AND transcript IN %s""" % (db_vm['variant'],tuple(panel_transcripts.keys()))
+	db_cur.execute("""SELECT * FROM VariantAnnotation 
+	INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant
+	WHERE variant='%s' AND transcript IN %s""" % (db_vm['variant'],tuple(panel_transcripts.keys())))
 	db_variant = db_cur.fetchone()
-	db_cur.execute("SELECT * FROM Gene WHERE geneID='%s'"% (db_variant['gene'])) # INNER JOIN A FAIRE PLUTOT
-	db_gene = db_cur.fetchone()
 	variants.append({
 		'Commentaire':db_variant['commentaire'],
-		'Gene':db_variant['gene'],
+		'Gene':panel_transcripts[db_variant['transcript']],
 		'Exon':db_variant['exon'],
-		'Transcript':'%s.%s' % (db_gene['transcript'],db_gene['transcriptVersion']),
+		'Transcript':db_variant['transcript'],
 		'Chr':int(db_variant['chromosome'].replace('chr','').replace('X','23').replace('Y','24')),
 		'Position':int(db_variant['genomicStart']),
 		'Ref':db_variant['referenceAllele'],
@@ -306,11 +318,11 @@ for db_vm in db_vms :
 
 print " - [%s] Annotation sheet ..." % time.strftime("%H:%M:%S")
 
-if run_type in ['SBT','Lymphome_B','Lymphome_T']:
+if project in ['SBT','Lymphome_B','Lymphome_T']:
 	aheader.insert(aheader.index('p.')+1,'c.p.f.')
-	if 'SBT' in run_type:
+	if 'SBT' in project:
 		aheader.insert(aheader.index('Consequence')+1,'Sensitivity')
-elif 'TP53' in run_type:
+elif 'TP53' in project:
 	aheader.insert(aheader.index('COSMIC'),'Patho UMD')
 	aheader.insert(aheader.index('COSMIC'),'Comment UMD')
 	aheader.insert(len(aheader)+1,'c.p.f.')
@@ -331,15 +343,15 @@ l=2
 for variant in variants:
 	variant['Chr'] = 'chr%s' % variant['Chr']
 	variant['Chr'] = variant['Chr'].replace('23','X').replace('24','Y')
-	
+
 	#variant['Freq'] = variant['Freq'] * 100.0
 	if variant['Freq'] > 1.0 :
 		variant['Freq'] = int(round(variant['Freq']))
 	else:
 		variant['Freq'] = '%0.1f' % variant['Freq']
-		
+
 	variant['c.p.f.'] = '%s ; %s ; %s' % (variant['c.'],variant['p.'],variant['Freq'])
-			
+
 	# LISA RAJOUT TAILLE INS / DEL
 	if variant['Class.'] == 'INS' or variant['Class.'] == 'DUP':
 		variant['Class.'] = '%s (%s)' % (variant['Class.'],len(variant['Alt']))
@@ -347,7 +359,7 @@ for variant in variants:
 		variant['Class.'] = 'DEL (%s)' % len(variant['Ref'])
 	elif variant['Class.'] == 'DELINS':
 		variant['Class.'] = 'DELINS (%s/%s)' % (len(variant['Ref']),len(variant['Alt']))
-		
+
 	# LISA ASXL1 ex 12 = ex 13 
 	## POUR NM_015338.5, Annovar trouve ex12 (faux), VEP trouve ex13. tant qu'annovar par defaut, garder cette correction.
 	if variant['Gene'] == 'ASXL1' and variant['Exon'] == 12:
@@ -358,7 +370,7 @@ for variant in variants:
 			variant['Commentaire'] = 'Exon corrected (12->13)'
 
 	# COSMIC occurence for Lymphome B & T (haematopoietic_and_lymphoid_tissue)
-	if run_type in ['Lymphome_B','Lymphome_T']:
+	if project in ['Lymphome_B','Lymphome_T']:
 		if variant['COSMIC']:
 			cosmics = variant['COSMIC'].split(',')
 			occ = []
@@ -371,7 +383,7 @@ for variant in variants:
 					occ.append('0')
 			occs = ','.join(occ)
 			variant['COSMIC'] = '%s;occurence(haematopoietic_and_lymphoid_tissue)=%s' % (variant['COSMIC'],occs)
-			
+
 	# FORMATING RESULTS
 	condition1_green_line = (variant['Region'] in ['exonic','splicing','ncRNA_exonic']) and (variant['Consequence'] != 'synonymous')
 	condition2_green_line = (116411873 <= variant['Position'] <= 116411902) or (116412044 <= variant['Position'] <= 116412087)
@@ -386,7 +398,7 @@ for variant in variants:
 			else:
 				variant['Commentaire'] = '%s. %s' % (variant['Commentaire'],hgvsinfo)
 		if condition3_green_line :
-			variant['Commentaire'] = '%s. %s' % ('Green line because Region unknown',variant['Commentaire'])
+			variant['Commentaire'] = '%s. %s' % ('ATTENTION Region inconnue',variant['Commentaire'])
 		for columnName in aheader:
 			cell_val = variant[columnName]
 			annotationSheet.cell(row=l,column=aheader.index(columnName)+1).value = cell_val
@@ -434,30 +446,30 @@ for variant in variants:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='DarkOrange')
 			elif 'Likely_benign' in s_clinvar or 'Benign' in s_clinvar:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='DarkGreen')		
-	
+
 	# HEMATO : GATA2 INTRON 4 ET ANKRD26 5'UTR VIOLET
 	if (variant['Gene'] == 'GATA2' and (128200788 <= variant['Position'] <= 128202702)) or (variant['Gene'] == 'ANKRD26' and (27389256 <= variant['Position'] <= 27389427)):
 		for columnName in aheader:
 			cell_format(annotationSheet.cell(row=l,column=aheader.index(columnName)+1),color='LightPurple')
 	# HEMATO : HOTSPOTS ROUGE
-	if 'LAM' in run_type and variant['highlight'] == 1:
+	if 'LAM' in project and variant['highlight'] == 1:
 		cell_format(annotationSheet.cell(row=l,column=aheader.index('c.')+1),color='LightRed')
 		cell_format(annotationSheet.cell(row=l,column=aheader.index('p.')+1),color='LightRed')
-				
+
 	# POSITION INTRONIQUE BLEUE
 	if variant['c.'] != None:
 		if ('+' in variant['c.'] or '-' in variant['c.'] or '*' in variant['c.']) and (variant['Region'] != 'exonic' and variant['Region'] != '?'):
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('c.')+1),color='Blue')
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('c.p.f.')+1),color='Blue')
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('Region')+1),color='Blue')
-	
+
 	# CONSEQUENCE ORANGE / ROUGE
 	if variant['Consequence'] != None:
 		if 'missense' in variant['Consequence'] or 'nonframeshift' in variant['Consequence']:
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('Consequence')+1),font='DarkOrange')
 		elif 'stopgain' in variant['Consequence'] or 'stoploss' in variant['Consequence'] or 'frameshift' in variant['Consequence']:
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('Consequence')+1),font='DarkRed')		
-	
+
 	# SENSITIVITY VERT / ROUGE
 	if 'Sensitivity' in aheader and variant['Sensitivity'] != None:
 		s = variant['Sensitivity'].lower()
@@ -466,24 +478,22 @@ for variant in variants:
 		elif s.startswith('resistante'):
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('Sensitivity')+1),font='DarkRed')
 
-	
 	l=l+1 # NEXT LINE
-	
+
 # SBT : ajout 'Amplicons <300X: '
-if 'SBT' in run_type:
+if 'SBT' in project:
 	annotationSheet.cell(row=l+2,column=1).value = "Amplicons < 300X: "
 	cell_format(annotationSheet.cell(row=l+2,column=1))
 
 #  __                __        ___  ___ ___ 
 # /  ` |\ | \  /    /__` |__| |__  |__   |  
 # \__, | \|  \/     .__/ |  | |___ |___  |  
-#                                           
 
-if os.path.isfile('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,run_type)):
+if os.path.isfile('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,project)):
 	print " - [%s] CNV sheet ..." % time.strftime("%H:%M:%S")
-	inBook = openpyxl.load_workbook('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,run_type))
+	inBook = openpyxl.load_workbook('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,project))
 	inSheet = inBook['copy number analysis']
-		
+
 	for row_idx in range(1, inSheet.max_row+1):
 		for col_idx in range(1, inSheet.max_column+1):
 			read_cell = inSheet.cell(row = row_idx, column = col_idx)
@@ -507,10 +517,9 @@ else:
 #  __        __  ___     __   __        ___  __        __   ___ 
 # |__) |    /  \  |     /  ` /  \ \  / |__  |__)  /\  / _` |__  
 # |    |___ \__/  |     \__, \__/  \/  |___ |  \ /~~\ \__> |___ 
-#                                                               
 
 sample_read_len_histo = '%s/_plotCoverage/read_len_histograms/%s_rawlib.read_len_histogram.png' % (run_folder,barcode)
-amplicon_plots = sorted(glob.glob('%s/_plotCoverage/%s/amplicons_S*_all_samples.png' % (run_folder, run_type)))
+amplicon_plots = sorted(glob.glob('%s/_plotCoverage/%s/amplicons_S*_all_samples.png' % (run_folder, project)))
 
 z = 1
 if os.path.isfile(sample_read_len_histo):
@@ -562,7 +571,6 @@ else:
 #  __   __        ___  __        __   ___     __        ___  ___ ___ 
 # /  ` /  \ \  / |__  |__)  /\  / _` |__     /__` |__| |__  |__   |  
 # \__, \__/  \/  |___ |  \ /~~\ \__> |___    .__/ |  | |___ |___  |  
-#                                                                    
 
 cov_file = False
 amplicon_run = False
@@ -599,7 +607,7 @@ if cov_file:
 	l=2
 	red_regions = []
 	## HEMATO LAM : MALE / FEMALE (chrY)
-	if 'LAM' in run_type or 'LAM_2018' in run_type or 'FLT3' in run_type:
+	if project in ['LAM','LAM_2018','FLT3']:
 		for cov_line in cov_lines:
 			if cov_line[0] == 'chrY':
 				# cov_line[4] = cov_line[4].split(';')[0].split('GENE_ID=')[-1]
@@ -674,7 +682,6 @@ else:
 #  __        __   ___     __   __        ___  __        __   ___     __        ___  ___ ___ 
 # |__)  /\  /__` |__     /  ` /  \ \  / |__  |__)  /\  / _` |__     /__` |__| |__  |__   |  
 # |__) /~~\ .__/ |___    \__, \__/  \/  |___ |  \ /~~\ \__> |___    .__/ |  | |___ |___  |  
-#                                                                                           
 
 base_cov_file = False
 if os.path.isfile('%s/tvc_de_novo/depth.txt' % intermediate_folder):
@@ -697,7 +704,7 @@ if base_cov_file:
 		base_cov_lines.append(base_cov_line)
 
 	header = ['Chr','Start','End','Number of bases','Region','Gene','Exon','Hotspots']
-	if run_type == 'Lymphome_B' or run_type == 'Lymphome_T':
+	if project in ['Lymphome_B','Lymphome_T']:
 		header.append('Cosmic occurences (haematopoietic_and_lymphoid_tissue)')
 
 	xlist_full = [int(minX),2000,500,300,250,200,100]
@@ -776,11 +783,11 @@ if base_cov_file:
 		for region in region_minx:
 			db_variants = []
 			relevant_variants = []
-			if 'SBT' in run_type:
-				db_cur.execute("SELECT * FROM Variant WHERE actionability != ''")
+			if 'SBT' in project:
+				db_cur.execute("SELECT * FROM VariantAnnotation INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant WHERE actionability is not Null")
 				db_variants = db_cur.fetchall()
-			elif 'LAM' in run_type:
-				db_cur.execute("SELECT * FROM Variant WHERE highlight = 1")
+			elif 'LAM' in project:
+				db_cur.execute("SELECT * FROM VariantAnnotation INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant WHERE highlight = 1")
 				db_variants = db_cur.fetchall()
 			for db_variant in db_variants:
 				if (db_variant['genomicStart'] >= region[1] and db_variant['genomicStart'] <= region[2]) or (db_variant['genomicStop'] >= region[1] and db_variant['genomicStop'] <= region[2]):
@@ -789,7 +796,7 @@ if base_cov_file:
 			region.append(hotstring)
 
 		# panel lymphome : recherche cosmic haematopoietic_and_lymphoid_tissue. Colonne "Cosmic occurences (haematopoietic_and_lymphoid_tissue)"
-		if run_type == 'Lymphome_B' or run_type == 'Lymphome_T':
+		if project in ['Lymphome_B','Lymphome_T']:
 			if len(region_minx) > 500: # si trop on ne cherche pas. plombe le temps d'execution
 				for region in region_minx:
 					region.append('n/a')
@@ -818,7 +825,7 @@ if base_cov_file:
 				red_line.append(region)
 			else:
 				white_line.append(region)
-	
+
 		###### ECRITURE ################################
 		baseCoverageSheet.cell(row=l,column=1).value = 'Bases with coverage < %sX' % minx
 		baseCoverageSheet.merge_cells(start_row=l, start_column=1, end_row=l, end_column=8)
@@ -827,7 +834,6 @@ if base_cov_file:
 		for i in range(len(header)):
 			baseCoverageSheet.cell(row=l,column=i+1).value = header[i]
 			cell_format(baseCoverageSheet.cell(row=l,column=i+1),font='bold',color='LightGrey')
-			
 		l+=1
 		for region in region_minx:
 			if region[4] in red_regions:
@@ -841,7 +847,6 @@ if base_cov_file:
 			if baseCoverageSheet.cell(row=l,column=8).value:
 				cell_format(baseCoverageSheet.cell(row=l,column=8),color='DarkRed',alignment='wrap')
 			l+=1
-		
 		if region_minx == []:
 			for i in range(len(header)):
 				baseCoverageSheet.cell(row=l,column=i+1).value = '-'
@@ -857,7 +862,6 @@ else:
 #       __   ___ 
 # \  / /  ` |__  
 #  \/  \__, |    
-#                
 
 print " - [%s] Copying VCFs ..." % time.strftime("%H:%M:%S")
 vc_data = {'tvc_de_novo/TSVC_variants':'tvc_de_novo','tvc_only_hotspot/TSVC_variants':'tvc_only_hotspot','mutect2/%s.mutect2.filtered' % sample:'mutect2','varscan2/%s.varscan2.filtered' % sample:'varscan2','lofreq/%s.lofreq.filtered' % sample:'lofreq','vardict/%s.vardict' % sample:'vardict'} # 'deepvariant/%s.deepvariant' % sample:'deepvariant'
@@ -882,10 +886,6 @@ for vc in vc_data.keys():
 				cell_format(vcfSheet.cell(row=l,column=i+1))
 			l=l+1
 		vcf_file.close()
-	# else:
-		# vcfSheet.cell(row=1,column=1).value = "WARNING : VCF file not found for %s (or error parsing the VCF file). " % sample
-		# print "\t - vcf file not found"
-
 
 ## FEUILLE VCF ONLY HOTSPOT ##
 
@@ -999,7 +999,7 @@ try:
 		alamut_bam_vbscript(sample_folder,sample,barcode,processed=True)
 	else:
 		alamut_bam_vbscript(sample_folder,sample,barcode,processed=False)
-	print_vbscript(sample_folder,sample,barcode,run_type)
+	print_vbscript(sample_folder,sample,barcode,project)
 except:
 	print "\t - warning : alamut vbscript creation FAILED "
 

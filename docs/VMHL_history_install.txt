@@ -1,0 +1,234 @@
+sudo apt-get update
+sudo dpkg-reconfigure locales # mettre en_US-UTF-8, verifier avec > locales -a
+#sudo localectl set-locale LANG=en_US.UTF-8
+#sudo localectl set-locale LANGUAGE=en_US:en
+
+# DEFINIR LE PASSWD ROOT
+sudo psswd root
+
+# dans /etc/fstab
+//zisilon01/N06lbth /media/n06lbth      cifs    auto,vers=1.0,uid=t8illumy,dir_mode=0777,credentials=/etc/cifs.credentials,domain=CHUBX 0 0
+//Zisilon01/N06lbth/SBT/Dossiers\040personnels/Thomas    /media/stuff    cifs    auto,vers=1.0,uid=t8illumy,dir_mode=0777,credentials=/etc/cifs.credentials,domain=CHUBX 0 0
+tres important le "uid" sinon les fichiers sont montes avec proprietaire root et sans aucun droit sans sudo
+
+# divers packages basiques necessaires
+sudo apt-get install geany rsync unzip default-jdk sqlite3 postgresql postegresql-client numpy sqlitebrower samtools bedtools r-base fonts-freefont-ttf python-backports.functools-lru-cache
+sudo pip install openpyxl==2.4.8 docker matplotlib pandas Pilow multiqc
+
+# R
+sudo R
+> install.packages("stringr")
+
+# geany
+dans ~/.fonts/		SourceCodeProRegular.tff
+dans ~/.config/.geany/colorschemes 		mettres les themes
+
+# note
+#voir apres(définir les variables d'environnement dans /etc/bashrc (ou /etc/bash.bashrc). Elles seront définis system-wide et avec shell interactif 
+#voir apres(les positioner en debut de fichier avant  "# If not running interactively, don't do anything" pour que soient définis pour shell non-interactif aussi.
+
+ __   __   __        ___  __  
+|  \ /  \ /  ` |__/ |__  |__) 
+|__/ \__/ \__, |  \ |___ |  \ 
+                              
+https://docs.docker.com/install/linux/docker-ce/debian/
+sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+# pour verifier
+sudo docker run hello-world
+# pour ne pas avoir a utiliser sudo
+sudo gpasswd -a t8illumy docker
+newgrp docker
+
+
+###############################################################################################################
+
+cd ~/ngs-pipeline-bx
+
+ __   ___  ___ 
+|__) |__  |__  
+|  \ |___ |    
+               
+wget https://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz reference_files/hg19/
+gzip -d reference_files/hg19/hg19.fa.gz
+samtools faidx reference_files/hg19/hg19.fa.gz
+
+gatk nécessite .dict file
+https://gatkforums.broadinstitute.org/gatk/discussion/1601/how-can-i-prepare-a-fasta-file-to-use-as-reference
+
+ __            
+|__) |  |  /\  
+|__) |/\| /~~\ 
+  
+git clone https://github.com/lh3/bwa.git
+cd bwa; make
+sudo cp bwa /usr/bin/bwa
+# index genome de ref pour bwa (tres tres long)
+bwa index reference_files/hg19/hg19.fa
+
+ __       ___      
+/ _`  /\   |  |__/ 
+\__> /~~\  |  |  \ 
+                   
+cd ~/ngs-pipeline-bx/gatk
+wget https://github.com/broadinstitute/gatk/releases/download/4.1.5.0/gatk-4.1.5.0.zip
+unzip ~/ngs-pipeline-bx/gatk
+mv ~/ngs-pipeline-bx/gatk/gatk-4.1.5.0/* ~/ngs-pipeline-bx/gatk
+(rm -r ~/ngs-pipeline-bx/gatk/gatk-4.1.5.0)
+
+OU 
+
+docker pull broadinstitute/gatk
+docker run -dit --name gatk --restart always -v /media/n06lbth:/media/n06lbth -v /home/t8illumy:/home/t8illumy broadinstitute/gatk
+(docker run -dit --name gatk --restart always -v /media/n06lbth:/media/n06lbth -v /DATA/ngs-pipeline-bx:/DATA/ngs-pipeline-bx broadinstitute/gatk)
+      __        __      __      ___       __       
+|__| / _` \  / /__`    |__) \ /  |  |__| /  \ |\ | 
+|  | \__>  \/  .__/    |     |   |  |  | \__/ | \| 
+                                                   
+sudo apt-get install libpq-dev python-pip zlib1g-dev libbz2-dev liblzma-dev
+sudo pip install hgvs biocommons.seqrepo
+
+# seqrepo -r /usr/local/share/seqrepo pull (SAUF QUE proxy hopital bloque rsync. Sinon essayer :)
+mkdir ~/ngs-pipeline-bx/hgvs
+cd ~/ngs-pipeline-bx/hgvs 
+wget -r --no-parent --reject="index.html*" http://54.201.113.125/seqrepo/2019-06-20/
+# nettoyage
+mv ~/ngs-pipeline-bx/54.201.113.125/2019-06-20 /DATA/work/seqrepo/
+rm -r ~/ngs-pipeline-bx/seqrepo/54.201.113.125
+export HGVS_SEQREPO_DIR=~/ngs-pipeline-bx/seqrepo/2019-06-20
+# OU plutot, dans /etc/bash.bashrc avant "#if not running interactively..."
+export HGVS_SEQREPO_DIR=~/ngs-pipeline-bx/seqrepo/2019-06-20
+# en ensuite recharger
+source ~/.bashrc
+
+Installer UTA db (version docker, pas forcément à jour) :
+
+voir github : https://github.com/biocommons/uta/tree/master/misc/docker
+le port 50827:5432 est pour la librairie hgvs python
+
+$ docker pull biocommons/uta
+$ docker run -dit --name uta --restart always -p 15032:5432 biocommons/uta # ET LIGNE SUIVANTE TRES IMPORTANTE
+$ docker logs -f uta
+
+Installer UTA db (manuellement avec postegresql, assez long, faire tourner la nuit):
+
+	sudo nano /etc/postgresql/11/main/pg_hba.conf (mettre en "trust" à la place de "peer" ou "md5" tous les "local   all  ..")
+	sudo service postgresql restart
+	createuser -U postgres uta_admin
+	createuser -U postgres anonymous
+	(trouver UTA DB la plus à jour ici : http://dl.biocommons.org/uta/)
+	wget http://dl.biocommons.org/uta/uta_20XXXXXX.pgd.gz
+	gzip -cdq uta_20XXXXXX.pgd.gz | psql -U uta_admin -1 -v ON_ERROR_STOP=1 -d uta -Eae
+
+Ensuite:
+
+	$ export UTA_DB_URL=postgresql://anonymous@localhost:15032/uta/uta_20180821 (OU plus récent voir dans le log précédent ou http://dl.biocommons.org/uta/)
+	# OU plutot, dans /etc/bash.bashrc avant "#if not running interactively..."
+	export UTA_DB_URL=postgresql://anonymous@localhost:15032/uta/uta_20170629 (OU plus récent voir dans le log précédent)
+	# en ensuite recharger
+	source ~/.bashrc
+
+(pour annuler : voir commandes docker container ls -a, docker stop, docker container rm, unset pour enlever l'export)
+
+           __              ___  __        __   ___ 
+\  /  /\  |__) |  /\  |\ |  |  |__)  /\  /__` |__  
+ \/  /~~\ |  \ | /~~\ | \|  |  |__) /~~\ .__/ |___ 
+                                                   
+# DOWNLOAD refGene.txt pour annotation des bed, et des genes pour la VariantBase
+cd ~/ngs-pipeline-bx/reference_files
+wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/ncbiRefSeqCurated.txt.gz
+gunzip ncbiRefSeqCurated.txt.gz
+___       __  
+ |  \  / /  ` 
+ |   \/  \__, 
+              
+http://updates.iontorrent.com/tvc_standalone/README.txt
+les erreurs lors du build de la dependance bamtools n'empeche pas le build final
+a la fin recuperer dans le dossier tvc-....binary/ les dossiers bin/ et share/
+recuperer generate_variant_table.py et mettre dans bin
+
+ __   ___  ___  __             __              ___ 
+|  \ |__  |__  |__) \  /  /\  |__) |  /\  |\ |  |  
+|__/ |___ |___ |     \/  /~~\ |  \ | /~~\ | \|  |  
+                                                   
+https://github.com/google/deepvariant/blob/r0.9/docs/deepvariant-quick-start.md
+sudo docker pull google/deepvariant
+## a continuer, comment run (penser à --restart always) et utilisation
+docker run -dit --name deepvariant --restart always -v /media/n06lbth:/media/n06lbth -v $NGS_PIPELINE_BX_DIR:$NGS_PIPELINE_BX_DIR google/deepvariant
+
+
+                __             __  
+ /\  |\ | |\ | /  \ \  /  /\  |__) 
+/~~\ | \| | \| \__/  \/  /~~\ |  \ 
+                                   
+
+annotate_variation.pl --buildver hg19 --downdb refGeneWithVer /home/t8illumy/ngs-pipeline-bx/variantAnnotation/annovar/humandb
+
+cat hg19_gnomad211_genome.txt | awk '{print $1,"\t",$2,"\t",$3,"\t",$4,"\t",$5,"\t",$6,"\t",$7}' > hg19_gnomad211_genome.filtered.txt
+mv hg19_gnomad211_genome.filtered.txt hg19_gnomad211_genome.txt
+cat hg19_dbnsfp33a.txt | awk '{print $1,"\t",$2,"\t",$3,"\t",$4,"\t",$5,"\t",$8,"\t",$14,"\t",$20,"\t",$26,"\t",$29}' > humandb/hg19_dbnsfp33a.txt
+
+#and re-index
+perl index_annovar.pl -bin 10000 humandb/hg19_gnomad211_genome.txt
+
+      ___  __  
+\  / |__  |__) 
+ \/  |___ |    
+               
+
+http://www.ensembl.org/info/docs/tools/vep/script/vep_download.html
+# requirements
+sudo cpan Archive::Zip
+
+wget http://repo.mysql.com/mysql-apt-config_0.8.13-1_all.deb
+sudo dpkg -i mysql-apt-config_0.8.13-1_all.deb
+sudo apt update 
+sudo apt install mysql-server
+sudo cpan DBD::mysql
+
+
+sudo cpan DBI
+Bio::DB:HTS
+Bio::SeqFeature::Lite
+IO::String
+XML::DOM::XPath
+Set::IntervalTree
+JSON
+Bio::DB::BigFile
+Bio::Root::Version
+XML::DOM::XPath
+
+ERROR: Could not connect to FTP host ftp.ensembl.org
+#téléchargement manuel? depuis http://ftp.ensembl.org/pub/release-99/variation/indexed_vep_cache/homo_sapiens_refseq_vep_99_GRCh37.tar.gz
+wget http://ftp.ensembl.org/pub/release-99/variation/indexed_vep_cache/homo_sapiens_refseq_vep_99_GRCh37.tar.gz
+#pour le fasta, grch37 derniere version dans la version 75. dispo ici http://ftp.ensembl.org/pub/release-75/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz
+
+
+
+
+
+
+
+
+## IONCOPY ##
+install_version("ioncopy", version = "1.0", repos = "http://cran.us.r-project.org")
+
+## FeatureCounts ##
+sudo R
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rsubread")
+
+
+2235  sudo rm -r .git (normalement pas nécessaire)
+ 2236  git init
+ 2237  git config --global core.excludesfile ~/.gitignore_global
+ 2238  git remote add origin https://github.com/tbandres/ngs-pipeline-bx.git
+ 2239  git add -A
+ 2240  git commit -m "from t8illumy"
+ 2241  git push -f origin master (rempalcer -f par -u si cycle classique avec pull avant)
+ 2242  history

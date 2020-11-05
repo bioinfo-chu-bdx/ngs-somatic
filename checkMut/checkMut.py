@@ -156,11 +156,19 @@ am37 = easyvariantmapper = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name
 
 cpos = options.cpos
 gene = options.gene
-db_cur.execute("SELECT transcript, transcriptVersion, strand FROM Gene WHERE geneID='%s'"% (gene))
-db_gene = db_cur.fetchone()
-transcript = db_gene['transcript']
-transcript_version = db_gene['transcriptVersion']
-strand = db_gene['strand']
+
+if options.run_folder.endswith('/'):
+	run_name = options.run_folder.split('/')[-2]
+else:
+	run_name = options.run_folder.split('/')[-1]
+db_cur.execute("""SELECT DISTINCT transcriptID, strand FROM Transcript
+INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID
+INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel
+INNER JOIN Analysis On Analysis.panel = Panel.panelID
+WHERE run = '%s' AND gene = '%s'""" % (run_name,options.gene))
+db_transcript = db_cur.fetchone()
+transcript = db_transcript['transcriptID']
+strand = db_transcript['strand']
 
 if os.path.isfile('%s/_checkMut.txt' % checkMut_folder):
 	txtoutput = open('%s/_checkMut.txt' % checkMut_folder,'a')
@@ -168,7 +176,8 @@ else:
 	txtoutput = open('%s/_checkMut.txt' % checkMut_folder,'w')
 #txtoutput = open('%s/%s_%s.txt' % (checkMut_folder,gene,cpos),'w')
 
-c = hp.parse_hgvs_variant('%s.%s:%s' % (transcript, transcript_version, cpos))
+# c = hp.parse_hgvs_variant('%s.%s:%s' % (transcript, transcript_version, cpos))
+c = hp.parse_hgvs_variant('%s:%s' % (transcript, cpos))
 g = am37.c_to_g(c)
 chrom = g.ac.split('.')[0][-2:] # ex : 04
 chrom = int(chrom)
@@ -294,7 +303,8 @@ if options.runtype:
 		if '_' in cpos:
 			stop = int(cpos.split('c.')[-1].split('_')[1].split('A')[0].split('T')[0].split('G')[0].split('C')[0].split('del')[0].split('ins')[0].split('dup')[0]) + 192
 
-mytext = printing("* %s:%s.%s:%s" % (gene,transcript,transcript_version,cpos),mytext)
+# mytext = printing("* %s:%s.%s:%s" % (gene,transcript,transcript_version,cpos),mytext)
+mytext = printing("* %s:%s:%s" % (gene,transcript,cpos),mytext)
 mytext = printing("* %s at %s:%s-%s" % (variant_type,chrom,start,stop),mytext)
 mytext = printing("* %s strand" % strand,mytext)
 mytext = printing("* min depth = %s\n" % options.min_depth,mytext)

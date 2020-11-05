@@ -72,11 +72,20 @@ parser.add_option('-i', '--input-bed',help="Path to bed",dest='bed')
 parser.add_option('-o', '--output-bed',help="Output bed",dest='output')
 (options, args) = parser.parse_args()
 
+favorite_transcript = {'ANKRD26':'NM_014915','ASXL1':'NM_015338','ASXL2':'NM_018263','BCOR':'NM_001123385','BCORL1':'NM_021946','CALR':'NM_004343',
+'CBL':'NM_005188','CCND2':'NM_001759','CEBPA':'NM_004364','CSF3R':'NM_156039','CUX1':'NM_181552','DDX41':'NM_016222','DHX15':'NM_001358',
+'DNMT3A':'NM_022552','ETNK1':'NM_018638','ETV6':'NM_001987','EZH2':'NM_004456','FLT3':'NM_004119','GATA1':'NM_002049','GATA2':'NM_032638',
+'GNAS':'NM_000516','GNB1':'NM_002074','IDH1':'NM_005896','IDH2':'NM_002168','IKZF1':'NM_006060','JAK2':'NM_004972','KDM6A':'NM_021140',
+'KIT':'NM_000222','KMT2C':'NM_170606','KRAS':'NM_033360','MPL':'NM_005373','MYC':'NM_001354870','NFE2':'NM_006163','NPM1':'NM_002520',
+'NRAS':'NM_002524','PHF6':'NM_001015877','PPM1D':'NM_003620','PTEN':'NM_000314','PTPN11':'NM_002834','RAD21':'NM_006265','RIT1':'NM_006912',
+'RUNX1':'NM_001754','SAMD9':'NM_017654','SAMD9L':'NM_001303497','SETBP1':'NM_015559','SF3B1':'NM_012433','SH2B3':'NM_005475','SMC1A':'NM_006306',
+'SMC3':'NM_005445','SRSF2':'NM_003016','SRY':'NM_003140','STAG2':'NM_001042749','TERC':'NR_001566','TERT':'NM_198253','TET2':'NM_001127208',
+'TP53':'NM_001126112','U2AF1':'NM_001025203','WT1':'NM_001198551','ZRSR2':'NM_005089'}
+
 pipeline_folder =  os.environ['NGS_PIPELINE_BX_DIR']
 knownToRefSeq_path = '%s/reference_files/knownToRefSeq.txt' % pipeline_folder
 knownCanonical_path = '%s/reference_files/knownCanonical.txt' % pipeline_folder
 refGene_path = '%s/reference_files/ncbiRefSeqCurated.txt' % pipeline_folder
-favorite_nm_path = '%s/reference_files/annotate_bed/favorite_NM_list.tsv' % pipeline_folder
 
 bed_path = options.bed
 bed_reader = open(bed_path,'r')
@@ -88,8 +97,6 @@ knownCanonical_file = open(knownCanonical_path,'r')
 knownCanonical_reader = csv.reader(knownCanonical_file,delimiter='\t')
 refGene_file = open(refGene_path,'r')
 refGene_reader = csv.reader(refGene_file,delimiter='\t')
-favorite_nm_file = open(favorite_nm_path,'r')
-favorite_nm_reader = csv.reader(favorite_nm_file,delimiter='\t')
 
 # PARSE CANONICAL
 knownCanonical = []
@@ -127,10 +134,6 @@ for refgene_line in refGene_reader:
 			exonEnds.remove('')
 		refgene[transcript] = {'gene':gene,'strand':strand,'exonStarts':exonStarts,'exonEnds':exonEnds}
 
-# PARSE favorite NMs
-favorite_NM = {}
-for fline in favorite_nm_reader:
-	favorite_NM[fline[0]] = fline[1]
 
 # RE-WRITE THE HEADER IF EXISTANT
 firstline = bed_reader.next()
@@ -192,10 +195,10 @@ for bed_line in bed_reader:
 	
 	# FIND REFGENE DATA
 	gene, strand, exonStarts, exonEnds, details = find_refgene_data(transcript)
-	if gene in favorite_NM.keys():
+	if gene in favorite_transcript.keys():
 		print "\t- using favorite transcript"
-		if transcript != favorite_NM[gene]:
-			transcript = favorite_NM[gene]
+		if transcript != favorite_transcript[gene]:
+			transcript = favorite_transcript[gene]
 			gene, strand, exonStarts, exonEnds, details = find_refgene_data(transcript)
 	else:
 		if not canonicals:

@@ -47,7 +47,7 @@ ngs_folder = global_param['ngs_results_folder']
 # A FAIRE DANS UN AUTRE SCRIPT, AVEC SYSTEMD :
 # trouver comment detecter que nouveau run apparait
 # pour savoir si nouveau, utiliser la BDD SQL voir si deja dedans?
-# ensuite, savoir quand nouveau run est termine : est-ce que sampleSheet apparait?
+# ensuite, savoir quand nouveau run est termine : -> fichier "CopyComplete.txt" apparait marque le top depart
 
 sample_sheet = '%s/SampleSheet.csv' % options.illumina_folder
 if not os.path.isfile(sample_sheet):
@@ -69,7 +69,7 @@ stdout=open('%s/run_bcl2fastq_illumina.stdout.txt' % options.illumina_folder,'w'
 stderr=open('%s/run_bcl2fastq_illumina.stderr.txt' % options.illumina_folder,'w'))
 cmd.communicate()
 
-# PARSE SAMPLE SHEET
+# # PARSE SAMPLE SHEET
 print "- PARSING SAMPLESHEET"
 run_project = ''
 sub_project = ''
@@ -104,8 +104,8 @@ for line in ss_reader:
 		samples[sample_id]['sample_number'] = 'S%s' % number
 		number+=1
 
-# CREATE OUTPUT FOLDER 
-print "- CREATING RUN FOLDER"
+# # CREATE OUTPUT FOLDER 
+# print "- CREATING RUN FOLDER"
 output_location = '%s/%s' % (ngs_folder,run_project)
 if not os.path.exists(output_location):
 	subprocess.call(['mkdir',output_location])

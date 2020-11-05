@@ -16,10 +16,10 @@ from numpy import mean
 # USAGE : python insert_db_variants.py --analysis analysisID --variants /.../alleles.xls
 
 def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
 
 ### GATHERING PARAMETERS ############################################################
 
@@ -39,17 +39,22 @@ db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
 analysis_id = options.analysis
-genome_build = 'hg19'
-vc_tool = '?'
+vc_tool = 'Mutect2,VarDict,Lofreq,VarScan2'
 
-db_cur.execute("SELECT * FROM Gene")
-db_genes = db_cur.fetchall()
-gene_data = {}
-for db_gene in db_genes:
-	gene_data[db_gene['geneID']] = {
-		'chromosome': db_gene['chromosome'],
-		'transcriptionStart': db_gene['transcriptionStart'],
-		'transcriptionStop': db_gene['transcriptionStop']
+db_cur.execute("SELECT panel FROM Analysis WHERE analysisID='%s'" % analysis_id)
+db_analysis = db_cur.fetchone()
+panel = db_analysis['panel']
+
+# recup liste transcripts du panel
+db_cur.execute("SELECT DISTINCT Transcript.transcriptID, Transcript.gene, Transcript.chromosome, Transcript.transcriptionStart, Transcript.transcriptionStop FROM TargetedRegion INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel INNER JOIN Transcript ON Transcript.transcriptID = TargetedRegion.transcript WHERE panel='%s'" % panel)
+db_transcripts = db_cur.fetchall()
+transcript_data = {}
+for db_transcript in db_transcripts:
+	transcript_data[db_transcript['transcriptID']] = {
+		'gene': db_transcript['gene'],
+		'chromosome': db_transcript['chromosome'],
+		'transcriptionStart': db_transcript['transcriptionStart'],
+		'transcriptionStop': db_transcript['transcriptionStop']
 	}
 
 abl1_c2g = {}
@@ -120,15 +125,6 @@ for vcf_path in options.vcfs:
 			var_covs = line[9].split(':')[3].split(',')[1:] # premiere valeur est ref count
 			var_covs = [int(v) for v in var_covs]
 			vardict_count += 1
-		# elif 'deepvariant' in vcf_path:
-			# vc_name = 'deepvariant'
-			# filters = line[6]
-			# if filters != 'PASS':
-				# continue
-			# pos_cov = int(line[9].split(':')[2])
-			# var_covs = line[9].split(':')[3].split(',')[1:] # premiere valeur est ref count
-			# var_covs = [int(v) for v in var_covs]
-			# deepvariant_count += 1
 
 		for a in range(len(alts)): # si multiallelic
 			ref = oref
@@ -156,38 +152,40 @@ for vcf_path in options.vcfs:
 				variant_type = 'INS'
 				start = position - 1
 				stop = position
-				genomicDescription = '%s:g.%s_%sins%s' % (chromosome,start,stop,alt)
+				# genomicDescription = '%s:g.%s_%sins%s' % (chromosome,start,stop,alt)
 			elif alt == '-': # DEL
 				variant_type = 'DEL'
 				if len(ref) > 1:
 					start = position
 					stop = position + (len(ref)-1)
-					genomicDescription = '%s:g.%s_%sdel%s' % (chromosome,start,stop,ref)
+					# genomicDescription = '%s:g.%s_%sdel%s' % (chromosome,start,stop,ref)
 				else:
 					start = position
 					stop = position
-					genomicDescription = '%s:g.%sdel%s' % (chromosome,start,ref)
+					# genomicDescription = '%s:g.%sdel%s' % (chromosome,start,ref)
 			elif len(ref) > 1 or len(alt) > 1: # DELINS
 				variant_type = 'DELINS'
 				if len(ref) > 1:
 					start = position
 					stop = position + (len(ref)-1)
-					genomicDescription = '%s:g.%s_%sdelins%s' % (chromosome,start,stop,alt)
+					# genomicDescription = '%s:g.%s_%sdelins%s' % (chromosome,start,stop,alt)
 				else:
 					start = position
 					stop = position
-					genomicDescription = '%s:g.%sdelins%s' % (chromosome,start,alt)
+					# genomicDescription = '%s:g.%sdelins%s' % (chromosome,start,alt)
 			else: # SNP
 				variant_type = 'SNP'
 				start = position
 				stop = position
 				genomicDescription = '%s:g.%s%s>%s' % (chromosome,start,ref,alt)
-				
+
 			gene = ''
-			for g in gene_data.keys():
-				if chromosome == gene_data[g]['chromosome'] and ((gene_data[g]['transcriptionStart']-5000)<start<(gene_data[g]['transcriptionStop']+5000)):
-					gene = str(g)
-			
+			transcript = ''
+			for g in transcript_data.keys():
+				if chromosome == transcript_data[g]['chromosome'] and ((transcript_data[g]['transcriptionStart']-5000)<start<(transcript_data[g]['transcriptionStop']+5000)):
+					transcript = str(g)
+					gene = transcript_data[g]['gene']
+
 			variant = '%s:%s-%s:%s>%s' % (chromosome,start,stop,ref,alt)
 			if variant not in variants.keys():
 				variants[variant] = {
@@ -197,11 +195,12 @@ for vcf_path in options.vcfs:
 					'ref':ref,
 					'alt':alt,
 					'variant_type':variant_type,
+					'transcript':transcript,
 					'gene':gene,
 					'pos_cov':[pos_cov],
 					'var_cov':[var_cov],
 					'call':[vc_name],
-					'genomicDescription':genomicDescription
+					# 'genomicDescription':genomicDescription
 				}
 			elif vc_name not in variants[variant]['call']: # evite lofreq lignes en double...
 				variants[variant]['pos_cov'].append(pos_cov)
@@ -248,17 +247,17 @@ for variant in variants:
 		pos_cov = int(mean(variants[variant]['pos_cov']))
 		var_cov = int(mean(variants[variant]['var_cov']))
 		call = '/'.join(variants[variant]['call'])
+
+		# CREATE NEW ENTRY IF VARIANT DOESNT EXISTS
 		db_cur.execute("SELECT * FROM Variant WHERE variantID='%s'" % variant_id)
 		db_variant = db_cur.fetchone()
 		if db_variant is None:
 			try:
-				#print "- [Variant] : adding %s in DB" % variant_id
-				db_cur.execute("INSERT INTO Variant (variantID, genomeBuild, chromosome, genomicStart, genomicStop, referenceAllele, alternativeAllele, variantType, gene, genomicDescription) VALUES ('%s','%s','%s',%s, %s,'%s','%s','%s','%s','%s')" % (variant_id, genome_build, variants[variant]['chromosome'], variants[variant]['start'], variants[variant]['stop'], variants[variant]['ref'], variants[variant]['alt'],variants[variant]['variant_type'],variants[variant]['gene'],variants[variant]['genomicDescription']))
+				print "- [Variant] : new entry %s in DB" % variant_id
+				db_cur.execute("INSERT INTO Variant (variantID, chromosome, genomicStart, genomicStop, referenceAllele, alternativeAllele) VALUES ('%s','%s',%s, %s,'%s','%s')" % (variant_id, variants[variant]['chromosome'], variants[variant]['start'], variants[variant]['stop'], variants[variant]['ref'], variants[variant]['alt']))
 				new_var_count += 1
 			except Exception as e:
 				print "\t - warning (VARIANT table)** %s"%e
-		elif db_variant['hgvs'] == 'no':
-			variant_id = db_variant['hgvsInfo']
 
 		#   ___                     __                __              ___        ___ ___  __     __   __     ___       __        ___ 
 		#  |__  | |    |    | |\ | / _`    \  /  /\  |__) |  /\  |\ |  |   |\/| |__   |  |__) | /  ` /__`     |   /\  |__) |    |__  
@@ -273,13 +272,12 @@ for variant in variants:
 				db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE variantMetricsID='%s'" % (variantmetrics_id))
 				exists = db_cur.fetchone()
 			try:
-				#print "- [VariantMetrics] : adding %s in DB (%s <-> %s)" % (variantmetrics_id,variant_id,analysis_id)
 				db_cur.execute("INSERT INTO VariantMetrics (variantMetricsID, variant, analysis, positionReadDepth, variantReadDepth, variantCallingTool, call) VALUES ('%s', '%s', '%s', %s, %s, '%s', '%s')" % (variantmetrics_id, variant_id, analysis_id, pos_cov, var_cov, vc_tool, call))
 				new_vm_count += 1
 			except Exception as e:
 				print "\t - warning (VARIANTMETRICS table)** %s"%e
 
-print " - [%s] %s variants (%s new entries, %s occurences added)" % (time.strftime("%H:%M:%S"),z,new_var_count,new_vm_count)
+print " - [%s] %s variants (%s new Variant entries, %s occurences added)" % (time.strftime("%H:%M:%S"),len(variants.keys()),new_var_count,new_vm_count)
 
 db_con.commit()
 db_con.close()

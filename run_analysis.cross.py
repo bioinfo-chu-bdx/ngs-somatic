@@ -19,7 +19,7 @@ def dict_factory(cursor, row):
 		d[col[0]] = row[idx]
 	return d
 
-def normalize_folder_path(folder_path):
+def normalize_folder_path(folder_path): # REMOVE TRAILING SLASH /
 	if os.path.isdir(folder_path):
 		if folder_path.endswith('/'):
 			folder_path = folder_path[:-1]
@@ -48,6 +48,7 @@ parser.add_option('-c', '--skip-coverage-analysis',	help="skip coverage analysis
 parser.add_option('-v', '--skip-calling',			help="starts analysis directly with Annotation (skip variant calling and and previous steps)",dest='skip_calling',default=False,action='store_true')
 parser.add_option('-i', '--skip-insert-db',			help="s.....s steps)",dest='skip_insert_db',default=False,action='store_true')
 parser.add_option('-a', '--skip-annotation',		help="starts analysis directly with Finalreport (skip annotation and previous steps)",dest='skip_annotation',default=False,action='store_true')
+parser.add_option('-f', '--skip-finalreport',		help="starts analysis directly with checkMut etc",dest='skip_finalreport',default=False,action='store_true')
 (options, args) = parser.parse_args()
 
 if options.skip_annotation:
@@ -106,9 +107,10 @@ logging.info(" [%s] STARTING ANALYSIS ..." % (time.strftime("%H:%M:%S")))
 ### RUN ANALYSIS ######################################################################
 run_name = os.path.basename(run_folder)
 run_date = date.today()
-print "- Create new Run DB entry (if inexistant)..."
+print "- RUN : %s" % run_folder
 platform = barcodes_json[list(barcodes_json)[0]]['platform'].lower()
-db_cur.execute("INSERT OR IGNORE INTO Run (runID, platform, runPath, runDate) VALUES ('%s', '%s', '%s', '%s')" % (run_name,platform,run_folder,run_date))
+system = barcodes_json[list(barcodes_json)[0]]['system'].lower()
+db_cur.execute("INSERT OR IGNORE INTO Run (runID, platform, system, runPath, runDate) VALUES ('%s', '%s', '%s', '%s', '%s')" % (run_name,platform,system,run_folder,run_date))
 db_con.commit()
 
 for barcode in ordered_barcodes:
@@ -121,12 +123,12 @@ for barcode in ordered_barcodes:
 	barcodes_json[barcode]['covered_bed'] = global_param['panel'][barcodes_json[barcode]['panel']].get('covered_bed','target_bed') # si covered existe, sinon target
 	barcodes_json[barcode]['merged_bed'] = global_param['panel'][barcodes_json[barcode]['panel']]['merged_bed']
 	barcodes_json[barcode]['intervals'] = global_param['panel'][barcodes_json[barcode]['panel']].get('intervals',False)
-	barcodes_json[barcode]['tvc_param'] = global_param['panel'][barcodes_json[barcode]['panel']].get('vc_parameters',False)
-	barcodes_json[barcode]['tvc_param_hotspot'] = global_param['panel'][barcodes_json[barcode]['panel']].get('vc_parameters_hotspot_only',False)
+	barcodes_json[barcode]['tvc_param'] = global_param['panel'][barcodes_json[barcode]['panel']].get('tvc_parameters',False)
+	barcodes_json[barcode]['tvc_param_hotspot'] = global_param['panel'][barcodes_json[barcode]['panel']].get('tvc_parameters_hotspot_only',False)
 	barcodes_json[barcode]['hotspot_vcf'] = global_param['panel'][barcodes_json[barcode]['panel']].get('hotspot_vcf',False)
 	if barcodes_json[barcode]['covered_bed'] == barcodes_json[barcode]['target_bed']:
 		logging.info("WARNING : covered_bed is also roi_bed for %s" % barcodes_json[barcode]['sample'])
-	if not barcodes_json[barcode]['intervals']:
+	if not barcodes_json[barcode]['intervals'] and barcodes_json[barcode]['platform'].lower() == 'illumina':
 		logging.info("WARNING : intervals file missing for %s" % barcodes_json[barcode]['sample'])
 
 	# DOSSIER INTERMEDIAIRE
@@ -147,9 +149,11 @@ for barcode in ordered_barcodes:
 		db_cur.execute("SELECT analysisID FROM Analysis WHERE sample='%s' AND barcode='%s' AND run='%s'" % (barcodes_json[barcode]['sample_id'],barcode,run_name))
 		db_analysis = db_cur.fetchone()
 		if db_analysis is not None:
+			print "- analysisID found in DB for %s" % barcodes_json[barcode]['sample_id']
 			barcodes_json[barcode]['analysis_id'] = db_analysis['analysisID']
-			continue
+			json_modified = True
 		else:
+			print "- generating new analysisID for %s" % barcodes_json[barcode]['sample_id']
 			while True:
 				random_uuid = uuid.uuid1()
 				analysis_id = 'A-%s' % random_uuid.hex[:8]
@@ -158,21 +162,23 @@ for barcode in ordered_barcodes:
 					barcodes_json[barcode]['analysis_id'] = analysis_id
 					json_modified = True
 					break
+			db_cur.execute("SELECT panelID FROM Panel WHERE panelID='%s'" % barcodes_json[barcode]['panel'])
+			if db_cur.fetchone() is None:
+				print "\t*WARNING* (PANEL %s not found in DB)** " % barcodes_json[barcode]['panel']
+				print "\t** Panel is needed for foreign key constraint. Update DB first."
+				exit()
+			db_cur.execute("INSERT INTO Analysis (analysisID, sample, barcode, run, panel, bamPath, analysisDate) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (analysis_id, barcodes_json[barcode]['sample_id'], barcode, run_name, barcodes_json[barcode]['panel'], barcodes_json[barcode]['bam'], time.strftime("%Y-%m-%d")))
+			db_con.commit()
 
-		db_cur.execute("SELECT panelID FROM Panel WHERE panelID='%s'" % barcodes_json[barcode]['panel'])
-		if db_cur.fetchone() is None:
-			print "\t*WARNING* (PANEL %s not found in DB)** " % barcodes_json[barcode]['panel']
-			print "\t** Panel is needed for foreign key constraint. Update DB first."
-			exit()
-
-		db_cur.execute("INSERT INTO Analysis (analysisID, sample, barcode, run, panel, bamPath, analysisDate) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (analysis_id, barcodes_json[barcode]['sample_id'], barcode, run_name, barcodes_json[barcode]['panel'], barcodes_json[barcode]['bam'], time.strftime("%Y-%m-%d")))
-		db_con.commit()
-
-	logging.info("\t - %s, analysisID = %s, panel = %s" % (barcodes_json[barcode]['sample'],barcodes_json[barcode]['analysis_id'],barcodes_json[barcode]['panel']))
+	logging.info("- SAMPLE : %s, analysisID = %s, panel = %s" % (barcodes_json[barcode]['sample'],barcodes_json[barcode]['analysis_id'],barcodes_json[barcode]['panel']))
 
 if json_modified:
 	print "- Re-writing barcodes JSON..."
-	json_text = json.dumps(barcodes_json, indent=4, sort_keys=True)
+	with open('%s/barcodes.json' % run_folder, 'r') as g:
+		mod_json = json.load(g)
+		for barcode in ordered_barcodes:
+			mod_json[barcode]['analysis_id'] = barcodes_json[barcode]['analysis_id']
+	json_text = json.dumps(mod_json, indent=4, sort_keys=True)
 	bc_json = open('%s/barcodes.json' % run_folder,'w')
 	bc_json.write(json_text)
 	bc_json.close()
@@ -181,7 +187,7 @@ if json_modified:
 ###  |__) |__) |__  __ |__) |__) /  \ /  ` |__  /__` /__` | |\ | / _`   ###
 ###  |    |  \ |___    |    |  \ \__/ \__, |___ .__/ .__/ | | \| \__>   ###
 
-if (not options.skip_preprocessing) and (platform != 'ion torrent'):
+if (not options.skip_preprocessing) and (platform == 'illumina'):
 	logging.info("\n- [%s] PRE-PROCESSING (illumina) ..." % (time.strftime("%H:%M:%S")))
 	for barcode in ordered_barcodes:
 		logging.info("\t- %s :" % barcodes_json[barcode]['sample'])
@@ -268,6 +274,7 @@ if (not options.skip_preprocessing) and (platform != 'ion torrent'):
 
 if not options.skip_coverage_analysis:
 	for barcode in ordered_barcodes:
+		logging.info("\t- %s :" % barcodes_json[barcode]['sample'])
 		logging.info("\t\t- [%s] coverageAnalysis ..." % (time.strftime("%H:%M:%S")))
 		cmd_list = []
 
@@ -294,9 +301,9 @@ if not options.skip_coverage_analysis:
 		cmd = subprocess.Popen(['%s/mosdepth/mosdepth' % pipeline_folder,'-b', barcodes_json[barcode]['target_bed'],'%s_%s' % (barcodes_json[barcode]['sample'],barcode),barcodes_json[barcode]['bam']],stdout=open('%s/mosdepth.stdout.txt' % mosdepth_folder,'w'), stderr=open('%s/mosdepth.stderr.txt' % mosdepth_folder,'w'))
 
 		# BBCTOOLS
-		if platform == 'ion torrent':
+		if barcodes_json[barcode]['platform'].lower() == 'ion torrent':
 			special_param = '-a' # -a = amplicon
-		elif platform == 'illumina':
+		elif barcodes_json[barcode]['platform'].lower() == 'illumina':
 			special_param = '-d' # -d = ignore duplicates (pour target coverage)
 		cmd = subprocess.Popen([
 			'bash', '%s/coverageAnalysis/run_coverage_analysis.sh' % pipeline_folder,
@@ -333,7 +340,7 @@ if options.run:
 ##### |__) |    /  \  |  /  ` /  \ \  / |__  |__)  /\  / _` |__  ###
 ##### |    |___ \__/  |  \__, \__/  \/  |___ |  \ /~~\ \__> |___ ###
 
-# if options.run:
+# if options.run: # utiliser MULTIQC maintenant?
 	# logging.info(" [%s] plotCoverage ..." % time.strftime("%H:%M:%S"))
 	# if not os.path.isdir('%s/_plotCoverage' % run_folder):
 		# subprocess.call(['mkdir', '%s/_plotCoverage' % run_folder])
@@ -357,7 +364,7 @@ logging.info("\n- [%s] VARIANT-CALLING AND ANNOTATION ..." % (time.strftime("%H:
 sampleask = True
 for barcode in ordered_barcodes:
 	logging.info("\t- %s :" % (barcodes_json[barcode]['sample']))
-	if platform == 'illumina':
+	if barcodes_json[barcode]['platform'].lower() == 'illumina':
 		mutect2_folder  = '%s/mutect2' % barcodes_json[barcode]['intermediate_folder']
 		vardict_folder  = '%s/vardict' % barcodes_json[barcode]['intermediate_folder']
 		varscan2_folder = '%s/varscan2' % barcodes_json[barcode]['intermediate_folder']
@@ -383,33 +390,45 @@ for barcode in ordered_barcodes:
 					subprocess.call(['mkdir',f])
 			# SETTINGS
 			mutect2_thread = 12 # x hmm-threads
-			vardict_thread = 12
-			vardict_ps_list = []
+			# vardict_thread = 12
+			# vardict_ps_list = []
 			mutect2_ps_list = []
-			vardict_vcf_chunk_list = []
+			# vardict_vcf_chunk_list = []
 			mutect2_vcf_chunk_list = []
 
 			# VARDICT
 			os.chdir(vardict_folder)
-			logging.info("\t\t - [%s] VarDict : split_bed.py ..." % time.strftime("%H:%M:%S"))
-			cmd = subprocess.Popen(['python','%s/scripts/split_bed.py' % pipeline_folder,'--bed',barcodes_json[barcode]['target_bed'],'--scatter-count',str(vardict_thread),'--output-folder',vardict_folder],stdout=open('%s/split_bed.stdout.txt'%vardict_folder,'w'),stderr=open('%s/split_bed.stderr.txt'%vardict_folder,'w'))
-			cmd.communicate()
-			logging.info("\t\t - [%s] VarDict : running %s chunks ..." % (time.strftime("%H:%M:%S"),vardict_thread))
-			FNULL = open(os.devnull, 'w')
-			for i in range(vardict_thread):
-				vardict_bed_chunk = '%s/%04d-scattered.bed' % (vardict_folder,i)
-				vardict_vcf_chunk = '%s/%s.vardict.%04d.vcf' % (vardict_folder,barcodes_json[barcode]['sample'],i)
-				vardict_vcf_chunk_list.append(vardict_vcf_chunk)
-				ps = subprocess.Popen(['perl','%s/vardict/VarDictJava/VarDict/vardict' % pipeline_folder,
-					'-G', barcodes_json[barcode]['reference'],
-					'-f','0.01',
-					'-N',barcodes_json[barcode]['sample'],
-					'-b', barcodes_json[barcode]['bam'],
-					'-c','1','-S','2','-E','3','-g','4',
-					vardict_bed_chunk],
-					stdout=open('%s/vardict.%04d.stdout.txt' % (vardict_folder,i),'w'),
-					stderr=open('%s/vardict.%04d.stderr.txt' % (vardict_folder,i),'w'))
-				vardict_ps_list.append(ps)
+			logging.info("\t\t - [%s] VarDict ..." % time.strftime("%H:%M:%S"))
+			# cmd = subprocess.Popen(['python','%s/scripts/split_bed.py' % pipeline_folder,'--bed',barcodes_json[barcode]['target_bed'],'--scatter-count',str(vardict_thread),'--output-folder',vardict_folder],stdout=open('%s/split_bed.stdout.txt'%vardict_folder,'w'),stderr=open('%s/split_bed.stderr.txt'%vardict_folder,'w'))
+			# cmd.communicate()
+			# logging.info("\t\t - [%s] VarDict : running %s chunks ..." % (time.strftime("%H:%M:%S"),vardict_thread))
+			# FNULL = open(os.devnull, 'w')
+			# for i in range(vardict_thread):
+				# vardict_bed_chunk = '%s/%04d-scattered.bed' % (vardict_folder,i)
+				# vardict_vcf_chunk = '%s/%s.vardict.%04d.vcf' % (vardict_folder,barcodes_json[barcode]['sample'],i)
+				# vardict_vcf_chunk_list.append(vardict_vcf_chunk)
+				# # ps = subprocess.Popen(['perl','%s/vardict/VarDictJava/VarDict/vardict' % pipeline_folder,
+				# ps = subprocess.Popen(['perl','%s/vardict/VarDict-1.8.2/bin/VarDict' % pipeline_folder,
+					# '-G', barcodes_json[barcode]['reference'],
+					# '-f','0.01',
+					# '-N',barcodes_json[barcode]['sample'],
+					# '-b', barcodes_json[barcode]['bam'],
+					# '-c','1','-S','2','-E','3','-g','4',
+					# vardict_bed_chunk],
+					# stdout=open('%s/vardict.%04d.stdout.txt' % (vardict_folder,i),'w'),
+					# stderr=open('%s/vardict.%04d.stderr.txt' % (vardict_folder,i),'w'))
+				# vardict_ps_list.append(ps)
+			vardict_ps = subprocess.Popen(['perl','%s/vardict/VarDict-1.8.2/bin/VarDict' % pipeline_folder,
+				'-G', barcodes_json[barcode]['reference'],
+				'-f','0.01',
+				'-N',barcodes_json[barcode]['sample'],
+				'-b', barcodes_json[barcode]['bam'],
+				'-th', '6',
+				'-c','1','-S','2','-E','3','-g','4',
+				barcodes_json[barcode]['target_bed']],
+				stdout=open('%s/vardict.stdout.txt' % vardict_folder,'w'),
+				stderr=open('%s/vardict.stderr.txt' % vardict_folder,'w'))
+			# vardict_ps_list.append(ps)
 
 			# MUTECT2
 			logging.info("\t\t - [%s] Mutect2 : SplitIntervals ..." % time.strftime("%H:%M:%S"))
@@ -469,7 +488,7 @@ for barcode in ordered_barcodes:
 					logging.info("\t\t - [%s] LoFreq : index indelqual ..." % time.strftime("%H:%M:%S"))
 					lofreq_ps = subprocess.call(['samtools','index','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])], stdout=open('%s/samtools_index.stdout.txt' % lofreq_folder,'w'), stderr=open('%s/samtools_index.stderr.txt' % lofreq_folder,'w'))
 					logging.info("\t\t - [%s] LoFreq : call ..." % time.strftime("%H:%M:%S"))
-					cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'call-parallel','--pp-threads','12','--call-indels','-f',barcodes_json[barcode]['reference'],'-l',barcodes_json[barcode]['target_bed'],'-o','%s/%s.lofreq.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),'%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])],stdout=open('%s/lofreq.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.stderr.txt'%lofreq_folder,'w'))
+					cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'call-parallel','--pp-threads','6','--call-indels','-f',barcodes_json[barcode]['reference'],'-l',barcodes_json[barcode]['target_bed'],'-o','%s/%s.lofreq.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),'%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])],stdout=open('%s/lofreq.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.stderr.txt'%lofreq_folder,'w'))
 					cmd.communicate()
 					logging.info("\t\t - [%s] LoFreq : filter ..." % time.strftime("%H:%M:%S"))
 					cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'filter',
@@ -484,52 +503,67 @@ for barcode in ordered_barcodes:
 					subprocess.call(['rm','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])])
 					lofreq_running = False
 				# VARDICT
-				vardict_ps_states = [ps.poll() is not None for ps in vardict_ps_list]
-				if vardict_running and (False not in vardict_ps_states) :
+				# vardict_ps_states = [ps.poll() is not None for ps in vardict_ps_list]
+				# if vardict_running and (False not in vardict_ps_states) :
+				if vardict_running and vardict_ps.poll() is not None :
 					logging.info("\t\t - [%s] VarDict : teststrandbias.R ..." % time.strftime("%H:%M:%S"))
-					ps = []
-					for i in range(vardict_thread):
-						cmd = subprocess.Popen(['%s/vardict/VarDictJava/VarDict/teststrandbias.R' % pipeline_folder],
-						stdin=open('%s/vardict.%04d.stdout.txt' % (vardict_folder,i),'r'),
-						stdout=open('%s/teststrandbias.%04d.stdout.txt' % (vardict_folder,i),'w'),
-						stderr=open('%s/teststrandbias.%04d.stderr.txt' % (vardict_folder,i),'w'))
-						ps.append(cmd)
-					for cmd in ps:
-						cmd.wait()
+					# ps = []
+					# for i in range(vardict_thread):
+						# cmd = subprocess.Popen(['%s/vardict/VarDictJava/VarDict/teststrandbias.R' % pipeline_folder],
+						# cmd = subprocess.Popen(['%s/vardict/VarDict-1.8.2/bin/teststrandbias.R' % pipeline_folder],
+						# stdin=open('%s/vardict.%04d.stdout.txt' % (vardict_folder,i),'r'),
+						# stdout=open('%s/teststrandbias.%04d.stdout.txt' % (vardict_folder,i),'w'),
+						# stderr=open('%s/teststrandbias.%04d.stderr.txt' % (vardict_folder,i),'w'))
+						# ps.append(cmd)
+					# for cmd in ps:
+						# cmd.wait()
+					cmd = subprocess.call(['%s/vardict/VarDict-1.8.2/bin/teststrandbias.R' % pipeline_folder],
+						stdin=open('%s/vardict.stdout.txt' % vardict_folder,'r'),
+						stdout=open('%s/teststrandbias.stdout.txt' % vardict_folder,'w'),
+						stderr=open('%s/teststrandbias.stderr.txt' % vardict_folder,'w'))
 					logging.info("\t\t - [%s] VarDict : var2vcf_valid.pl ..." % time.strftime("%H:%M:%S"))
-					ps = []
-					for i in range(vardict_thread):
-						cmd = subprocess.Popen(['perl','%s/vardict/VarDictJava/VarDict/var2vcf_valid.pl' % pipeline_folder,
-							'-N',barcodes_json[barcode]['sample'],
-							'-E', # If set, do not print END tag
-							'-A', # output all variants at same position
-							'-f','0.01'],
-						stdin=open('%s/teststrandbias.%04d.stdout.txt' % (vardict_folder,i),'r'),
-						stdout=open('%s/%s.vardict.%04d.vcf' % (vardict_folder,barcodes_json[barcode]['sample'],i),'w'),
-						stderr=open('%s/var2vcf_valid.%04d.stderr.txt' % (vardict_folder,i),'w'))
-						ps.append(cmd)
-					for cmd in ps:
-						cmd.wait()
-					logging.info("\t\t - [%s] VarDict : UpdateVCFSequenceDictionary ..." % time.strftime("%H:%M:%S"))
-					ps = []
-					for vardict_vcf_chunk in vardict_vcf_chunk_list:
-						cmd = subprocess.Popen(['docker','exec','-it','gatk','gatk','UpdateVCFSequenceDictionary',
-							'-V',vardict_vcf_chunk,
-							'--source-dictionary',barcodes_json[barcode]['bam'],
-							'--output',vardict_vcf_chunk.replace('.vcf','.contig.vcf')],
-						stdout=open('%s/UpdateVCFSequenceDictionary.stdout.txt' % vardict_folder,'w'),
-						stderr=open('%s/UpdateVCFSequenceDictionary.stderr.txt' % vardict_folder,'w'))
-						ps.append(cmd)
-					for cmd in ps:
-						cmd.wait()
-					subprocess.call(['stty','sane'])
-					logging.info("\t\t - [%s] VarDict : GatherVcfs ..." % time.strftime("%H:%M:%S"))
-					args = ['docker','exec','-it','gatk','gatk','GatherVcfs','-O','%s/%s.vardict.vcf' % (vardict_folder,barcodes_json[barcode]['sample'])]
-					for vardict_vcf_chunk in vardict_vcf_chunk_list:
-						args.append('-I')
-						args.append(vardict_vcf_chunk.replace('.vcf','.contig.vcf'))
-					cmd = subprocess.Popen(args,stdout=open('%s/gathervcf.stdout.txt' % vardict_folder,'w'),stderr=open('%s/gathervcf.stderr.txt' % vardict_folder,'w'))
-					cmd.wait()
+					# ps = []
+					# for i in range(vardict_thread):
+						# # cmd = subprocess.Popen(['perl','%s/vardict/VarDictJava/VarDict/var2vcf_valid.pl' % pipeline_folder,
+						# cmd = subprocess.Popen(['perl','%s/vardict/VarDict-1.8.2/bin/var2vcf_valid.pl' % pipeline_folder,
+							# '-N',barcodes_json[barcode]['sample'],
+							# '-E', # If set, do not print END tag
+							# '-A', # output all variants at same position
+							# '-f','0.01'],
+						# stdin=open('%s/teststrandbias.%04d.stdout.txt' % (vardict_folder,i),'r'),
+						# stdout=open('%s/%s.vardict.%04d.vcf' % (vardict_folder,barcodes_json[barcode]['sample'],i),'w'),
+						# stderr=open('%s/var2vcf_valid.%04d.stderr.txt' % (vardict_folder,i),'w'))
+						# ps.append(cmd)
+					# for cmd in ps:
+						# cmd.wait()
+					cmd = subprocess.call(['perl','%s/vardict/VarDict-1.8.2/bin/var2vcf_valid.pl' % pipeline_folder,
+						'-N',barcodes_json[barcode]['sample'],
+						'-E', # If set, do not print END tag
+						'-A', # output all variants at same position
+						'-f','0.01'],
+					stdin=open('%s/teststrandbias.stdout.txt' % vardict_folder,'r'),
+					stdout=open('%s/%s.vardict.vcf' % (vardict_folder,barcodes_json[barcode]['sample']),'w'),
+					stderr=open('%s/var2vcf_valid.stderr.txt' % vardict_folder,'w'))
+					# logging.info("\t\t - [%s] VarDict : UpdateVCFSequenceDictionary ..." % time.strftime("%H:%M:%S"))
+					# ps = []
+					# for vardict_vcf_chunk in vardict_vcf_chunk_list:
+						# cmd = subprocess.Popen(['docker','exec','-it','gatk','gatk','UpdateVCFSequenceDictionary',
+							# '-V',vardict_vcf_chunk,
+							# '--source-dictionary',barcodes_json[barcode]['bam'],
+							# '--output',vardict_vcf_chunk.replace('.vcf','.contig.vcf')],
+						# stdout=open('%s/UpdateVCFSequenceDictionary.stdout.txt' % vardict_folder,'w'),
+						# stderr=open('%s/UpdateVCFSequenceDictionary.stderr.txt' % vardict_folder,'w'))
+						# ps.append(cmd)
+					# for cmd in ps:
+						# cmd.wait()
+					# subprocess.call(['stty','sane'])
+					# logging.info("\t\t - [%s] VarDict : GatherVcfs ..." % time.strftime("%H:%M:%S"))
+					# args = ['docker','exec','-it','gatk','gatk','GatherVcfs','-O','%s/%s.vardict.vcf' % (vardict_folder,barcodes_json[barcode]['sample'])]
+					# for vardict_vcf_chunk in vardict_vcf_chunk_list:
+						# args.append('-I')
+						# args.append(vardict_vcf_chunk.replace('.vcf','.contig.vcf'))
+					# cmd = subprocess.Popen(args,stdout=open('%s/gathervcf.stdout.txt' % vardict_folder,'w'),stderr=open('%s/gathervcf.stderr.txt' % vardict_folder,'w'))
+					# cmd.wait()
 					subprocess.call(['stty','sane'])
 					vardict_running = False
 				# MUTECT2
@@ -572,11 +606,10 @@ for barcode in ordered_barcodes:
 					calling_in_progress = False
 				else:
 					time.sleep(5)
-	elif platform == 'ion torrent':
-		tvc_de_novo_folder = '%s/tvc_de_novo' % barcodes_json[barcode]['intermediate_folder']
-		tvc_only_hotspot_folder = '%s/tvc_only_hotspot' % barcodes_json[barcode]['intermediate_folder']
-		subprocess.call(['mkdir',tvc_de_novo_folder])
-		subprocess.call(['mkdir',tvc_only_hotspot_folder])
+	elif barcodes_json[barcode]['platform'].lower() == 'ion torrent':
+		if not os.path.isdir('%s/tvc_de_novo' % barcodes_json[barcode]['intermediate_folder']):
+			subprocess.call(['mkdir','%s/tvc_de_novo' % barcodes_json[barcode]['intermediate_folder']])
+			subprocess.call(['mkdir','%s/tvc_only_hotspot' % barcodes_json[barcode]['intermediate_folder']])
 
 		# RUN 1 : DE NOVO
 		logging.info("\t - [%s] variantCaller <de novo> ..." % (time.strftime("%H:%M:%S")))
@@ -642,9 +675,9 @@ for barcode in ordered_barcodes:
 				stderr=open('%s/tvc_only_hotspot/generate_variant_tables.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
 			cmd.communicate()
 
-		###         __   ___  __  ___     __   __  ### 
-		### | |\ | /__` |__  |__)  |     |  \ |__) ### 
-		### | | \| .__/ |___ |  \  |     |__/ |__) ### 
+	###         __   ___  __  ___     __   __  ### 
+	### | |\ | /__` |__  |__)  |     |  \ |__) ### 
+	### | | \| .__/ |___ |  \  |     |__/ |__) ### 
 
 	if not options.skip_insert_db:
 		logging.info("\t\t - [%s] insert variants and metrics into DB ..." % (time.strftime("%H:%M:%S")))
@@ -652,23 +685,39 @@ for barcode in ordered_barcodes:
 		if 'ABL1_NM_005157.fasta' in barcodes_json[barcode]['reference']:
 			abl1 = 'yes'
 
-		cmd = subprocess.Popen(['python','%s/variantBase/insert_db_variants_illumina.py' % pipeline_folder,
-			'--analysis', barcodes_json[barcode]['analysis_id'],
-			'--vcf', '%s/%s.mutect2.filtered.vcf' % (mutect2_folder,barcodes_json[barcode]['sample']),
-			'--vcf', '%s/%s.varscan2.filtered.vcf' % (varscan2_folder,barcodes_json[barcode]['sample']),
-			'--vcf', '%s/%s.lofreq.filtered.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
-			'--vcf', '%s/%s.vardict.vcf' % (vardict_folder,barcodes_json[barcode]['sample']),
-			'--abl1', abl1
-			],
-			stdout=open('%s/insert_db_variants.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'),
-			stderr=open('%s/insert_db_variants.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
-		cmd.communicate()
-		with open('%s/insert_db_variants.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stdout:
-			for line in stdout.readlines():
-				print '\t\t\t' + line.replace('\n','')
-		with open('%s/insert_db_variants.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stderr:
-			for line in stderr.readlines():
-				print '\t\t\t' + line.replace('\n','')
+		if barcodes_json[barcode]['platform'].lower() == 'illumina':
+			cmd = subprocess.Popen(['python','%s/variantBase/insert_db_variants_illumina.py' % pipeline_folder,
+				'--analysis', barcodes_json[barcode]['analysis_id'],
+				'--vcf', '%s/%s.mutect2.filtered.vcf' % (mutect2_folder,barcodes_json[barcode]['sample']),
+				'--vcf', '%s/%s.varscan2.filtered.vcf' % (varscan2_folder,barcodes_json[barcode]['sample']),
+				'--vcf', '%s/%s.lofreq.filtered.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
+				'--vcf', '%s/%s.vardict.vcf' % (vardict_folder,barcodes_json[barcode]['sample']),
+				'--abl1', abl1
+				],
+				stdout=open('%s/insert_db_variants.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'),
+				stderr=open('%s/insert_db_variants.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
+			cmd.communicate()
+			with open('%s/insert_db_variants.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stdout:
+				for line in stdout.readlines():
+					print '\t\t\t' + line.replace('\n','')
+			with open('%s/insert_db_variants.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stderr:
+				for line in stderr.readlines():
+					print '\t\t\t' + line.replace('\n','')
+		else:
+			cmd = subprocess.Popen(['python','%s/variantBase/insert_db_variants_iontorrent.py' % pipeline_folder,
+				'--analysis', barcodes_json[barcode]['analysis_id'],
+				'--variants', '%s/tvc_de_novo/alleles.xls' % barcodes_json[barcode]['intermediate_folder'],
+				'--abl1', abl1
+				],
+				stdout=open('%s/insert_db_variants.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'),
+				stderr=open('%s/insert_db_variants.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
+			cmd.communicate()
+			with open('%s/insert_db_variants.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stdout:
+				for line in stdout.readlines():
+					print '\t\t\t' + line.replace('\n','')
+			with open('%s/insert_db_variants.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stderr:
+				for line in stderr.readlines():
+					print '\t\t\t' + line.replace('\n','')
 
 
 	if not options.skip_annotation:
@@ -715,25 +764,26 @@ for barcode in ordered_barcodes:
 		subprocess.call(['mkdir', '%s/finalReport' % barcodes_json[barcode]['intermediate_folder']])
 	barcodes_json[barcode]['finalReport'] = '%s/%s_%s.finalReport.xlsx' % (barcodes_json[barcode]['sample_folder'],barcodes_json[barcode]['sample'],barcode)
 
-	xmin = '300' # for coverage analysis sheet in finalreport
-	# if 'cDNA' in param_hotspot_only:
-		# xmin = '2000'
+	if not options.skip_finalreport:
+		xmin = '300' # for coverage analysis sheet in finalreport
+		# if 'cDNA' in param_hotspot_only:
+			# xmin = '2000'
 
-	logging.info("\t\t - [%s] finalReport ..." % (time.strftime("%H:%M:%S")))
-	cmd = subprocess.Popen([
-		'python','%s/finalReport/finalReport.py' % pipeline_folder,
-		'--analysis', barcodes_json[barcode]['analysis_id'],
-		'--xmin', xmin,
-	], 
-	stdout=open('%s/finalReport/finalReport.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'), 
-	stderr=open('%s/finalReport/finalReport.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
-	cmd.communicate()
-	with open('%s/finalReport/finalReport.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stdout:
-		for line in stdout.readlines():
-			print '\t\t\t' + line.replace('\n','')
-	with open('%s/finalReport/finalReport.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stderr:
-		for line in stderr.readlines():
-			print '\t\t\t' + line.replace('\n','')
+		logging.info("\t\t - [%s] finalReport ..." % (time.strftime("%H:%M:%S")))
+		cmd = subprocess.Popen([
+			'python','%s/finalReport/finalReport.py' % pipeline_folder,
+			'--analysis', barcodes_json[barcode]['analysis_id'],
+			'--xmin', xmin,
+		], 
+		stdout=open('%s/finalReport/finalReport.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'), 
+		stderr=open('%s/finalReport/finalReport.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
+		cmd.communicate()
+		with open('%s/finalReport/finalReport.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stdout:
+			for line in stdout.readlines():
+				print '\t\t\t' + line.replace('\n','')
+		with open('%s/finalReport/finalReport.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stderr:
+			for line in stderr.readlines():
+				print '\t\t\t' + line.replace('\n','')
 
 if options.run:
 	###  __   __   __     __  ___  __  ###

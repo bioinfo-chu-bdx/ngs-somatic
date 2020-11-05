@@ -14,10 +14,10 @@ from optparse import OptionParser
 # USAGE : python insert_db_variants.py --analysis analysisID --variants /.../alleles.xls
 
 def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
 
 ### GATHERING PARAMETERS ############################################################
 

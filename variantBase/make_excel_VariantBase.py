@@ -8,10 +8,10 @@ import openpyxl
 from optparse import OptionParser
 
 def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
 
 def cell_format(cell, alignment='left', style=None, font=None):
 	if alignment == 'center':
@@ -113,9 +113,9 @@ for db_run in db_runs:
 	runs.append(db_run['runID'])
 
 	if options.project :
-		db_cur.execute("SELECT sampleName, sampleID, pathology fROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelProject in %s AND isControl = 0" % (db_run['runID'],in_projects))
+		db_cur.execute("SELECT sampleName, sampleID, pathology FROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelProject in %s AND isControl = 0" % (db_run['runID'],in_projects))
 	elif options.panel:
-		db_cur.execute("SELECT sampleName, sampleID, pathology fROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelID in %s AND isControl = 0" % (db_run['runID'],in_panels))
+		db_cur.execute("SELECT sampleName, sampleID, pathology FROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelID in %s AND isControl = 0" % (db_run['runID'],in_panels))
 	db_samples = db_cur.fetchall()
 	if vbformat == 'ColonLungMela':
 		lsamples = []
@@ -140,7 +140,7 @@ for db_run in db_runs:
 		dataSheet['D2'].value += len(lsamples)
 		dataSheet['E2'].value += len(csamples)
 		dataSheet['F2'].value += len(msamples)
-		
+
 		dataSheet.merge_cells(start_row=dataSheet_newrow,start_column=1,end_row=dataSheet_newrow,end_column=6)
 		dataSheet.merge_cells(start_row=dataSheet_newrow,start_column=7,end_row=dataSheet_newrow,end_column=8)
 		dataSheet.merge_cells(start_row=dataSheet_newrow,start_column=9,end_row=dataSheet_newrow,end_column=11)
@@ -160,7 +160,7 @@ for db_run in db_runs:
 		dataSheet.cell(row=dataSheet_newrow,column=7).value = len(samples)
 		dataSheet.cell(row=dataSheet_newrow,column=9).value = ','.join(samples)
 		dataSheet['C2'].value += len(samples)
-		
+
 		dataSheet.merge_cells(start_row=dataSheet_newrow,start_column=1,end_row=dataSheet_newrow,end_column=6)
 		dataSheet.merge_cells(start_row=dataSheet_newrow,start_column=7,end_row=dataSheet_newrow,end_column=8)
 		dataSheet.merge_cells(start_row=dataSheet_newrow,start_column=9,end_row=dataSheet_newrow,end_column=17)
@@ -169,23 +169,31 @@ for db_run in db_runs:
 		cell_format(dataSheet.cell(row=dataSheet_newrow,column=7),alignment='center')
 		cell_format(dataSheet.cell(row=dataSheet_newrow,column=9),alignment='left')
 		cell_format(dataSheet.cell(row=dataSheet_newrow,column=18),alignment='left')
-	
+
 dataSheet['A2'].value = len(runs)
 
 ## MAKE ALL GENE SHEET
 print "- making gene sheets..."
 if options.project:
-	db_cur.execute("SELECT DISTINCT geneID FROM Gene INNER JOIN TargetedRegion ON TargetedRegion.gene = Gene.geneID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelProject in %s ORDER BY geneID" % in_projects)
+	db_cur.execute("SELECT DISTINCT gene,transcriptID FROM Transcript INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelProject in %s ORDER BY gene" % in_projects)
 elif options.panel:
-	db_cur.execute("SELECT DISTINCT geneID FROM Gene INNER JOIN TargetedRegion ON TargetedRegion.gene = Gene.geneID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelID in %s ORDER BY geneID" % in_panels)
-db_genes = db_cur.fetchall()
-genes = []
+	db_cur.execute("SELECT DISTINCT gene,transcriptID FROM Transcript INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelID in %s ORDER BY gene" % in_panels)
+db_transcripts = db_cur.fetchall()
+gene2transcript = {}
 geneTemplateSheet = excelVB['Gene']
-for db_gene in db_genes:
-	genes.append(db_gene['geneID'])
-	newGeneSheet = excelVB.copy_worksheet(geneTemplateSheet)
-	newGeneSheet.title = db_gene['geneID']
+for db_transcript in db_transcripts:
+	gene = db_transcript['gene']
+	transcript = db_transcript['transcriptID']
+	if gene not in gene2transcript.keys():
+		gene2transcript[gene] = transcript
+		newGeneSheet = excelVB.copy_worksheet(geneTemplateSheet)
+		newGeneSheet.title = db_transcript['gene']
+	else:
+		print "WARNING : duplicate gene-transcript %s:%s : using transcript %s" % (gene,transcript,gene2transcript[gene])
 del excelVB['Gene']
+
+genes = gene2transcript.keys()
+transcripts = gene2transcript.values()
 
 # PARSE ALL VARIANTS
 print "- parsing and formatting all db variants..."
@@ -242,13 +250,15 @@ if vbformat == 'ColonLungMela':
 	header.insert(header.index('Mela Count')+1,'Other Count')
 
 if options.project:
-	db_cur.execute("SELECT DISTINCT Variant.*,transcript,transcriptVersion, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM Variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Gene ON Gene.geneID = Variant.gene WHERE panelProject in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_projects)
+	db_cur.execute("SELECT DISTINCT VariantAnnotation.*,Variant.*,gene,transcript, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM VariantAnnotation INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Run ON Run.runID = Analysis.run INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Transcript ON Transcript.transcriptID = VariantAnnotation.transcript WHERE panelProject in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_projects)
 elif options.panel:
-	db_cur.execute("SELECT DISTINCT Variant.*,transcript,transcriptVersion, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM Variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Gene ON Gene.geneID = Variant.gene WHERE panelID in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_panels)
+	db_cur.execute("SELECT DISTINCT VariantAnnotation.*,Variant.*,gene,transcript, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM VariantAnnotation INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Run ON Run.runID = Analysis.run INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Transcript ON Transcript.transcriptID = VariantAnnotation.transcript WHERE panelID in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_panels)
 db_variants = db_cur.fetchall()
 
 actualVariant = None
 for db_variant in db_variants:
+	if db_variant['transcript'] not in transcripts:
+		continue
 	if db_variant['variantID'] != actualVariant:
 		if actualVariant != None:
 			if vbformat == 'ColonLungMela':
@@ -279,7 +289,7 @@ for db_variant in db_variants:
 			cell_format(sheet.cell(row=l,column=header.index('Depth.Mean')+1),alignment='center',style='Grey')
 			sheet.cell(row=l,column=header.index('Depth.Range')+1).value = '(%s-%s)' % (min(variantDepths),max(variantDepths))
 			cell_format(sheet.cell(row=l,column=header.index('Depth.Range')+1),alignment='center',style='LightGrey')
-		
+
 		actualVariant = db_variant['variantID']
 		variantCovs = []
 		variantDepths = []
@@ -291,13 +301,13 @@ for db_variant in db_variants:
 			ccount = 0
 			mcount = 0
 			ocount = 0
-		
+
 		gene = db_variant['gene']
 		sheet = excelVB[gene]
 		l = sheet.max_row+1
 		sheet.cell(row=l,column=header.index('Commentaire')+1).value = db_variant['commentaire']
 		sheet.cell(row=l,column=header.index('Gene')+1).value = db_variant['gene']
-		sheet.cell(row=l,column=header.index('Transcript')+1).value = '%s.%s' % (db_variant['transcript'],db_variant['transcriptVersion'])
+		sheet.cell(row=l,column=header.index('Transcript')+1).value = db_variant['transcript']
 		sheet.cell(row=l,column=header.index('Chr')+1).value = db_variant['chromosome']
 		sheet.cell(row=l,column=header.index('Exon')+1).value = db_variant['exon']
 		sheet.cell(row=l,column=header.index('Intron')+1).value = db_variant['intron']
@@ -328,7 +338,7 @@ for db_variant in db_variants:
 		sheet.cell(row=l,column=header.index('c.(annovar)')+1).value = db_variant['annovarTranscriptDescription']
 		sheet.cell(row=l,column=header.index('p.(annovar)')+1).value = db_variant['annovarProteinDescription']
 		sheet.cell(row=l,column=header.index('annoWarning')+1).value = db_variant['annoWarning']
-		
+
 		if db_variant['region'] in ['exonic','splicing'] and db_variant['consequence'] != 'synonymous':
 			cell_format(sheet.cell(row=l,column=header.index('c.')+1),alignment='left',style='LightGreen')
 			cell_format(sheet.cell(row=l,column=header.index('p.')+1),alignment='left',style='LightGreen')
@@ -343,7 +353,7 @@ for db_variant in db_variants:
 			if ('+' in db_variant['transcriptDescription'] or '-' in db_variant['transcriptDescription'] or '*' in db_variant['transcriptDescription']) and (db_variant['region'] != 'exonic' and db_variant['region'] != '?'):
 				cell_format(sheet.cell(row=l,column=header.index('c.')+1),alignment='left',style='TextBlue')
 				cell_format(sheet.cell(row=l,column=header.index('Region')+1),alignment='left',style='TextBlue')
-		
+
 		variantCovs.append(db_variant['variantReadDepth'])
 		variantDepths.append(db_variant['positionReadDepth'])
 		variantFreqs.append(int((float(db_variant['variantReadDepth'])/float(db_variant['positionReadDepth']))*100))
