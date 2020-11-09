@@ -82,10 +82,13 @@ favorite_transcript = {'ANKRD26':'NM_014915','ASXL1':'NM_015338','ASXL2':'NM_018
 'SMC3':'NM_005445','SRSF2':'NM_003016','SRY':'NM_003140','STAG2':'NM_001042749','TERC':'NR_001566','TERT':'NM_198253','TET2':'NM_001127208',
 'TP53':'NM_001126112','U2AF1':'NM_001025203','WT1':'NM_001198551','ZRSR2':'NM_005089'}
 
-pipeline_folder =  os.environ['NGS_PIPELINE_BX_DIR']
-knownToRefSeq_path = '%s/reference_files/knownToRefSeq.txt' % pipeline_folder
-knownCanonical_path = '%s/reference_files/knownCanonical.txt' % pipeline_folder
-refGene_path = '%s/reference_files/ncbiRefSeqCurated.txt' % pipeline_folder
+pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
+with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
+	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
+
+knownToRefSeq_path = global_param['knownToRefSeq']
+knownCanonical_path = global_param['knownCanonical']
+refGene_path = global_param['RefSeq']
 
 bed_path = options.bed
 bed_reader = open(bed_path,'r')
