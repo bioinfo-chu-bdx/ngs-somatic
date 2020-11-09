@@ -6,6 +6,7 @@ reference_files/hg19/*
 reference_files/mutect/af-only-gnomad.raw.sites.b37.vcf.gz
 reference_files/mutect/af-only-gnomad.raw.sites.b37.vcf.gz.tbi
 reference_files/Trash/*
+reference_files/ncbiRefSeqCurated.*
 seqrepo/*
 variantAnnotation/annovar/humandb/*
 variantAnnotation/VEP/cache/homo_sapiens/*
