@@ -1,14 +1,14 @@
 #!/usr/bin/python
 import subprocess
 import glob
-import sys
 import time
-import datetime
 import os
 
 def update_completed_runs_list(completed_run_list_path,completed_runs):
 	with open(completed_run_list_path,'w') as crl:
-		crl.writelines(completed_runs)
+		for completed_run in sorted(completed_runs.keys()):
+			line = '%s\t%s\n' % (completed_run,completed_runs[completed_run])
+			crl.write(line)
 
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 ngs_folder = '/media/n06lbth/sauvegardes_pgm'
@@ -31,23 +31,30 @@ for folder in illumina_folders:
 	if folder not in completed_runs.keys():
 		new_analysis = True
 		new_folder = '%s/%s' % (illumina_folder_path,folder)
-		print "NEW FOLDER DETECTED : %s" % new_folder
+		print "[%s] New folder detected : %s" % (time.strftime("%Y/%m/%d]  [%H:%M"),new_folder)
 		copy_complete_file = '%s/CopyComplete.txt' % new_folder
+
+		# CHECK IF FOLDER IS AN ILLUMINA OUTPUT FOLDER
+		if not os.path.isfile('%s/RunParameters.xml' % new_folder):
+			print "[%s] folder does not appear to be an illumina output folder, skipping" % time.strftime("%Y/%m/%d]  [%H:%M")
+			completed_runs[folder] = 'not illumina'
+			update_completed_runs_list(completed_run_list_path,completed_runs)
 
 		completed_runs[folder] = 'waiting CopyComplete.txt...'
 		update_completed_runs_list(completed_run_list_path,completed_runs)
 		while not os.path.isfile(copy_complete_file):
-			print "waiting for CopyComplete.txt..."
+			print "[%s] waiting for CopyComplete.txt..." % time.strftime("%Y/%m/%d]  [%H:%M")
 			time.sleep(600) # try every 10min
 
-		print "- launching prepare_illumina_run_folder.py ..."
+		print "[%s] - launching prepare_illumina_run_folder.py ..." % time.strftime("%Y/%m/%d]  [%H:%M")
 		completed_runs[folder] = 'bcl2fastq...'
 		update_completed_runs_list(completed_run_list_path,completed_runs)
-		subprocess.call(['python','%s/prepare_illumina_run_folder.py' % pipeline_folder,'--illumina_folder',new_folder])
+		cmd = subprocess.Popen(['python','%s/prepare_illumina_run_folder.py' % pipeline_folder,'--illumina_folder',new_folder],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		cmd.communicate()
 
 		############################################################################################################################
 
-		print "- parsing SampleSheet ..."
+		print "[%s] - parsing SampleSheet ..." % time.strftime("%Y/%m/%d]  [%H:%M")
 		run_project = ''
 		sub_project = ''
 		sample_sheet = '%s/SampleSheet.csv' % new_folder
@@ -70,14 +77,14 @@ for folder in illumina_folders:
 			output_location = '%s/%s/%s' % (ngs_folder,run_project,sub_project)
 		run_folder = '%s/%s' % (output_location,experiment_name)
 
-		print "- launching run_analysis.cross.py ..."
-		completed_runs[folder] = 'run_analysis in progress...'
+		print "[%s] - launching run_analysis.py ..." % time.strftime("%Y/%m/%d]  [%H:%M")
+		completed_runs[folder] = 'run_analysis.py in progress...'
 		update_completed_runs_list(completed_run_list_path,completed_runs)
-		subprocess.call(['python','%s/run_analysis.cross.py' % pipeline_folder,'--run',run_folder])
+		subprocess.call(['python','%s/run_analysis.py' % pipeline_folder,'--run',run_folder])
 		
-		print "- run analysis is completed"
+		print "[%s] - run analysis is completed" % time.strftime("%Y/%m/%d]  [%H:%M")
 		completed_runs[folder] = 'completed'
 		update_completed_runs_list(completed_run_list_path,completed_runs)
 
 if not new_analysis:
-	print "[%s] nothing to do" % datetime.date.today()
+	print "[%s] nothing to do" % time.strftime("%Y/%m/%d]  [%H:%M")

@@ -71,10 +71,10 @@ INNER JOIN VariantAnnotation ON VariantAnnotation.variant = Variant.variantID
 WHERE hgvs = 'no'""")
 db_non_hgvs_vms = db_cur.fetchall()
 for db_non_hgvs_vm in db_non_hgvs_vms:
-	db_cur.execute("SELECT variant FROM VariantAnnotation WHERE variantAnnotationID='%s'" % db_non_hgvs_vm['hgvsInfo'])
+	db_cur.execute("SELECT variant FROM VariantAnnotation WHERE variantAnnotationID=?" , db_non_hgvs_vm['hgvsInfo'])
 	db_hgvs = db_cur.fetchone()
 	print "- [HGVS] : Changing variantMetrics %s variant : %s -> %s" % (db_non_hgvs_vm['variantMetricsID'],db_non_hgvs_vm['variantID'],db_hgvs['variant'])
-	db_cur.execute("UPDATE VariantMetrics SET variant = '%s' WHERE VariantMetricsID = '%s'" % (db_hgvs['variant'],db_non_hgvs_vm['variantMetricsID']))
+	db_cur.execute("UPDATE VariantMetrics SET variant = ? WHERE VariantMetricsID = ?" , (db_hgvs['variant'],db_non_hgvs_vm['variantMetricsID']))
 
 # FOR ALL VARIANTS AND FOR ALL CORRESPONDING TRANSCRIPTS, CREATE VARIANT ANNOTATION ENTRIES
 print "- adding new variantAnnotation entries if needed..."
@@ -87,10 +87,10 @@ for db_variant in db_variants:
 		if db_variant['chromosome'] == db_transcript['chromosome'] and ((db_transcript['transcriptionStart']-5000)<db_variant['genomicStart']<(db_transcript['transcriptionStop']+5000)):
 			variantAnnotationID = '%s:%s' % (db_transcript['transcriptID'],db_variant['variantID'])
 			# IF NOT EXISTANT, INSERT NEW VARIANTANNOTATION
-			db_cur.execute("SELECT variantAnnotationID FROM VariantAnnotation WHERE variantAnnotationID='%s'" % variantAnnotationID)
+			db_cur.execute("SELECT variantAnnotationID FROM VariantAnnotation WHERE variantAnnotationID=?" , (variantAnnotationID,))
 			if not db_cur.fetchone():
 				print "- new VariantAnnotation entry %s" % variantAnnotationID
-				db_cur.execute("INSERT INTO VariantAnnotation (variantAnnotationID, variant, transcript) VALUES ('%s','%s','%s')" % (variantAnnotationID, db_variant['variantID'], db_transcript['transcriptID']))
+				db_cur.execute("INSERT INTO VariantAnnotation (variantAnnotationID, variant, transcript) VALUES (?,?,?)" , (variantAnnotationID, db_variant['variantID'], db_transcript['transcriptID']))
 
 if options.new:
 	db_cur.execute("SELECT * FROM VariantAnnotation WHERE hgvs is NULL")#(hgvs is NULL) OR (hgvs='yes' AND region is NULL)")
@@ -102,13 +102,13 @@ else:
 
 db_variant_annotations = db_cur.fetchall()
 print "- %s new variantAnnotation entries to process" % len(db_variant_annotations)
-lastUpdate = '%s' % (time.strftime('%d/%m/%Y'))
+lastUpdate = time.strftime("%Y%m%d")#'%s' % (time.strftime('%d/%m/%Y'))
 z=0
 for db_variant_annotation in db_variant_annotations:
 	z+=1
 	variantAnnotationID = db_variant_annotation['variantAnnotationID']
 	variantID = db_variant_annotation['variant']
-	db_cur.execute("SELECT * FROM Variant WHERE variantID='%s'" % variantID)
+	db_cur.execute("SELECT * FROM Variant WHERE variantID=?" , (variantID,))
 	db_variant = db_cur.fetchone()
 	chromosome = db_variant['chromosome']
 	start = db_variant['genomicStart']
@@ -116,7 +116,7 @@ for db_variant_annotation in db_variant_annotations:
 	ref = db_variant['referenceAllele']
 	alt = db_variant['alternativeAllele']
 	transcript = db_variant_annotation['transcript']
-	db_cur.execute("SELECT * FROM Transcript WHERE transcriptID='%s'" % transcript)
+	db_cur.execute("SELECT * FROM Transcript WHERE transcriptID=?" , (transcript,))
 	db_transcript = db_cur.fetchone()
 	gene = db_transcript['gene']
 	nc = db_transcript['NC']
@@ -141,8 +141,8 @@ for db_variant_annotation in db_variant_annotations:
 	else: # SNP
 		variant_type = 'SNP'
 		genomicDescription = 'g.%s%s>%s' % (start,ref,alt)
-	db_cur.execute("UPDATE Variant SET genomicDescription='%s' WHERE variantID='%s'" % (genomicDescription,variantID))
-	db_cur.execute("UPDATE VariantAnnotation SET variantType='%s' WHERE variantAnnotationID='%s'" % (variant_type,variantAnnotationID))
+	db_cur.execute("UPDATE Variant SET genomicDescription=? WHERE variantID=?" , (genomicDescription,variantID))
+	db_cur.execute("UPDATE VariantAnnotation SET variantType=? WHERE variantAnnotationID=?" , (variant_type,variantAnnotationID))
 
 	# STEP 1 : PARSE VARIANT (g)
 	g0 = hp.parse_hgvs_variant('%s:%s' % (nc,genomicDescription))
@@ -155,7 +155,7 @@ for db_variant_annotation in db_variant_annotations:
 	except hgvs.exceptions.HGVSError as e:
 		error_message = 'error : %s' % str(e)
 		print "\t- %s" % error_message
-		db_cur.execute("UPDATE VariantAnnotation SET hgvs='error', hgvsInfo='%s' WHERE variantAnnotationID='%s'" % (error_message,variantAnnotationID))
+		db_cur.execute("UPDATE VariantAnnotation SET hgvs='error', hgvsInfo=? WHERE variantAnnotationID=?" , (error_message,variantAnnotationID))
 		continue
 
 	# STEP 3 : g to c (with normalization)
@@ -164,7 +164,7 @@ for db_variant_annotation in db_variant_annotations:
 	except hgvs.exceptions.HGVSError as e:
 		error_message = 'error : %s' % str(e)
 		print "\t- %s" % error_message
-		db_cur.execute("UPDATE VariantAnnotation SET hgvs='error', hgvsInfo='%s' WHERE variantAnnotationID='%s'" % (error_message,variantAnnotationID))
+		db_cur.execute("UPDATE VariantAnnotation SET hgvs='error', hgvsInfo=? WHERE variantAnnotationID=?" , (error_message,variantAnnotationID))
 		continue
 
 	g = am37no.c_to_g(c) # Get coherent g (if not already) from normalyzed c (3' rule)
@@ -202,8 +202,8 @@ for db_variant_annotation in db_variant_annotations:
 		print "\t- HGVS should be : %s (%s:%s-%s:%s>%s)" % (g,chromosome,start,end,ref,alt)
 		if (start == g0.posedit.pos.start.base) and (end == g0.posedit.pos.end.base):
 			genomicDescription = '%s:%s' % (chromosome,str(g).split(':')[-1])
-			db_cur.execute("UPDATE Variant SET genomicDescription='%s' WHERE variantID='%s' " % (genomicDescription,variantID))
-			db_cur.execute("UPDATE VariantAnnotation SET hgvs='yes', variantType='%s', lastUpdate='%s' WHERE variantAnnotationID='%s'" % (variantType,lastUpdate,variantAnnotationID))
+			db_cur.execute("UPDATE Variant SET genomicDescription=? WHERE variantID=? " , (genomicDescription,variantID))
+			db_cur.execute("UPDATE VariantAnnotation SET hgvs='yes', variantType=?, lastUpdate=? WHERE variantAnnotationID=?" , (variantType,lastUpdate,variantAnnotationID))
 
 		else: # DIFFERENT COORDINATES FOR HGVS : CREATION OF NEW ENTRIES
 			bad_variantID = variantID
@@ -213,36 +213,36 @@ for db_variant_annotation in db_variant_annotations:
 			genomicDescription = '%s:%s' % (chromosome,str(g).split(':')[-1])
 
 			# NEW VARIANT ENTRY
-			db_cur.execute("SELECT * FROM Variant WHERE variantID='%s'" % variantID)
+			db_cur.execute("SELECT * FROM Variant WHERE variantID=?" , (variantID,))
 			if db_cur.fetchone() is None:
 				print "\t\t- creating new Variant entry in db : %s ..." % variantID
-				db_cur.execute("INSERT INTO Variant (variantID, chromosome, genomicStart, genomicStop, referenceAllele, alternativeAllele, genomicDescription) VALUES ('%s','%s',%s, %s,'%s','%s','%s')" % (variantID,chromosome,start,end,ref,alt,genomicDescription))
+				db_cur.execute("INSERT INTO Variant (variantID, chromosome, genomicStart, genomicStop, referenceAllele, alternativeAllele, genomicDescription) VALUES (?,?,?,?,?,?,?)" , (variantID,chromosome,start,end,ref,alt,genomicDescription))
 
 			# NEW VARIANTANNOTATION ENTRY
-			db_cur.execute("SELECT * FROM VariantAnnotation WHERE variantAnnotationID='%s'" % variantAnnotationID)
+			db_cur.execute("SELECT * FROM VariantAnnotation WHERE variantAnnotationID=?" , (variantAnnotationID,))
 			if db_cur.fetchone() is None:
 				print "\t\t- creating new VariantAnnotation entry in db : %s ..." % variantAnnotationID
-				db_cur.execute("INSERT INTO VariantAnnotation (variantAnnotationID, variant, transcript, variantType) VALUES ('%s','%s','%s','%s')" % (variantAnnotationID,variantID,transcript,variantType))
-			db_cur.execute("UPDATE VariantAnnotation SET hgvs='no', hgvsInfo='%s', lastUpdate='%s' WHERE variantAnnotationID = '%s'" % (variantAnnotationID,lastUpdate,bad_variantAnnotationID))
+				db_cur.execute("INSERT INTO VariantAnnotation (variantAnnotationID, variant, transcript, variantType) VALUES (?,?,?,?)" , (variantAnnotationID,variantID,transcript,variantType))
+			db_cur.execute("UPDATE VariantAnnotation SET hgvs='no', hgvsInfo=?, lastUpdate=? WHERE variantAnnotationID = ?" , (variantAnnotationID,lastUpdate,bad_variantAnnotationID))
 
 			# MODIFY VARIANTMETRICS
-			db_cur.execute("SELECT * FROM VariantMetrics WHERE variant = '%s'" % bad_variantID)
+			db_cur.execute("SELECT * FROM VariantMetrics WHERE variant = ?" , (bad_variantID,))
 			varmetrics = db_cur.fetchall()
 			for varmetric in varmetrics:
 				VariantMetricsID = varmetric['variantMetricsID']
 				print "\t\t- updating variantMetrics %s : %s -> %s ..." % (VariantMetricsID,bad_variantID,variantID)
-				db_cur.execute("UPDATE VariantMetrics SET variant = '%s' WHERE VariantMetricsID = '%s'" % (variantID,VariantMetricsID))
+				db_cur.execute("UPDATE VariantMetrics SET variant = ? WHERE VariantMetricsID = ?" , (variantID,VariantMetricsID))
 
 	# STEP 5 : VALIDATE(c)
 	c_pos = str(c).split(':')[-1]
 	print "\t- transcript description : %s" % str(c)
-	db_cur.execute("UPDATE VariantAnnotation SET transcriptDescription='%s', hgvs='yes' WHERE variantAnnotationID='%s'" % (c_pos,variantAnnotationID))
+	db_cur.execute("UPDATE VariantAnnotation SET transcriptDescription=?, hgvs='yes' WHERE variantAnnotationID=?" , (c_pos,variantAnnotationID))
 	try:
 		hv.validate(c)
 	except hgvs.exceptions.HGVSError as e:
 		warning_message = 'warning : %s' % str(e)
 		print "\t- %s" % warning_message
-		db_cur.execute("UPDATE VariantAnnotation SET hgvs='warning', hgvsInfo='%s' WHERE variantAnnotationID='%s'" % (warning_message,variantAnnotationID))
+		db_cur.execute("UPDATE VariantAnnotation SET hgvs='warning', hgvsInfo=? WHERE variantAnnotationID=?" , (warning_message,variantAnnotationID))
 
 	# STEP 5 : c_to_p
 	try:
@@ -250,11 +250,11 @@ for db_variant_annotation in db_variant_annotations:
 	except hgvs.exceptions.HGVSError as e:
 		warning_message = 'warning : %s' % str(e)
 		print "\t- %s" % warning_message
-		db_cur.execute("UPDATE VariantAnnotation SET hgvs='warning', hgvsInfo='%s' WHERE variantAnnotationID='%s'" % (warning_message,variantAnnotationID))
+		db_cur.execute("UPDATE VariantAnnotation SET hgvs='warning', hgvsInfo=? WHERE variantAnnotationID=?" , (warning_message,variantAnnotationID))
 		continue
 	p_pos = str(p).split(':')[-1]
 	print "\t- protein description : %s" % str(p)
-	db_cur.execute("UPDATE VariantAnnotation SET proteinDescription='%s' WHERE variantAnnotationID='%s'" % (p_pos,variantAnnotationID))
+	db_cur.execute("UPDATE VariantAnnotation SET proteinDescription=? WHERE variantAnnotationID=?" , (p_pos,variantAnnotationID))
 
 db_con.commit()
 db_con.close()

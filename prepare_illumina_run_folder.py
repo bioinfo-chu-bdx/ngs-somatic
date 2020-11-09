@@ -40,7 +40,7 @@ control_names = ['H2O','H20','NTC','ACROMETRIX','BAF5','BAF-5','HD300','HD301','
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
-	
+
 ngs_folder = global_param['ngs_results_folder']
 
 #### TODO ####
@@ -55,6 +55,7 @@ if not os.path.isfile(sample_sheet):
 	exit()
 
 # BCL2FASTQ
+print "- BCL2FASTQ"
 cmd = subprocess.Popen(['/usr/local/bcl2fastq2-v2.2.x/./bin/bcl2fastq',
 '--barcode-mismatches','1',
 '--mask-short-adapter-reads','0',

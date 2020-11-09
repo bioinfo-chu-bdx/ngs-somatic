@@ -129,6 +129,10 @@ for vcf_path in options.vcfs:
 		for a in range(len(alts)): # si multiallelic
 			ref = oref
 			alt = alts[a]
+			if ('<' in alt) or ('>' in alt): # ne devrait plus apparaitre avec option -U vardict
+				print "WARNING : (%s) invalid ALT for line %s" % (vc_name,line)
+				print "\t-> This variant is ignored"
+				continue
 			var_cov = var_covs[a]
 			# left-align
 			while ref[0] == alt[0]:
@@ -242,7 +246,7 @@ if db_vms:
 new_var_count = 0
 new_vm_count = 0
 for variant in variants:
-	if (len(variants[variant]['call']) >= 2) or (variants[variant]['gene'] == 'CEBPA' and variants[variant]['variant_type'] != 'SNP'):
+	if (len(variants[variant]['call']) >= 2) or (variants[variant]['gene'] == 'CEBPA' and variants[variant]['variant_type'] != 'SNP') or (variants[variant]['variant_type'] != 'SNP' and variants[variant]['call'] != ['lofreq']):
 		variant_id = variant
 		pos_cov = int(mean(variants[variant]['pos_cov']))
 		var_cov = int(mean(variants[variant]['var_cov']))

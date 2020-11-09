@@ -17,21 +17,23 @@ db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
 
-db_cur.execute("SELECT * FROM Analysis WHERE panel in ('LAM-illumina-v1','LAM-illumina-v2')")
+db_cur.execute("SELECT * FROM VariantAnnotation")
 db_trucs = db_cur.fetchall()
 for db_truc in db_trucs:
-	bamPath = db_truc['bamPath']
-	if 'LAM/panel-capture-v1' in bamPath :
-		bamPath = bamPath.replace('LAM/panel-capture-v1','LAM/panel-capture')
-	if 'Run1-Test-SureSelect-Myeloid' in bamPath :
-		bamPath = bamPath.replace('Run1-Test-SureSelect-Myeloid','Run-01-Test-SureSelect-Myeloid')
-	if 'Run2-Test-SureSelect-Myeloid' in bamPath :
-		bamPath = bamPath.replace('Run2-Test-SureSelect-Myeloid','Run-02-Test-SureSelect-Myeloid')
-	if 'Run-3-CAP-MYELOID' in bamPath :
-		bamPath = bamPath.replace('Run-3-CAP-MYELOID','Run-03-CAP-MYELOID')
-	if 'Run-5-CAP-MYELOID' in bamPath :
-		bamPath = bamPath.replace('Run-5-CAP-MYELOID','Run-05-CAP-MYELOID')
-	db_cur.execute("UPDATE Analysis SET bamPath='%s' WHERE analysisID='%s'" % (bamPath,db_truc['analysisID']))
+	truc_id = db_truc['variantAnnotationID']
+	truc_date = db_truc['lastUpdate']
+	if '/' in truc_date:
+		truc_date = truc_date.split('/')
+		j = truc_date[0]
+		m = truc_date[1]
+		a = truc_date[2]
+	elif '-' in truc_date:
+		truc_date = truc_date.split('-')
+		j = truc_date[2]
+		m = truc_date[1]
+		a = truc_date[0]
+	corrected_truc_date = '%s%s%s' % (a,m,j)
+	db_cur.execute("UPDATE VariantAnnotation SET lastUpdate='%s' WHERE variantAnnotationID='%s'" % (corrected_truc_date,truc_id))
 
 db_con.commit()
 db_con.close()
