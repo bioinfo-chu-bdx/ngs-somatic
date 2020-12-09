@@ -5,6 +5,7 @@ import csv
 import glob
 import json
 import math
+import numpy
 import sqlite3
 import zipfile
 import subprocess
@@ -67,11 +68,10 @@ for barcode in barcodes_json:
 		elif 'coverage/%s_%s.target.cov.xls' % (barcodes_json[barcode]['sample'],barcode) in archive.namelist():
 			cov_file = archive.open('coverage/%s_%s.target.cov.xls' % (barcodes_json[barcode]['sample'],barcode))
 	barcodes_json[barcode]['coverage_file'] = cov_file
-	# print '%s/%s/intermediate_files/coverage/%s_%s.target.cov.xls' % (options.run_folder,barcodes_json['sample'],barcodes_json['sample'],barcode)
 
-################################
-# PROCESS POUR CHAQUE RUN TYPE #
-################################
+#############################
+# PROCESS POUR CHAQUE PANEL #
+#############################
 if not os.path.isdir(plotcov_dir):
 	subprocess.call(['mkdir',plotcov_dir])
 
@@ -84,23 +84,23 @@ for panel in panels:
 
 	regionlist = [] # genomic ordered list of panel regions, for ploting
 	barcode_sample_tuples = [] # liste de tuples (barcode, sample) pour l'etape de ploting
-	# region2geneex = {}
-	db_cur.execute("SELECT chromosome,start,stop,targetedRegionName,gene,details FROM TargetedRegion INNER JOIN Panel ON TargetedRegion.panel = Panel.panelID WHERE panel='%s' ORDER BY start" % panel)
+
+	unsorted_regionlist = []
+	db_cur.execute("SELECT TargetedRegion.chromosome,start,targetedRegionName,gene,details FROM TargetedRegion INNER JOIN Panel ON TargetedRegion.panel = Panel.panelID INNER JOIN Transcript ON Transcript.transcriptID = TargetedRegion.transcript WHERE panel='%s' ORDER BY start" % panel)
 	db_target_regions = db_cur.fetchall()
 
+	regname2regdesc = {}
 	for db_target_region in db_target_regions:
-		region_name = '%s_%s' % (db_target_region['gene'],db_target_region['details'])
-		unsorted_regionlist.append((region_name,int(db_target_region['chromosome'].replace('chr','').replace('X','23').replace('Y','24')),int(db_target_region['start'])))
+		region = '%s_%s_%s' % (db_target_region['targetedRegionName'],db_target_region['gene'],db_target_region['details'])
+		regname2regdesc[db_target_region['targetedRegionName']] = region
+		unsorted_regionlist.append((region,int(db_target_region['chromosome'].replace('chr','').replace('X','23').replace('Y','24')),int(db_target_region['start'])))
 	regionlist = sorted(unsorted_regionlist, key = lambda x: (x[1], x[2]))
 	regionlist = [item[0] for item in regionlist]
 
 	for barcode in barcodes_json:
-		sample = barcodes_json[barcode]['sample']
-		print "\t -analysing %s coverage" % sample
-		barcode_sample_tuples.append((barcode,sample))
-
 		if barcodes_json[barcode]['panel'] != panel: # check if barcode is in panel
 			continue
+		sample = barcodes_json[barcode]['sample']
 		iscontrol = False # check if barcode is not a control
 		for control_name in control_names:
 			if control_name in sample.upper():
@@ -108,19 +108,23 @@ for panel in panels:
 		if iscontrol:
 			continue
 
-		barcodes_json[barcode]['region_coverage'] = {}
-		for region in regionlist:
-			barcodes_json[barcode]['region_coverage'] = ''
+		print "\t -analysing %s coverage" % sample
+		barcode_sample_tuples.append((barcode,sample))
 
-		cov_file_reader = csv.reader(barcode2covfile[barcode], delimiter='\t')
+		barcodes_json[barcode]['coverage'] = {}
+		for region in regionlist:
+			barcodes_json[barcode]['coverage'][region] = 0
+
+		cov_file_reader = csv.reader(barcodes_json[barcode]['coverage_file'], delimiter='\t')
 		cov_file_reader.next() # header
 		for line in cov_file_reader:
-			region_id = line[3]
-			total_reads = int(float(line[9]))
-			if total_reads > 0.0:
-				barcodes_json[barcode]['region_coverage'][region_id] = math.log10(total_reads)
+			# region_name = line[3]
+			total_reads = int(numpy.round(float(line[9])))
+			region = regname2regdesc[line[3]]
+			if total_reads > 0:
+				barcodes_json[barcode]['coverage'][region] = math.log10(total_reads)
 			else:
-				barcodes_json[barcode]['region_coverage'][region_id] = 0
+				barcodes_json[barcode]['coverage'][region] = 0
 
 	##############################
 	# create regions cov graphes #
@@ -167,8 +171,8 @@ for panel in panels:
 			
 			# Axe X (regions)
 			x_names = []
-			for amp_name in region_subsets[i]:
-				x_names.append(amp_name)
+			for reg_name in region_subsets[i]:
+				x_names.append(reg_name)
 			x_len = len(x_names)
 			x_data = range(len(x_names))
 			x = array(x_data)
@@ -177,8 +181,8 @@ for panel in panels:
 			for barcode in barcode_subsets[j]:
 				y_data = []
 				for region in region_subsets[i]:
-					y_data.append(barcode2amplcov[barcode][region])
-				y_legend = barcode2sample[barcode]
+					y_data.append(barcodes_json[barcode]['coverage'][region])
+				y_legend = barcodes_json[barcode]['sample']
 				fig = figure(1,figsize=(65,30))
 				y = array(y_data)
 
@@ -196,8 +200,8 @@ for panel in panels:
 			# Adding gene name in region legend
 			for k in range(len(x_names)):
 				xname = x_names[k]
-				if x_names[k] in region2geneex:
-					xname = xname + ' - ' + region2geneex[x_names[k]]
+				# if x_names[k] in region2geneex:
+					# xname = xname + ' - ' + region2geneex[x_names[k]]
 				if x_names[k] in reg2pool:
 					xname = reg2pool[x_names[k]]  + ' - ' +  xname
 				x_names[k] = xname

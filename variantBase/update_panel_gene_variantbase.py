@@ -52,7 +52,7 @@ panels = {
 	# ('%s/reference_files/reannoted/IAD72953_231_Designed.with_NM.bed' % pipeline_folder				,'SBT',			3),
 	# ('%s/reference_files/reannoted/SureSelect-HEMATO-v5.sorted.annotated.bed' % pipeline_folder		,'TEST',		1),
 	# ('%s/reference_files/Target-Myeloid_v1-SureSelect.roi.anno.bed' % pipeline_folder				,'LAM-illumina',1),
-	# 'LAM-illumina-v2':{'path':'%s/reference_files/Target-Myeloid_capture_v2.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
+	'LAM-illumina-v2':{'path':'%s/reference_files/Target-Myeloid_capture_v2.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
 	'LAM-illumina-v1':{'path':'%s/reference_files/Target-Myeloid_capture_v1.roi.anno.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'}
 }
 
@@ -64,7 +64,13 @@ db_cur.execute("SELECT * FROM Transcript")
 db_transcripts = db_cur.fetchall()
 transcript2version_db = {}
 for db_transcript in db_transcripts:
-	transcript2version_db[db_transcript['transcriptID'].split('.')[0]] = int(db_transcript['transcriptID'].split('.')[-1])
+	# TODO : il peut y avoir plusieurs transcripts
+	transcript_without_version = db_transcript['transcriptID'].split('.')[0]
+	version = int(db_transcript['transcriptID'].split('.')[-1])
+	if not transcript_without_version in transcript2version_db:
+		transcript2version_db[transcript_without_version] = [version]
+	else:
+		transcript2version_db[transcript_without_version].append(version)
 
 for panel in panels:
 	panelID = panel
@@ -123,10 +129,10 @@ for panel in panels:
 
 		# TRANSCRIPT VERSION
 		gene_tx = hdp.get_tx_for_gene(gene)
-		version = 1
+		version_in_uta = 1
 		for item in gene_tx:
 			if (item[3].split('.')[0] == transcript_without_version) and (item[4] == nc):
-				version = max(version,int(item[3].split('.')[-1]))
+				version_in_uta = max(version_in_uta,int(item[3].split('.')[-1]))
 
 		# TRANSCRIPT INFO
 		transcriptionStart = None
@@ -152,19 +158,19 @@ for panel in panels:
 		# TRANSCRIPT NOT IN DB
 		if not (transcript_without_version in transcript2version_db.keys()):
 			print "\t\t - transcript %s not found in DB" % transcript_without_version
-			transcript = '%s.%s' % (transcript_without_version,version)
+			transcript = '%s.%s' % (transcript_without_version,version_in_uta)
 			print "\t\t\t - adding %s" % transcript
 			db_cur.execute("INSERT INTO Transcript (transcriptID, gene, chromosome, transcriptionStart, transcriptionStop, exons, exonsStart, exonsStop, strand, NC) VALUES ('%s', '%s', '%s', %s, %s, %s, '%s', '%s', '%s', '%s')" % (transcript,gene,chromosome,transcriptionStart,transcriptionStop,exons,exonsStart,exonsStop,strand,nc))
-			transcript2version_db[transcript_without_version] = version
+			transcript2version_db[transcript_without_version] = [version_in_uta]
 
 		# TRANSCRIPT VERSION NEED AN UPDATE
-		elif version != transcript2version_db[transcript_without_version]:
-			print "- NEW version for %s : %s->%s, updating" % (transcript_without_version,transcript2version_db[transcript_without_version],version)
-			transcript = '%s.%s' % (transcript_without_version,version)
+		elif version_in_uta not in transcript2version_db[transcript_without_version]:
+			print "- NEW version for %s : %s->%s, updating" % (transcript_without_version,transcript2version_db[transcript_without_version],version_in_uta)
+			transcript = '%s.%s' % (transcript_without_version,version_in_uta)
 			db_cur.execute("INSERT INTO Transcript (transcriptID, gene, chromosome, transcriptionStart, transcriptionStop, exons, exonsStart, exonsStop, strand, NC) VALUES ('%s', '%s', '%s', %s, %s, %s, '%s', '%s', '%s', '%s')" % (transcript,gene,chromosome,transcriptionStart,transcriptionStop,exons,exonsStart,exonsStop,strand,nc))
-			transcript2version_db[transcript_without_version] = version
+			transcript2version_db[transcript_without_version].append(version_in_uta)
 		else:
-			transcript = '%s.%s' % (transcript_without_version,transcript2version_db[transcript_without_version])
+			transcript = '%s.%s' % (transcript_without_version,version_in_uta)
 
 		# 3 : AJOUTER / UPDATE  TargetedRegion
 		db_cur.execute("SELECT * FROM TargetedRegion WHERE panel='%s' AND chromosome='%s' AND start=%s AND stop=%s" % (panelID,chromosome,start,stop))

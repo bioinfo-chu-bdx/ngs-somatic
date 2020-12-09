@@ -101,9 +101,15 @@ output = options.output
 print "- filling data sheet..."
 dataSheet = excelVB['Data']
 if options.project:
-	db_cur.execute("SELECT DISTINCT runID FROM Run INNER JOIN Analysis ON Analysis.run = Run.runID INNER JOIN Panel ON Panel.panelID = Analysis.panel WHERE panelProject in %s ORDER BY runDate" % in_projects)
+	db_cur.execute("""SELECT DISTINCT runID FROM Run 
+	INNER JOIN Analysis ON Analysis.run = Run.runID 
+	INNER JOIN Panel ON Panel.panelID = Analysis.panel 
+	WHERE panelProject in %s ORDER BY runDate""" % in_projects)
 elif options.panel:
-	db_cur.execute("SELECT DISTINCT runID FROM Run INNER JOIN Analysis ON Analysis.run = Run.runID INNER JOIN Panel ON Panel.panelID = Analysis.panel WHERE panelID in %s ORDER BY runDate" % in_panels)
+	db_cur.execute("""SELECT DISTINCT runID FROM Run 
+	INNER JOIN Analysis ON Analysis.run = Run.runID 
+	INNER JOIN Panel ON Panel.panelID = Analysis.panel 
+	WHERE panelID in %s ORDER BY runDate""" % in_panels)
 db_runs = db_cur.fetchall()
 runs = []
 
@@ -113,9 +119,16 @@ for db_run in db_runs:
 	runs.append(db_run['runID'])
 
 	if options.project :
-		db_cur.execute("SELECT sampleName, sampleID, pathology FROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelProject in %s AND isControl = 0" % (db_run['runID'],in_projects))
+		db_cur.execute("""SELECT sampleName, sampleID, pathology FROM Sample 
+		INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel 
+		INNER JOIN Run ON Run.runID = Analysis.run 
+		WHERE runID = '%s' AND panelProject in %s AND isControl = 0""" % (db_run['runID'],in_projects))
 	elif options.panel:
-		db_cur.execute("SELECT sampleName, sampleID, pathology FROM Sample INNER JOIN Analysis ON Analysis.sample = Sample.sampleID INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Run ON Run.runID = Analysis.run WHERE runID = '%s' AND panelID in %s AND isControl = 0" % (db_run['runID'],in_panels))
+		db_cur.execute("""SELECT sampleName, sampleID, pathology FROM Sample 
+		INNER JOIN Analysis ON Analysis.sample = Sample.sampleID 
+		INNER JOIN Panel ON Panel.panelID = Analysis.panel 
+		INNER JOIN Run ON Run.runID = Analysis.run 
+		WHERE runID = '%s' AND panelID in %s AND isControl = 0""" % (db_run['runID'],in_panels))
 	db_samples = db_cur.fetchall()
 	if vbformat == 'ColonLungMela':
 		lsamples = []
@@ -175,9 +188,15 @@ dataSheet['A2'].value = len(runs)
 ## MAKE ALL GENE SHEET
 print "- making gene sheets..."
 if options.project:
-	db_cur.execute("SELECT DISTINCT gene,transcriptID FROM Transcript INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelProject in %s ORDER BY gene" % in_projects)
+	db_cur.execute("""SELECT DISTINCT gene,transcriptID FROM Transcript 
+	INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID 
+	INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel 
+	WHERE panelProject in %s ORDER BY gene""" % in_projects)
 elif options.panel:
-	db_cur.execute("SELECT DISTINCT gene,transcriptID FROM Transcript INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel WHERE panelID in %s ORDER BY gene" % in_panels)
+	db_cur.execute("""SELECT DISTINCT gene,transcriptID FROM Transcript 
+	INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID 
+	INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel 
+	WHERE panelID in %s ORDER BY gene""" % in_panels)
 db_transcripts = db_cur.fetchall()
 gene2transcript = {}
 geneTemplateSheet = excelVB['Gene']
@@ -250,10 +269,29 @@ if vbformat == 'ColonLungMela':
 	header.insert(header.index('Mela Count')+1,'Other Count')
 
 if options.project:
-	db_cur.execute("SELECT DISTINCT VariantAnnotation.*,Variant.*,gene,transcript, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM VariantAnnotation INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Run ON Run.runID = Analysis.run INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Transcript ON Transcript.transcriptID = VariantAnnotation.transcript WHERE panelProject in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_projects)
+	db_cur.execute("""SELECT DISTINCT VariantAnnotation.*,Variant.*,gene,transcript, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology, panelID 
+	FROM VariantAnnotation 
+	INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant 
+	INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID 
+	INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis 
+	INNER JOIN Sample ON Sample.sampleID = Analysis.sample 
+	INNER JOIN Run ON Run.runID = Analysis.run 
+	INNER JOIN Panel ON Panel.panelID = Analysis.panel 
+	INNER JOIN Transcript ON Transcript.transcriptID = VariantAnnotation.transcript 
+	WHERE panelProject in %s AND isControl = 0 ORDER BY genomicStart, variantID""" % in_projects)
 elif options.panel:
-	db_cur.execute("SELECT DISTINCT VariantAnnotation.*,Variant.*,gene,transcript, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology FROM VariantAnnotation INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample INNER JOIN Run ON Run.runID = Analysis.run INNER JOIN Panel ON Panel.panelID = Analysis.panel INNER JOIN Transcript ON Transcript.transcriptID = VariantAnnotation.transcript WHERE panelID in %s AND isControl = 0 ORDER BY genomicStart, variantID" % in_panels)
+	db_cur.execute("""SELECT DISTINCT VariantAnnotation.*,Variant.*,gene,transcript, variantReadDepth, positionReadDepth, sampleName, sampleID, pathology, panelID 
+	FROM VariantAnnotation 
+	INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant 
+	INNER JOIN VariantMetrics ON VariantMetrics.variant = Variant.variantID 
+	INNER JOIN Analysis ON Analysis.analysisID = VariantMetrics.analysis 
+	INNER JOIN Sample ON Sample.sampleID = Analysis.sample 
+	INNER JOIN Run ON Run.runID = Analysis.run 
+	INNER JOIN Panel ON Panel.panelID = Analysis.panel 
+	INNER JOIN Transcript ON Transcript.transcriptID = VariantAnnotation.transcript 
+	WHERE panelID in %s AND isControl = 0 ORDER BY genomicStart, variantID""" % in_panels)
 db_variants = db_cur.fetchall()
+## note : RUN dans la requete permet de laisser contrainte que run existe bien. il y a des TESTILLUMINA truc qui se baladent... 
 
 actualVariant = None
 for db_variant in db_variants:
@@ -305,7 +343,18 @@ for db_variant in db_variants:
 		gene = db_variant['gene']
 		sheet = excelVB[gene]
 		l = sheet.max_row+1
-		sheet.cell(row=l,column=header.index('Commentaire')+1).value = db_variant['commentaire']
+
+		comm = db_variant['commentaire']
+		db_cur.execute("SELECT userComment FROM UserComment WHERE variantAnnotation='%s' AND panel='%s'" % (db_variant['variantAnnotationID'],db_variant['panelID']))
+		db_userComments = db_cur.fetchall()
+		for db_userComment in db_userComments:
+			userComment = db_userComment['userComment']
+			if comm is None:
+				comm = userComment
+			else:
+				comm = '%s. %s' % (userComment,comm)
+		
+		sheet.cell(row=l,column=header.index('Commentaire')+1).value = comm
 		sheet.cell(row=l,column=header.index('Gene')+1).value = db_variant['gene']
 		sheet.cell(row=l,column=header.index('Transcript')+1).value = db_variant['transcript']
 		sheet.cell(row=l,column=header.index('Chr')+1).value = db_variant['chromosome']

@@ -53,11 +53,11 @@ if not os.path.isdir('%s/vep' % options.output):
 	# exit()
 	#db_cur.execute("SELECT * FROM VariantAnnotation WHERE lastUpdate is NULL")  # option pas prete # ici faire test WHERE lastUpdate > 6 mois
 if options.new:
-	db_cur.execute("""SELECT chromosome,genomicStart,genomicStop,referenceAllele,alternativeAllele,variantType FROM Variant 
+	db_cur.execute("""SELECT DISTINCT chromosome,genomicStart,genomicStop,referenceAllele,alternativeAllele,variantType FROM Variant 
 	INNER JOIN VariantAnnotation ON VariantAnnotation.variant=Variant.variantID 
 	WHERE (lastUpdate is NULL) OR (region is NULL)""")
 if options.full:
-	db_cur.execute("""SELECT chromosome,genomicStart,genomicStop,referenceAllele,alternativeAllele,variantType FROM Variant 
+	db_cur.execute("""SELECT DISTINCT chromosome,genomicStart,genomicStop,referenceAllele,alternativeAllele,variantType FROM Variant 
 	INNER JOIN VariantAnnotation ON VariantAnnotation.variant=Variant.variantID """)
 
 db_variants = db_cur.fetchall()

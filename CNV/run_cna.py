@@ -39,73 +39,68 @@ if os.path.isfile(run_folder+'/barcodes.json'):
 	with open(run_folder+'/barcodes.json', 'r') as g:
 		barcodes_json = json.load(g)
 
-runtypes = []
+panels = []
 oncotests_B = []
 oncotests_T = []
-for bamfile in bamlist:
-	if '_IonXpress' in bamfile:
-		sample = bamfile.split('/')[-1].split('_IonXpress')[0]
-		barcode = 'IonXpress_' + bamfile.split('IonXpress_')[-1].split('.bam')[0]
-	else:
-		sample = bamfile.split('/')[-1].split('_S')[0]
-		barcode = 'S%s' % bamfile.split('_S')[-1].split('.bam')[0]
-	target = barcodes_json[barcode]['target_bed']
-	for runtype in global_param['run_type']:
-		if global_param['run_type'][runtype]['target_bed'].split('/')[-1] == target:
-			if runtype not in runtypes:
-				runtypes.append(runtype)
-			break
+
+for barcode in barcodes_json:
+	bamfile = '%s/%s/%s_%s.bam' % (run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
+	panel = barcodes_json[barcode]['panel']
+	if panel not in panels:
+		panels.append(panel)
 	iscontrol = False
 	for control_name in ['NTC_','H2O','ACROMETRIX','HD802','TEMOINCNV']:
-		if control_name in sample.upper():
+		if control_name in barcodes_json[barcode]['sample'].upper():
 			iscontrol = True
 			break
-	if runtype == 'Lymphome_B' and not iscontrol:
+	if panel == 'Lymphome_B' and not iscontrol:
 		oncotests_B.append(bamfile)
-	if runtype == 'Lymphome_T' and not iscontrol:
+	if panel == 'Lymphome_T' and not iscontrol:
 		oncotests_T.append(bamfile)
 
 # CREATION DOSSIER _CNA
 if not os.path.isdir(cna_dir):
 	subprocess.call(['mkdir',cna_dir])
 
-# CREATION DOSSIER _CNA/RUNTYPE
-for runtype in runtypes:
-	cna_runtype_dir = '%s/%s' % (cna_dir,runtype)
-	if not os.path.isdir(cna_runtype_dir):
-		subprocess.call(['mkdir',cna_runtype_dir])
+# CREATION DOSSIER _CNA/PANEL
+for panel in panels:
+	cna_panel_dir = '%s/%s' % (cna_dir,panel)
+	if not os.path.isdir(cna_panel_dir):
+		subprocess.call(['mkdir',cna_panel_dir])
 
 ####################
 ### CNV ANALYSIS ###
 ####################
 
+print "\t - make ioncopy input... (%s)" % panel
 subprocess.call(['python','%s/CNV/ioncopy/make_ioncopy_input.py' % pipeline_folder,'--run-folder', run_folder], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-for runtype in runtypes:
-	cna_runtype_dir = '%s/%s/' % (cna_dir,runtype)
-	if not os.path.isdir(cna_runtype_dir):
-		subprocess.call(['mkdir',cna_runtype_dir])
+for panel in panels:
+	cna_panel_dir = '%s/%s/' % (cna_dir,panel)
+	if not os.path.isdir(cna_panel_dir):
+		subprocess.call(['mkdir',cna_panel_dir])
 		
-	print "\t - ioncopy... (%s)" % runtype
-	subprocess.call(['Rscript','--vanilla','%s/CNV/ioncopy/run_ioncopy.R' % pipeline_folder,cna_runtype_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	print "\t - ioncopy... (%s)" % panel
+	subprocess.call(['Rscript','--vanilla','%s/CNV/ioncopy/run_ioncopy.R' % pipeline_folder,cna_panel_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	
-	if runtype == 'Lymphome_B':
-		print "\t - oncocnv... (%s)" % runtype
+	if panel == 'Lymphome_B':
+		print "\t - oncocnv... (%s)" % panel
 		oncobed = '%s/CNV/oncocnv/Lymphome_B_IAD119887_231.oncocnv.bed' % pipeline_folder
-		subprocess.call(['mkdir',cna_runtype_dir+'/oncocnv'])
+		subprocess.call(['mkdir',cna_panel_dir+'/oncocnv'])
 		controllist = ','.join(oncocontrols_B)
 		testlist = ','.join(oncotests_B)
-		subprocess.call(['bash','%s/CNV/oncocnv/ONCOCNV.sh' % pipeline_folder,controllist,testlist,oncobed,cna_runtype_dir+'/oncocnv'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		subprocess.call(['python','%s/CNV/make_cnv_finalreport_with_oncocnv.py' % pipeline_folder,cna_runtype_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.call(['bash','%s/CNV/oncocnv/ONCOCNV.sh' % pipeline_folder,controllist,testlist,oncobed,cna_panel_dir+'/oncocnv'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.call(['python','%s/CNV/make_cnv_finalreport_with_oncocnv.py' % pipeline_folder,cna_panel_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		
-	elif runtype == 'Lymphome_T':
-		print "\t - oncocnv... (%s)" % runtype
+	elif panel == 'Lymphome_T':
+		print "\t - oncocnv... (%s)" % panel
 		oncobed = '%s/CNV/oncocnv/Lymphome_T_IAD120574_238.oncocnv.bed' % pipeline_folder
-		subprocess.call(['mkdir',cna_runtype_dir+'/oncocnv'])
+		subprocess.call(['mkdir',cna_panel_dir+'/oncocnv'])
 		controllist = ','.join(oncocontrols_T)
 		testlist = ','.join(oncotests_T)
-		subprocess.call(['bash','%s/CNV/oncocnv/ONCOCNV.sh' % pipeline_folder,controllist,testlist,oncobed,cna_runtype_dir+'/oncocnv'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		subprocess.call(['python','%s/CNV/make_cnv_finalreport_with_oncocnv.py' % pipeline_folder,cna_runtype_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.call(['bash','%s/CNV/oncocnv/ONCOCNV.sh' % pipeline_folder,controllist,testlist,oncobed,cna_panel_dir+'/oncocnv'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.call(['python','%s/CNV/make_cnv_finalreport_with_oncocnv.py' % pipeline_folder,cna_panel_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		
 	else:
-		subprocess.call(['python','%s/CNV/make_cnv_finalreport.py' % pipeline_folder,cna_runtype_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		print "\t - make_cnv_finalreport... (%s)" % panel
+		subprocess.call(['python','%s/CNV/make_cnv_finalreport.py' % pipeline_folder,cna_panel_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

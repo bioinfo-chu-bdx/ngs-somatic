@@ -161,6 +161,16 @@ CREATE TABLE `VariantMetrics` (
 	FOREIGN KEY(`analysis`) REFERENCES `Analysis`(`analysisID`)
 );"""
 
+create_usercomment_table = """
+CREATE TABLE `UserComment` (
+	`userCommentID`	TEXT NOT NULL,
+	`variantAnnotation`	TEXT NOT NULL,
+	`panel`	TEXT NOT NULL,
+	`userComment`	TEXT,
+	PRIMARY KEY(`userCommentID`),
+	FOREIGN KEY(`variantAnnotation`) REFERENCES `VariantAnnotation`(`variantAnnotationID`),
+	FOREIGN KEY(`panel`) REFERENCES `Panel`(`panelID`)
+);"""
 
 db_cur.execute(create_run_table)
 db_cur.execute(create_sample_table)
@@ -171,6 +181,7 @@ db_cur.execute(create_variant_table)
 db_cur.execute(create_variantannotation_table)
 db_cur.execute(create_analysis_table)
 db_cur.execute(create_variantmetrics_table)
+db_cur.execute(create_usercomment_table)
 
 db_con.commit()
 db_con.close()

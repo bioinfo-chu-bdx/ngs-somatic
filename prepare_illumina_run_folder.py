@@ -43,32 +43,10 @@ with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 
 ngs_folder = global_param['ngs_results_folder']
 
-#### TODO ####
-# A FAIRE DANS UN AUTRE SCRIPT, AVEC SYSTEMD :
-# trouver comment detecter que nouveau run apparait
-# pour savoir si nouveau, utiliser la BDD SQL voir si deja dedans?
-# ensuite, savoir quand nouveau run est termine : -> fichier "CopyComplete.txt" apparait marque le top depart
-
 sample_sheet = '%s/SampleSheet.csv' % options.illumina_folder
 if not os.path.isfile(sample_sheet):
 	print "ERROR : No SampleSheet found, aborting"
 	exit()
-
-# BCL2FASTQ
-print "- BCL2FASTQ"
-cmd = subprocess.Popen(['/usr/local/bcl2fastq2-v2.2.x/./bin/bcl2fastq',
-'--barcode-mismatches','1',
-'--mask-short-adapter-reads','0',
-'--use-bases-mask','Y150,I8,Y10,Y150',
-'-r','2',
-'-w','2',
-'-p','14',
-'-R',options.illumina_folder,
-'--no-lane-splitting'
-],
-stdout=open('%s/run_bcl2fastq_illumina.stdout.txt' % options.illumina_folder,'w'),
-stderr=open('%s/run_bcl2fastq_illumina.stderr.txt' % options.illumina_folder,'w'))
-cmd.communicate()
 
 # # PARSE SAMPLE SHEET
 print "- PARSING SAMPLESHEET"
@@ -105,8 +83,36 @@ for line in ss_reader:
 		samples[sample_id]['sample_number'] = 'S%s' % number
 		number+=1
 
-# # CREATE OUTPUT FOLDER 
-# print "- CREATING RUN FOLDER"
+# BCL2FASTQ
+print "- BCL2FASTQ"
+if run_project == 'FusionPlex_CTL':
+	bases_mask = 'Y151,I8,I8,Y151'
+	print "\t - run FusionPlex_CTL, using bases_mask Y151,I8,I8,Y151"
+else:
+	bases_mask = 'Y150,I8,Y10,Y150'
+	print "\t - run Capture, using bases_mask Y150,I8,Y10,Y150"
+cmd = subprocess.Popen(['/usr/local/bcl2fastq2-v2.2.x/./bin/bcl2fastq',
+'--barcode-mismatches','1',
+'--mask-short-adapter-reads','0',
+'-R',options.illumina_folder,
+'-r','2', # --loading-threads  : Number of threads to load BCL data. 
+'-w','2', # --writing-threads : Number of threads to write FASTQ data. This number must be lower than number of samples
+'-p','24', # --processing-threads : Number of threads to process demultiplexing data.
+'--use-bases-mask',bases_mask,
+'--no-lane-splitting'
+],
+stdout=open('%s/run_bcl2fastq_illumina.stdout.txt' % options.illumina_folder,'w'),
+stderr=open('%s/run_bcl2fastq_illumina.stderr.txt' % options.illumina_folder,'w'))
+cmd.communicate()
+# '--use-bases-mask','Y150,I8,Y10,Y150',
+# When threading is supported, the software uses the follow defaults to manage threads for processing:
+#  Four threads for reading the data.
+#  Four threads for writing the data.
+#  Twenty percent of threads for demultiplexing data.
+#  One hundred percent of threads for processing demultiplexed data
+
+# CREATE OUTPUT FOLDER 
+print "- CREATING RUN FOLDER"
 output_location = '%s/%s' % (ngs_folder,run_project)
 if not os.path.exists(output_location):
 	subprocess.call(['mkdir',output_location])
@@ -123,18 +129,23 @@ subprocess.call(['mkdir',run_folder])
 
 # CREATE PATIENT FOLDERS & TRANSFER FASTQ
 print "- CREATING PATIENT FOLDERS & TRANSFER FASTQ"
-for sample in samples.keys():
-	print "\t - %s" % (sample)
-	sample_folder = '%s/%s' % (run_folder,sample)
-	if not os.path.exists(sample_folder):
-		subprocess.call(['mkdir', sample_folder])
-	# find all sample fastqs
-	# sample_fastqs = glob.glob('%s/Data/Intensities/BaseCalls/%s/%s*.fastq.gz' % (options.illumina_folder,samples[sample_id]['panel'],sample))
-	sample_fastqs = glob.glob('%s/Data/Intensities/BaseCalls/%s*.fastq.gz' % (options.illumina_folder,sample))
-	for fastq in sample_fastqs:
-		if fastq.startswith('Undetermined_S0'):
-			sample_fastqs.remove(fastq)
-			continue
+if run_project == 'FusionPlex_CTL':
+	fastqs = glob.glob('%s/Data/Intensities/BaseCalls/*.fastq.gz' % options.illumina_folder)
+	for fastq in fastqs:
+		subprocess.call(['mv', fastq, run_folder])
+else:
+	for sample in samples.keys():
+		print "\t - %s" % (sample)
+		sample_folder = '%s/%s' % (run_folder,sample)
+		if not os.path.exists(sample_folder):
+			subprocess.call(['mkdir', sample_folder])
+		# find all sample fastqs
+		# sample_fastqs = glob.glob('%s/Data/Intensities/BaseCalls/%s/%s*.fastq.gz' % (options.illumina_folder,samples[sample_id]['panel'],sample)) # SI project dans DATA
+		sample_fastqs = glob.glob('%s/Data/Intensities/BaseCalls/%s*.fastq.gz' % (options.illumina_folder,sample))
+		for fastq in sample_fastqs:
+			if fastq.startswith('Undetermined_S0'):
+				sample_fastqs.remove(fastq)
+				continue
 		print "\t\t - %s found" % (os.path.basename(fastq))
 		subprocess.call(['mv', fastq, sample_folder])
 

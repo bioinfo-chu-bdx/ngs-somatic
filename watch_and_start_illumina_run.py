@@ -77,6 +77,11 @@ for folder in illumina_folders:
 			output_location = '%s/%s/%s' % (ngs_folder,run_project,sub_project)
 		run_folder = '%s/%s' % (output_location,experiment_name)
 
+		if run_project == 'FusionPlex_CTL':
+			completed_runs[folder] = 'completed (only FastQ for Archer)'
+			update_completed_runs_list(completed_run_list_path,completed_runs)
+			exit()
+
 		print "[%s] - launching run_analysis.py ..." % time.strftime("%Y/%m/%d]  [%H:%M")
 		completed_runs[folder] = 'run_analysis.py in progress...'
 		update_completed_runs_list(completed_run_list_path,completed_runs)

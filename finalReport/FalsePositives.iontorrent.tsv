@@ -1,0 +1,498 @@
+NM_004304	c.3835A>G	Faux positif connu	ion-torrent-panels
+NM_004304	c.3772A>T	Faux positif connu	ion-torrent-panels
+NM_004304	c.3705T>G	Faux positif connu	ion-torrent-panels
+NM_004304	c.3652C>T	Faux positif connu	ion-torrent-panels
+NM_004304	c.3626dupG	Faux positif connu	ion-torrent-panels
+NM_000142	c.784A>G	Faux positif connu	ion-torrent-panels
+NM_000142	c.833A>T	Faux positif connu	ion-torrent-panels
+NM_000142	c.1088T>A	Faux positif connu	ion-torrent-panels
+NM_000142	c.1095G>A	Faux positif connu	ion-torrent-panels
+NM_000142	c.1177G>A	Faux positif connu	ion-torrent-panels
+NM_000142	c.1210A>G	Faux positif connu	ion-torrent-panels
+NM_000142	c.1917C>T	Faux positif connu	ion-torrent-panels
+NM_000142	c.1943A>C	Faux positif connu	ion-torrent-panels
+NM_000142	c.1949A>G	Faux positif connu	ion-torrent-panels
+NM_000222	c.1664T>C	Faux positif connu	ion-torrent-panels
+NM_000222	c.1917T>G	Faux positif connu	ion-torrent-panels
+NM_000222	c.1947T>C	Faux positif connu	ion-torrent-panels
+NM_000222	c.1919_1920GG	Faux positif connu	ion-torrent-panels
+NM_005228	c.2096_2100GAAGG	Faux positif connu	ion-torrent-panels
+NM_005228	c.2252_2264TATCTCCGAAAG	Faux positif connu	ion-torrent-panels
+NM_005228	c.2325dupC	Faux positif connu	ion-torrent-panels
+NM_001127500	c.3622A>C	Faux positif connu	ion-torrent-panels
+NM_001127500	c.3915_3917GGG	Faux positif connu	ion-torrent-panels
+NM_005343	c.440A>T	Faux positif connu	ion-torrent-panels
+NM_005343	c.244_248AGAGA	Faux positif connu	ion-torrent-panels
+NM_004448	c.2447_2451GCTG	Faux positif connu	ion-torrent-panels
+NM_004448	c.2469G>C	Faux positif connu	ion-torrent-panels
+NM_002524	c.427G>A	Faux positif <5% (2M), sanger N	ion-torrent-panels
+NM_004985	c.85G>A	Faux positif <5% (1P,1M), sanger N	ion-torrent-panels
+NM_004985	c.91G>A	Faux positif (3P, 1M)	ion-torrent-panels
+NM_033360	c.97G>A	Faux positif <5% (2P), sanger N	ion-torrent-panels
+NM_033360	c.127C>T	Faux positif isole (1C)	ion-torrent-panels
+NM_004448	c.2359G>A	Faux positif <5%, (2P), sanger N	ion-torrent-panels
+NM_004448	c.2448_2461delinsTGGCGTCCAGC	Faux positif (33P,3C,6M)	ion-torrent-panels
+NM_004448	c.2448_2451delinsT	Faux positif  <5% (1P,1C) sanger N	ion-torrent-panels
+NM_004448	c.2481G>A	Faux positif isole <5% (1P), sanger N	ion-torrent-panels
+NM_006218	c.3165G>A	Faux positif isole <5% (1P, 1C), sanger N	ion-torrent-panels
+NM_000222	c.1946A>T	Faux positif (40P,5C,7M)	ion-torrent-panels
+NM_000222	c.2475dup	Faux positif (1P,2M)	ion-torrent-panels
+NM_005228	c.2137A>G	Faux positif <5%, cas isole (1P), sanger N	ion-torrent-panels
+NM_005228	c.2140A>G	Faux positif <5% (2P dont 1maxwell)	ion-torrent-panels
+NM_005228	c.2272G>A	Faux positif <5% cas isole (1P)	ion-torrent-panels
+NM_005228	c.2437T>C	Faux positif <5% (15P,5C,3M)	ion-torrent-panels
+NM_005228	c.2568del	Faux positif (32P,8C,5M)	ion-torrent-panels
+NM_001127500	c.1063G>A	Polymorphisme rare	ion-torrent-panels
+NM_001127500	c.1124A>G	Polymorphisme	ion-torrent-panels
+NM_001127500	c.2962C>T	Polymorphisme	ion-torrent-panels
+NM_001127500	c.3029C>T	Polymorphisme	ion-torrent-panels
+NM_001127500	c.3271C>T	Polymorphisme	ion-torrent-panels
+NM_001127500	c.3275G>A	Polymorphisme	ion-torrent-panels
+NM_001127500	c.467C>T	Polymorphisme	ion-torrent-panels
+LRG_662t1	c.2942-54_2942-53dup	Polymorphisme	ion-torrent-panels
+NM_001127500	c.2942-54_2942-53dup	Polymorphisme	ion-torrent-panels
+NM_033360	c.392A>T	Faux positif connu	ion-torrent-panels
+NM_001127500	c.1085T>C	Polymorphisme	ion-torrent-panels
+NM_003016	c.142_144AT	ATTENTION probable erreur d'homopolymere, la vraie mutation devrait etre c.144C>T	ion-torrent-panels
+NM_005896	c.315_318TAC	Faux positif cause par le SNP G105	ion-torrent-panels
+NM_003016	c.247delC	False positive recurrent (misalignment)	ion-torrent-panels
+NM_001127208	c.4181del	False positive recurrent (misalignment)	ion-torrent-panels
+NM_005188	c.1152_1157delinsATGTACTG	False positive recurrent (misalignment)	ion-torrent-panels
+NM_002168	c.441_442insG	False positive recurrent (misalignment)	ion-torrent-panels
+NM_000546	c.215C>G	Polymorphisme	ion-torrent-panels
+NM_004448	c.2425C>T	Faux positif	ion-torrent-panels
+NM_001127500	c.2942-55_2942-54insCT	Polymorphisme (duplication)	ion-torrent-panels
+NM_001127500	c.2942-54_2942-53insCT	Polymorphisme (duplication)	ion-torrent-panels
+NM_005188	c.1380_1382del	False positive recurrent	ion-torrent-panels
+NM_015338	c.1874G>A	Polymorphisme	ion-torrent-panels
+NM_015338	c.1965C>T	Polymorphisme	ion-torrent-panels
+NM_015338	c.2250C>T	Polymorphisme	ion-torrent-panels
+NM_015338	c.2251G>A	Polymorphisme	ion-torrent-panels
+NM_015338	c.2348C>T	Polymorphisme	ion-torrent-panels
+NM_015338	c.2419G>A	Polymorphisme	ion-torrent-panels
+NM_015338	c.2513A>G	Polymorphisme	ion-torrent-panels
+NM_015338	c.2985C>T	Polymorphisme	ion-torrent-panels
+NM_015338	c.3117A>G	Polymorphisme	ion-torrent-panels
+NM_015338	c.3306G>T	Polymorphisme	ion-torrent-panels
+NM_015338	c.3379G>A	Polymorphisme	ion-torrent-panels
+NM_015338	c.3513G>A	Polymorphisme	ion-torrent-panels
+NM_015338	c.3540T>G	Polymorphisme	ion-torrent-panels
+NM_015338	c.3745A>G	Polymorphisme	ion-torrent-panels
+NM_015338	c.3759T>C	Polymorphisme	ion-torrent-panels
+NM_015338	c.3973C>T	Polymorphisme	ion-torrent-panels
+NM_015338	c.4072C>G	Polymorphisme	ion-torrent-panels
+NM_015338	c.4098C>T	Polymorphisme	ion-torrent-panels
+NM_015338	c.4189G>A	Polymorphisme	ion-torrent-panels
+NM_015338	c.4344A>G	Polymorphisme	ion-torrent-panels
+NM_004364	c.402G>A	Polymorphisme	ion-torrent-panels
+NM_004364	c.690G>T	Polymorphisme	ion-torrent-panels
+NM_004364	c.584_589dup	Polymorphisme	ion-torrent-panels
+NM_004364	c.573C>T	Polymorphisme	ion-torrent-panels
+NM_175629	c.27C>T	Polymorphisme	ion-torrent-panels
+NM_175629	c.89A>C	Polymorphisme	ion-torrent-panels
+NM_175629	c.447G>A	Polymorphisme	ion-torrent-panels
+NM_175629	c.801C>T	Polymorphisme	ion-torrent-panels
+NM_175629	c.1140G>A	Polymorphisme	ion-torrent-panels
+NM_175629	c.1266G>A	Polymorphisme	ion-torrent-panels
+NM_175629	c.1344C>T	Polymorphisme	ion-torrent-panels
+NM_175629	c.1502A>G	Polymorphisme	ion-torrent-panels
+NM_175629	c.2151C>T	Polymorphisme	ion-torrent-panels
+NM_175629	c.2386G>T	Polymorphisme	ion-torrent-panels
+NM_001987	c.57T>C	Polymorphisme	ion-torrent-panels
+NM_001987	c.77G>C	Polymorphisme	ion-torrent-panels
+NM_001987	c.195C>T	Polymorphisme	ion-torrent-panels
+NM_001987	c.258G>A	Polymorphisme	ion-torrent-panels
+NM_001987	c.573G>T	Polymorphisme	ion-torrent-panels
+NM_001987	c.602T>G	Polymorphisme	ion-torrent-panels
+NM_001987	c.1075C>A	Polymorphisme	ion-torrent-panels
+NM_001987	c.1152+5A>G	Polymorphisme	ion-torrent-panels
+NM_004456	c.396T>C	Polymorphisme	ion-torrent-panels
+NM_004456	c.474C>T	Polymorphisme	ion-torrent-panels
+NM_004456	c.553G>T	Polymorphisme	ion-torrent-panels
+NM_004456	c.1458C>T	Polymorphisme	ion-torrent-panels
+NM_004456	c.1459G>A	Polymorphisme	ion-torrent-panels
+NM_004456	c.1731G>A	Polymorphisme	ion-torrent-panels
+NM_004456	c.1884C>G	Polymorphisme	ion-torrent-panels
+NM_004119	c.1926C>T	Polymorphisme	ion-torrent-panels
+NM_004119	c.2525A>G	Polymorphisme	ion-torrent-panels
+NM_005896	c.123-4C>T	Polymorphisme	ion-torrent-panels
+NM_005896	c.315C>T	Polymorphisme	ion-torrent-panels
+NM_005896	c.366T>C	Polymorphisme	ion-torrent-panels
+NM_000222	c.1621A>C	Polymorphisme	ion-torrent-panels
+NM_000222	c.1638A>G	Polymorphisme	ion-torrent-panels
+NM_000222	c.2394C>T	Polymorphisme	ion-torrent-panels
+NM_000222	c.1383A>G	Polymorphisme	ion-torrent-panels
+NM_033360	c.198A>G	Polymorphisme	ion-torrent-panels
+NM_000314	c.720C>T	Polymorphisme	ion-torrent-panels
+NM_000314	c.756T>C	Polymorphisme	ion-torrent-panels
+NM_002834	c.255C>T	Polymorphisme	ion-torrent-panels
+NM_003016	c.75C>T	Polymorphisme	ion-torrent-panels
+NM_003016	c.144C>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.100C>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.86C>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.521C>A	Polymorphisme	ion-torrent-panels
+NM_001127208	c.652G>A	Polymorphisme	ion-torrent-panels
+NM_001127208	c.1064G>A	Polymorphisme	ion-torrent-panels
+NM_001127208	c.1088C>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.2604T>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.2238A>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.2599T>C	Polymorphisme	ion-torrent-panels
+NM_001127208	c.2941A>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.3090G>A	Polymorphisme	ion-torrent-panels
+NM_001127208	c.3117G>A	Polymorphisme	ion-torrent-panels
+NM_001127208	c.3251A>C	Polymorphisme	ion-torrent-panels
+NM_001127208	c.3735C>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.3813C>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.4140T>C	Polymorphisme	ion-torrent-panels
+NM_001127208	c.4547G>A	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5103G>A	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5152G>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5162T>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5167C>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5284A>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5333A>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5602C>T	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5618T>C	Polymorphisme	ion-torrent-panels
+NM_000546	c.108G>A	Polymorphisme	ion-torrent-panels
+NM_000546	c.639A>G	Polymorphisme	ion-torrent-panels
+NM_000546	c.935C>G	Polymorphisme	ion-torrent-panels
+NM_000546	c.322G>A	Polymorphisme	ion-torrent-panels
+NM_001198551	c.471A>G	Polymorphisme	ion-torrent-panels
+NM_001754	c.144C>T	Polymorphisme	ion-torrent-panels
+NM_001754	c.167T>C	Polymorphisme	ion-torrent-panels
+NM_001754	c.654C>T	Polymorphisme	ion-torrent-panels
+NM_001754	c.1269C>T	Polymorphisme	ion-torrent-panels
+NM_001754	c.1389C>G	Polymorphisme	ion-torrent-panels
+NM_001754	c.99C>T	Polymorphisme	ion-torrent-panels
+NM_001754	c.438C>T	Polymorphisme	ion-torrent-panels
+NM_003820	c.50A>G	Polymorphisme	ion-torrent-panels
+NM_003820	c.721G>A	Polymorphisme	ion-torrent-panels
+NM_002167	c.313A>G	Polymorphisme	ion-torrent-panels
+NM_000246	c.520A>G	Polymorphisme	ion-torrent-panels
+NM_000246	c.1499G>C	Polymorphisme	ion-torrent-panels
+NM_000246	c.2699A>G	Polymorphisme	ion-torrent-panels
+NM_001429	c.2989A>G	Polymorphisme	ion-torrent-panels
+NM_001760	c.775T>G	Polymorphisme	ion-torrent-panels
+NM_001145785	c.986del	Polymorphisme	ion-torrent-panels
+NM_001198	c.220G>A	Polymorphisme	ion-torrent-panels
+NM_001198	c.609C>G	Polymorphisme	ion-torrent-panels
+NM_001243186	c.142C>G	Polymorphisme	ion-torrent-panels
+NM_006015	c.3999_4001del	Artefact	ion-torrent-panels
+NM_006015	c.521_522delinsAT	Artefact	ion-torrent-panels
+NM_002460	c.1240T>C	Artefact	ion-torrent-panels
+NM_002467	c.1285A>C	Artefact	ion-torrent-panels
+NM_006572	c.243_244del	Artefact	ion-torrent-panels
+NM_006015	c.672_676delinsCGCCCGC	Artefact	ion-torrent-panels
+NM_002468	c.502+2T>C	Artefact	ion-torrent-panels
+NM_006015	c.3960_3961delinsGT	Artefact	ion-torrent-panels
+NM_175629	c.1667+2T>G	Artefact	ion-torrent-panels
+NM_001324281	c.1864_1866del	Artefact	ion-torrent-panels
+NM_170606	c.2958_2963delinsGTACTT	Polymorphisme	ion-torrent-panels
+NM_170606	c.2591A>G	Polymorphisme	ion-torrent-panels
+NM_170606	c.2578C>T	Artefact	ion-torrent-panels
+NM_170606	c.2573G>T	Artefact	ion-torrent-panels
+NM_170606	c.2512G>A	Polymorphisme	ion-torrent-panels
+NM_170606	c.2447dup	Artefact	ion-torrent-panels
+NM_170606	c.946A>T	Polymorphisme	ion-torrent-panels
+NM_170606	c.925C>T	Artefact	ion-torrent-panels
+NM_170606	c.871C>T	Artefact	ion-torrent-panels
+NM_015048	c.3160del	Artefact	ion-torrent-panels
+NM_015048	c.3180_3182del	Artefact	ion-torrent-panels
+NM_015048	c.4021G>C	Polymorphisme	ion-torrent-panels
+NM_001080424	c.1396T>C	Artefact	ion-torrent-panels
+NM_002660	c.835A>G	Polymorphisme	ion-torrent-panels
+NM_002660	c.2438T>C	Polymorphisme	ion-torrent-panels
+NM_006015	c.60_62del	Artefact	ion-torrent-panels
+NM_006015	c.671dup	Artefact	ion-torrent-panels
+NM_170606	c.2917A>G	Artefact	ion-torrent-panels
+NM_015048	c.1100C>T	Polymorphisme	ion-torrent-panels
+NM_015048	c.2176C>A	Artefact	ion-torrent-panels
+NM_015048	c.4613C>T	Artefact	ion-torrent-panels
+NM_001080424	c.2280_2285del	Polymorphisme	ion-torrent-panels
+NM_001080424	c.2277_2285del	Artefact	ion-torrent-panels
+NM_004104	c.5581_5584delinsGCCAGGC	Artefact	ion-torrent-panels
+NM_006015	c.3962del	Artefact	ion-torrent-panels
+NM_001324281	c.3375G>A	Artefact	ion-torrent-panels
+NM_170606	c.6296_6298delinsCTTAC	Artefact	ion-torrent-panels
+NM_170606	c.851G>A	Artefact	ion-torrent-panels
+NM_015048	c.1346G>A	Artefact	ion-torrent-panels
+NM_015048	c.1612_1614del	Artefact	ion-torrent-panels
+NM_015048	c.2192dup	Artefact	ion-torrent-panels
+NM_015048	c.33_35del	Artefact	ion-torrent-panels
+NM_170606	c.7443-13_7459delinsATTTTAAATGATTTCGAGTTCAGGA	Artefact	ion-torrent-panels
+NM_170606	c.7443-11_7444delinsAAAAGA	Artefact	ion-torrent-panels
+NM_170606	c.4052_4053delinsAGGA	Artefact	ion-torrent-panels
+NM_015048	c.4540dup	Artefact	ion-torrent-panels
+NM_170606	c.5349_5351del	Artefact	ion-torrent-panels
+NM_170606	c.2968A>G	Polymorphisme	ion-torrent-panels
+NM_015048	c.-106delinsGTG	Artefact	ion-torrent-panels
+NM_015048	c.1100C>T	Polymorphisme	ion-torrent-panels
+NM_006015	c.126_128del	Artefact	ion-torrent-panels
+NM_001080424	c.1403C>T	Artefact/pol?	ion-torrent-panels
+NM_015048	c.1612_1614del	Artefact	ion-torrent-panels
+NM_001324281	c.1864_1866del	Artefact	ion-torrent-panels
+NM_001080424	c.2277_2285del	Artefact/pol?	ion-torrent-panels
+NM_015048	c.2282G>T	Artefact	ion-torrent-panels
+NM_015048	c.2284_2285delinsGG	Artefact	ion-torrent-panels
+NM_006139	c.230A>C	Artefact	ion-torrent-panels
+NM_002660	c.2438T>C	Polymorphisme	ion-torrent-panels
+NM_170606	c.2512G>A	Polymorphisme	ion-torrent-panels
+NM_170606	c.2573_2578delinsTGTCCT	pol/Artefact	ion-torrent-panels
+NM_170606	c.2591A>G	Polymorphisme	ion-torrent-panels
+NM_170606	c.2645_2646delinsCA	Artefact	ion-torrent-panels
+NM_001080424	c.2685_2695delinsACCCAACCG	Artefact	ion-torrent-panels
+NM_170606	c.2958_2963delinsGTACTT	Polymorphisme	ion-torrent-panels
+NM_170606	c.2968A>G	Polymorphisme/Artefact	ion-torrent-panels
+NM_001127208	c.3251A>C	Polymorphisme	ion-torrent-panels
+NM_015048	c.4021G>C	Polymorphisme	ion-torrent-panels
+NM_170606	c.4052_4053delinsAGGA	Artefact	ion-torrent-panels
+NM_001127208	c.5162T>G	Polymorphisme	ion-torrent-panels
+NM_001127208	c.5284A>G	Polymorphisme	ion-torrent-panels
+NM_001080424	c.626_627insC	Artefact	ion-torrent-panels
+NM_170606	c.6296_6298delinsCTTAC	Artefact	ion-torrent-panels
+NM_015048	c.-63_-61delGCC	Artefact	ion-torrent-panels
+NM_006015	c.74A>G	Artefact	ion-torrent-panels
+NM_002660	c.835A>G	Polymorphisme	ion-torrent-panels
+NM_170606	c.925C>T	Artefact	ion-torrent-panels
+NM_170606	c.946A>T	Polymorphisme	ion-torrent-panels
+NM_000455	c.597+32delC	Artefact	ion-torrent-panels
+NM_000455	c.597+7_598-35delinsGACGTGGGCTGACGGGGGGCCCCTGGGCGCCCCTCCC	Artefact	ion-torrent-panels
+NM_000455	c.465-51T>C	Polymorphisme	ion-torrent-panels
+NM_000455	c.158_164delinsGACCTGCTG	Faux positif	ion-torrent-panels
+NM_001127500	c.3162_3163insC	Artefact	ion-torrent-panels
+NM_005157	c.1424-1_1424insACTTTGATAACCGTGAAGAAAGAACAAGATAGAAG	Attention frequence imprecise (grande insertion en bout d'amplicon difficile a detecter). Frequence attendue 50% / 100% (polymporphisme non pathogene).	ion-torrent-panels
+NM_015338	c.1874G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.1965C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2250C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2251G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2348C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2419G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2474A>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2513A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2912A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2957A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2985C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3117A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3306G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3379G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3513G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3540T>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3745A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3759T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.3973C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.4072C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.4098C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.4189G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.4344A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.409G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.626C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.1260T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.1650C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.1692A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.1791C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.3669G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.625G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.783G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.1699C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.2912C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.3158A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.3189C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.3396C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.4434C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_004364	c.396C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_004364	c.402G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_004364	c.690G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_004364	c.584_589dup	Polymorphisme non pathogene	ion-torrent-panels
+NM_004364	c.573C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.27C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.89A>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.447G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.801C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.1140G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.1266G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.1344C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.1502A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.2151C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.2386G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.2723A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_016222	c.1015C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_016222	c.1200C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_016222	c.1299G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_018638	c.851A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_018638	c.864A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.57T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.77G>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.195C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.258G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.573G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.602T>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.1075C>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.1152+5A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.396T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.474C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.553G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.1458C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.1459G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.1731G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.1884C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_004119	c.1926C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_004119	c.2525A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.15C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.481C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.490G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.501C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.564G>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1233G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_005896	c.123-4C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_005896	c.315C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_005896	c.366T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_004972	c.1710C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_000222	c.1621A>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_000222	c.1638A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_000222	c.2394C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_000222	c.1383A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_033360	c.198A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_033360	c.264A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001015877	c.386G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_003620	c.1486A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_000314	c.720C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_000314	c.756T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_002834	c.255C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_006265	c.1131T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_006265	c.1440T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_012433	c.2104C>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_005445	c.255A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_005445	c.1365T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_005445	c.2007T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_005445	c.2329T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_005445	c.2982C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_005445	c.3039A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_003016	c.75C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_003016	c.144C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.100C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.86C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.521C>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.652G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.1064G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.1088C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.1285G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.2238A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.2599T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.2604T>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.2941A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.3090G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.3117G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.3251A>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.3735C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.3813C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.3818G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.4075C>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.4140T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.4547G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5103G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5152G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5162T>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5167C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5284A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5333A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5602C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5618T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_000546	c.108G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_000546	c.322G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_000546	c.537T>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_000546	c.639A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_000546	c.935C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.144C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.167T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.648C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.654C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.1269C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.1389C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.99C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.426C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.438C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001198551	c.471A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_005089	c.269A>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_005089	c.930G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_005089	c.864C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_005089	c.909C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_005089	c.1338_1343dup	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.4936dup	Faux-positif probable (homopol 6G)	ion-torrent-panels
+NM_001123385	c.4927_4928insT	Faux-positif probable	ion-torrent-panels
+NM_015338	c.1751delinsACTC	Faux-positif recurrent	ion-torrent-panels
+NM_015338	c.1921_1922insG	Faux-positif recurrent	ion-torrent-panels
+NM_015338	c.2474A>C	Faux-positif recurrent (fin de read --> sanger invisible)	ion-torrent-panels
+NM_001123385	c.4917_4918insC	Faux-positif recurrent + zone stretch	ion-torrent-panels
+NM_001123385	c.1452A>G	Faux-positif recurrent + zone stretch	ion-torrent-panels
+NM_021946	c.1254_1263delinsCTCG	Faux-positif recurrent	ion-torrent-panels
+NM_021946	c.3739dup	Faux-positif recurrent	ion-torrent-panels
+NM_021946	c.1069_1075delinsCATGCCAC	Faux-positif recurrent + zone stretch	ion-torrent-panels
+NM_175629	c.966_967insC	Faux-positif recurrent	ion-torrent-panels
+NM_032638	c.1227_1228del	Faux-positif recurrent	ion-torrent-panels
+NM_032638	c.1018-708_1018-707insG	Faux-positif recurrent stretch G	ion-torrent-panels
+NM_032638	c.1018-695delG	Faux-positif recurrent stretch G	ion-torrent-panels
+NM_001042749	c.136_138delinsAGGCA	Faux-positif recurrent stretch A	ion-torrent-panels
+NM_001127208	c.3014dup	Faux-positif recurrent	ion-torrent-panels
+NM_000455	c.842dup	Faux-positif recurrent stretch C	ion-torrent-panels
+NM_000455	c.841_842dup	Faux-positif recurrent stretch G	ion-torrent-panels
+NM_000455	c.840_842dup	Faux-positif recurrent stretch G	ion-torrent-panels
+NM_000455	c.766_774delinsCGAAGGGGACG	Faux-positif probable	ion-torrent-panels
+NM_000455	c.768del	Faux-positif recurrent	ion-torrent-panels
+NM_002467	c.77A>G	Polymorphisme	ion-torrent-panels
+NM_021946	c.1254_1263delinsCTCGACGAGTCGTTGCT	Faux-positif	ion-torrent-panels
+NM_021946	c.1254_1263delinsCTCACGAGTCGTTGCT	Faux-positif	ion-torrent-panels
+NM_021946	c.1254_1263delinsCTCACGAGTGTGCT	Faux-positif	ion-torrent-panels
+NM_004456	c.553G>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-19C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-226T>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-589G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-745C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.380G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_004456	c.972T>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_002168	c.429G>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.4488A>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.1779C>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001987	c.602T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-744G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1017+814G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-858C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-194C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_003016	c.170T>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.5449C>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_006265	c.819dup	Faux-positif	ion-torrent-panels
+NM_016222	c.27_28insGTAG	Erreur nomenclature probable : vraie = c.27+5_27+6insTAGG	ion-torrent-panels
+NM_012433	c.2359del	Faux-positif recurrent	ion-torrent-panels
+NM_001127500	c.3410G>C	Polymorphisme	ion-torrent-panels
+NM_001127208	c.4513G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.2771A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_006912	c.334C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1017+215C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.413A>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1017+191C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_006265	c.1242T>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001042749	c.2082C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.1018-360C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.1669G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.2064C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.4909C>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_001754	c.984A>G	Polymorphisme non pathogene	ion-torrent-panels
+NM_006306	c.1698G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_015338	c.2395G>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_002520	c.860_863dup	COSM17559/rs587776806	ion-torrent-panels
+NM_004119	c.2508_2510del	COSM797	ion-torrent-panels
+NM_032638	c.1018-715_1018-714insG	Faux-positif	ion-torrent-panels
+NM_175629	c.1413T>C	Polymorphisme non pathogene	ion-torrent-panels
+NM_021946	c.4011C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_032638	c.-11C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_016222	c.3G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001025203	c.369G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_003620	c.1435G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_002049	c.196G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.759C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001123385	c.174G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_175629	c.2172C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_022552	c.801C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_022552	c.1266G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_022552	c.27C>T	Polymorphisme non pathogene	ion-torrent-panels
+NM_001127208	c.368G>A	Polymorphisme non pathogene	ion-torrent-panels
+NM_001163213	c.1156T>C	Polymorphisme	ion-torrent-panels

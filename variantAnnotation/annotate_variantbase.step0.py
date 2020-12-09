@@ -9,6 +9,7 @@ import hgvs.exceptions
 import hgvs.validator
 import hgvs.parser
 import sqlite3
+import numpy
 import json
 import time
 import os
@@ -71,7 +72,7 @@ INNER JOIN VariantAnnotation ON VariantAnnotation.variant = Variant.variantID
 WHERE hgvs = 'no'""")
 db_non_hgvs_vms = db_cur.fetchall()
 for db_non_hgvs_vm in db_non_hgvs_vms:
-	db_cur.execute("SELECT variant FROM VariantAnnotation WHERE variantAnnotationID=?" , db_non_hgvs_vm['hgvsInfo'])
+	db_cur.execute("SELECT variant FROM VariantAnnotation WHERE variantAnnotationID=?" , (db_non_hgvs_vm['hgvsInfo'],))
 	db_hgvs = db_cur.fetchone()
 	print "- [HGVS] : Changing variantMetrics %s variant : %s -> %s" % (db_non_hgvs_vm['variantMetricsID'],db_non_hgvs_vm['variantID'],db_hgvs['variant'])
 	db_cur.execute("UPDATE VariantMetrics SET variant = ? WHERE VariantMetricsID = ?" , (db_hgvs['variant'],db_non_hgvs_vm['variantMetricsID']))
@@ -255,6 +256,37 @@ for db_variant_annotation in db_variant_annotations:
 	p_pos = str(p).split(':')[-1]
 	print "\t- protein description : %s" % str(p)
 	db_cur.execute("UPDATE VariantAnnotation SET proteinDescription=? WHERE variantAnnotationID=?" , (p_pos,variantAnnotationID))
+
+# MERGE VARIANTMETRICS DUPLICATES (WITH SAME VARIANT) AFTER HGVS CORRECTION
+print "- Merge variantMetrics duplicates"
+db_cur.execute("SELECT analysis,variant, COUNT(*) c FROM VariantMetrics GROUP BY analysis,variant HAVING c > 1")
+db_vm_duplicates = db_cur.fetchall()
+for db_vm_dup in db_vm_duplicates:
+	db_cur.execute("SELECT * FROM VariantMetrics WHERE analysis='%s' and variant='%s'" % (db_vm_dup['analysis'],db_vm_dup['variant']))
+	db_vms_to_merge = db_cur.fetchall()
+	vmids = []
+	depths = []
+	aos = []
+	calls = []
+	for db_vm_to_merge in db_vms_to_merge:
+		vmids.append(db_vm_to_merge['variantMetricsID'])
+		depths.append(db_vm_to_merge['positionReadDepth'])
+		aos.append(db_vm_to_merge['variantReadDepth'])
+		if ' / ' in db_vm_to_merge['call']:
+			cc = db_vm_to_merge['call'].split(' / ')
+		else:
+			cc = db_vm_to_merge['call'].split('/')
+		for c in cc :
+			calls.append(c)
+	depth = int(numpy.round(numpy.mean(depths)))
+	ao = int(numpy.round(numpy.mean(aos)))
+	calls = list(set(calls))
+	call = '/'.join(calls)
+
+	# update de la premiere entree et delete des autres
+	db_cur.execute("UPDATE VariantMetrics SET positionReadDepth=%s, variantReadDepth=%s, call='%s' WHERE variantMetricsID='%s'" % (depth,ao,call,vmids[0]))
+	for vmid in vmids[1:]:
+		db_cur.execute("DELETE FROM VariantMetrics WHERE VariantMetricsID='%s'" % vmid)
 
 db_con.commit()
 db_con.close()

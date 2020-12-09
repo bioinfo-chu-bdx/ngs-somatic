@@ -107,11 +107,11 @@ annovar_reader = csv.DictReader(annovar_file,delimiter='\t')
 vep_file = open(options.vep_results,'r')
 vep_reader = csv.reader(vep_file,delimiter='\t')
 
-custom_false_positives = global_param['False_positives']
-custom_drug_sensitivity = global_param['SBT_sensitivity']
-custom_highlight = global_param['LAM_hotspot_highlight']
-custom_tp53_umd = global_param['TP53_UMD_variants_EU']
-custom_lymphome_controls = global_param['LymphomeT_controls']
+# custom_false_positives = global_param['False_positives']
+# custom_drug_sensitivity = global_param['SBT_sensitivity']
+# custom_highlight = global_param['LAM_hotspot_highlight']
+# custom_tp53_umd = global_param['TP53_UMD_variants_EU']
+# custom_lymphome_controls = global_param['LymphomeT_controls']
 
 annotation = {}
 
@@ -149,6 +149,7 @@ for line in annovar_reader:
 		annotation[variantAnnotationID]['proteinDescription'] = db_variant_annotation['proteinDescription'] # FROM STEP 0
 
 		annotation[variantAnnotationID]['commentaire'] = []
+		annotation[variantAnnotationID]['userComment'] = []
 		annotation[variantAnnotationID]['annoWarning'] = []
 		annotation[variantAnnotationID]['exon'] = None
 		annotation[variantAnnotationID]['vep_exon'] = None
@@ -195,9 +196,9 @@ for line in annovar_reader:
 			aachange = line['AAChange.refGeneWithVer'].split(',') # format GENE:NM:exon:c:p,
 			for item in aachange:
 				aadesc = item.split(':')
-				if annotation[variantAnnotationID]['transcript_without_version'] in aadesc[1]:
+				if annotation[variantAnnotationID]['transcript_without_version'] == aadesc[1].split('.')[0]:
 					transcript_found = True
-					if not annotation[variantAnnotationID]['transcript'] in aadesc[1]: # exact transcript version?
+					if annotation[variantAnnotationID]['transcript'] != aadesc[1]: # not exact transcript version?
 						annotation[variantAnnotationID]['annoWarning'].append("Annovar : transcript used is %s (instead of %s)" % (aadesc[1],annotation[variantAnnotationID]['transcript']))
 					annotation[variantAnnotationID]['region'] = line['Func.refGeneWithVer']
 					annotation[variantAnnotationID]['consequence'] = line['ExonicFunc.refGeneWithVer']
@@ -211,9 +212,9 @@ for line in annovar_reader:
 				cchange = line['GeneDetail.refGeneWithVer'].split(';') # format NM:exon:c;
 				for item in cchange:
 					cdesc = item.split(':')
-					if annotation[variantAnnotationID]['transcript_without_version'] in cdesc[0]:
+					if annotation[variantAnnotationID]['transcript_without_version'] == cdesc[0].split('.')[0]:
 						transcript_found = True
-						if not annotation[variantAnnotationID]['transcript'] in cdesc[0]: # not exact transcript version?
+						if annotation[variantAnnotationID]['transcript'] != cdesc[0]: # not exact transcript version?
 							annotation[variantAnnotationID]['annoWarning'].append("Annovar : transcript used is %s (instead of %s)" % (cdesc[0],annotation[variantAnnotationID]['transcript']))
 						annotation[variantAnnotationID]['region'] = line['Func.refGeneWithVer']
 						annotation[variantAnnotationID]['consequence'] = line['ExonicFunc.refGeneWithVer']
@@ -224,9 +225,9 @@ for line in annovar_reader:
 			cchange = line['GeneDetail.refGeneWithVer'].split(';')  # format NM:c;
 			for item in cchange:
 				cdesc = item.split(':') 
-				if annotation[variantAnnotationID]['transcript_without_version'] in cdesc[0]:
+				if annotation[variantAnnotationID]['transcript_without_version'] == cdesc[0].split('.')[0]:
 					transcript_found = True
-					if not annotation[variantAnnotationID]['transcript'] in cdesc[0]: # not exact transcript version?
+					if annotation[variantAnnotationID]['transcript'] != cdesc[0]: # not exact transcript version?
 						annotation[variantAnnotationID]['annoWarning'].append("Annovar : transcript used is %s (instead of %s)" % (cdesc[0],annotation[variantAnnotationID]['transcript']))
 					annotation[variantAnnotationID]['region'] = line['Func.refGeneWithVer']
 					annotation[variantAnnotationID]['consequence'] = line['ExonicFunc.refGeneWithVer']
@@ -622,92 +623,92 @@ for variantAnnotationID in annotation.keys():
 #############################
 
 # KNOWN FALSE-POSITIVES, DRUG SENSITIVITY, LAM HOTSPOT HIGHLIGHTS, TP53 UMD
-print "\n- [%s] adding custom annotations ..." % (time.strftime("%H:%M:%S"))
+# print "\n- [%s] adding custom annotations ..." % (time.strftime("%H:%M:%S"))
 
-custom_fp = []
-with open(custom_false_positives,'r') as fp:
-	for row in fp :
-		fp_row = row.replace('\n','').split(';')
-		custom_fp.append(fp_row)
+# custom_fp = []
+# with open(custom_false_positives,'r') as fp:
+	# for row in fp :
+		# fp_row = row.replace('\n','').split(';')
+		# custom_fp.append(fp_row)
 
-sensi = []
-sensitivity_xls = xlrd.open_workbook(custom_drug_sensitivity)
-sensitivity_sheet = sensitivity_xls.sheet_by_index(0)
-for row in range(sensitivity_sheet.nrows-1):
-	sensi.append((str(sensitivity_sheet.cell(row+1,5).value),str(sensitivity_sheet.cell(row+1,7).value),str(sensitivity_sheet.cell(row+1,8).value),str(sensitivity_sheet.cell(row+1,9).value))) # gene,c,p,sensi
+# sensi = []
+# sensitivity_xls = xlrd.open_workbook(custom_drug_sensitivity)
+# sensitivity_sheet = sensitivity_xls.sheet_by_index(0)
+# for row in range(sensitivity_sheet.nrows-1):
+	# sensi.append((str(sensitivity_sheet.cell(row+1,5).value),str(sensitivity_sheet.cell(row+1,7).value),str(sensitivity_sheet.cell(row+1,8).value),str(sensitivity_sheet.cell(row+1,9).value))) # gene,c,p,sensi
 
-custom_hl = []
-with open(custom_highlight,'r') as hl:
-	for row in hl:
-		hl_row = row.replace('\n','')
-		hl_row = hl_row.split(';')
-		custom_hl.append((hl_row[0].split('.')[0],hl_row[1])) # NM without version
+# custom_hl = []
+# with open(custom_highlight,'r') as hl:
+	# for row in hl:
+		# hl_row = row.replace('\n','')
+		# hl_row = hl_row.split(';')
+		# custom_hl.append((hl_row[0].split('.')[0],hl_row[1])) # NM without version
 
-custom_tu = []
-with open(custom_tp53_umd,'r') as tp53_umd:
-	tp53_umd.next()
-	for row in tp53_umd:
-		tp53_row = row.replace('\n','')
-		tp53_row = tp53_row.split('\t')
-		custom_tu.append((tp53_row[0],tp53_row[1],tp53_row[2],tp53_row[3]))
+# custom_tu = []
+# with open(custom_tp53_umd,'r') as tp53_umd:
+	# tp53_umd.next()
+	# for row in tp53_umd:
+		# tp53_row = row.replace('\n','')
+		# tp53_row = tp53_row.split('\t')
+		# custom_tu.append((tp53_row[0],tp53_row[1],tp53_row[2],tp53_row[3]))
 
-custom_lc = []
-with open(custom_lymphome_controls,'r') as lc:
-	for row in lc :
-		lc_row = row.replace('\n','').split('\t')
-		nb = len(lc_row[2].split(','))
-		string = "Found in normal dna (x%s)" % nb # "Found in %s controls (%s)" % (nb,lc_row[2])
-		lc_row[2] = string
-		custom_lc.append(lc_row)
+# custom_lc = []
+# with open(custom_lymphome_controls,'r') as lc:
+	# for row in lc :
+		# lc_row = row.replace('\n','').split('\t')
+		# nb = len(lc_row[2].split(','))
+		# string = "Found in normal dna (x%s)" % nb # "Found in %s controls (%s)" % (nb,lc_row[2])
+		# lc_row[2] = string
+		# custom_lc.append(lc_row)
 
-z=0
-for variantAnnotationID in annotation.keys():
-	z+=1
-	print "\r\t - %s/%s" % (z,len(annotation)),
-	# KNOWN FALSE-POSITIVES
-	for fp in custom_fp:
-		if (fp[0] == annotation[variantAnnotationID]['transcript_without_version']) and ((fp[1] == annotation[variantAnnotationID]['transcriptDescription']) or (fp[1] == annotation[variantAnnotationID]['annovar_transcriptDescription'])):
-			# annotation[variantAnnotationID]['commentaire'].append(fp[2])
-			annotation[variantAnnotationID]['commentaire'].insert(0,fp[2])
-			break
-	# DRUG SENSITIVITY
-	for s in sensi:
-		if s[2] not in ['','p.(=)','p.?','p.=']:
-			if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['proteinDescription']) == (s[0],s[2])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_proteinDescription']) == (s[0],s[2])) :
-				annotation[variantAnnotationID]['actionability'] = s[3]
-				break
-		if s[1] != '':
-			if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['transcriptDescription']) == (s[0],s[1])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_transcriptDescription']) == (s[0],s[1])):
-				annotation[variantAnnotationID]['actionability'] = s[3]
-				break
-	## cas particulier : splicing MET
-	if (annotation[variantAnnotationID]['gene'] == 'MET') and (annotation[variantAnnotationID]['region'] == 'intronic') and ((116411873 <= annotation[variantAnnotationID]['genomicStart'] <= 116411902) or (116412044 <= annotation[variantAnnotationID]['genomicStart'] <= 116412087)):
-		annotation[variantAnnotationID]['exon'] = 14
-		annotation[variantAnnotationID]['commentaire'].append('MET intron 13/14')
-		if annotation[variantAnnotationID]['actionability'] == None :
-			annotation[variantAnnotationID]['actionability'] = 'intron 13/14'
-	# LAM HOTSPOT HIGHLIGHTS
-	for hl in custom_hl:
-		if ((annotation[variantAnnotationID]['transcript_without_version'],annotation[variantAnnotationID]['transcriptDescription']) == hl) or ((annotation[variantAnnotationID]['transcript_without_version'],annotation[variantAnnotationID]['annovar_transcriptDescription']) == hl): # or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['transcriptDescription'],annotation[variantAnnotationID]['proteinDescription']) == hl) # necessite hgvs avant
-			annotation[variantAnnotationID]['highlight'] = 1
-			break
-	#TP53 UMD
-	for tu in custom_tu:
-		if tu[1] not in ['','p.(=)','p.?','p.=']:
-			if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['proteinDescription']) == ('TP53',tu[1])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_proteinDescription']) == ('TP53',tu[1])):
-				annotation[variantAnnotationID]['pathoUMD'] = tu[2]
-				annotation[variantAnnotationID]['commentUMD'] = tu[3]
-				break
-		if tu[0] not in ['','c.(=)','c.?','c.=']:
-			if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['transcriptDescription']) == ('TP53',tu[0])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_transcriptDescription']) == ('TP53',tu[0])):
-				annotation[variantAnnotationID]['pathoUMD'] = tu[2]
-				annotation[variantAnnotationID]['commentUMD'] = tu[3]
-				break
-	#LYMPHOME CONTROLS
-	for lc in custom_lc:
-		if (lc[0] == annotation[variantAnnotationID]['transcript_without_version']) and ((lc[1] == annotation[variantAnnotationID]['transcriptDescription']) or (lc[1] == annotation[variantAnnotationID]['annovar_transcriptDescription'])):
-			annotation[variantAnnotationID]['commentaire'].append(lc[2])
-			break
+# z=0
+# for variantAnnotationID in annotation.keys():
+	# z+=1
+	# print "\r\t - %s/%s" % (z,len(annotation)),
+	# # KNOWN FALSE-POSITIVES
+	# for fp in custom_fp:
+		# if (fp[0] == annotation[variantAnnotationID]['transcript_without_version']) and ((fp[1] == annotation[variantAnnotationID]['transcriptDescription']) or (fp[1] == annotation[variantAnnotationID]['annovar_transcriptDescription'])):
+			# # annotation[variantAnnotationID]['commentaire'].append(fp[2])
+			# annotation[variantAnnotationID]['commentaire'].insert(0,fp[2])
+			# break
+	# # DRUG SENSITIVITY
+	# for s in sensi:
+		# if s[2] not in ['','p.(=)','p.?','p.=']:
+			# if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['proteinDescription']) == (s[0],s[2])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_proteinDescription']) == (s[0],s[2])) :
+				# annotation[variantAnnotationID]['actionability'] = s[3]
+				# break
+		# if s[1] != '':
+			# if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['transcriptDescription']) == (s[0],s[1])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_transcriptDescription']) == (s[0],s[1])):
+				# annotation[variantAnnotationID]['actionability'] = s[3]
+				# break
+	# ## cas particulier : splicing MET
+	# if (annotation[variantAnnotationID]['gene'] == 'MET') and (annotation[variantAnnotationID]['region'] == 'intronic') and ((116411873 <= annotation[variantAnnotationID]['genomicStart'] <= 116411902) or (116412044 <= annotation[variantAnnotationID]['genomicStart'] <= 116412087)):
+		# annotation[variantAnnotationID]['exon'] = 14
+		# annotation[variantAnnotationID]['commentaire'].append('MET intron 13/14')
+		# if annotation[variantAnnotationID]['actionability'] == None :
+			# annotation[variantAnnotationID]['actionability'] = 'intron 13/14'
+	# # LAM HOTSPOT HIGHLIGHTS
+	# for hl in custom_hl:
+		# if ((annotation[variantAnnotationID]['transcript_without_version'],annotation[variantAnnotationID]['transcriptDescription']) == hl) or ((annotation[variantAnnotationID]['transcript_without_version'],annotation[variantAnnotationID]['annovar_transcriptDescription']) == hl): # or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['transcriptDescription'],annotation[variantAnnotationID]['proteinDescription']) == hl) # necessite hgvs avant
+			# annotation[variantAnnotationID]['highlight'] = 1
+			# break
+	# #TP53 UMD
+	# for tu in custom_tu:
+		# if tu[1] not in ['','p.(=)','p.?','p.=']:
+			# if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['proteinDescription']) == ('TP53',tu[1])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_proteinDescription']) == ('TP53',tu[1])):
+				# annotation[variantAnnotationID]['pathoUMD'] = tu[2]
+				# annotation[variantAnnotationID]['commentUMD'] = tu[3]
+				# break
+		# if tu[0] not in ['','c.(=)','c.?','c.=']:
+			# if ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['transcriptDescription']) == ('TP53',tu[0])) or ((annotation[variantAnnotationID]['gene'],annotation[variantAnnotationID]['annovar_transcriptDescription']) == ('TP53',tu[0])):
+				# annotation[variantAnnotationID]['pathoUMD'] = tu[2]
+				# annotation[variantAnnotationID]['commentUMD'] = tu[3]
+				# break
+	# #LYMPHOME CONTROLS
+	# for lc in custom_lc:
+		# if (lc[0] == annotation[variantAnnotationID]['transcript_without_version']) and ((lc[1] == annotation[variantAnnotationID]['transcriptDescription']) or (lc[1] == annotation[variantAnnotationID]['annovar_transcriptDescription'])):
+			# annotation[variantAnnotationID]['commentaire'].append(lc[2])
+			# break
 
 #################
 # WRITE RESULTS #

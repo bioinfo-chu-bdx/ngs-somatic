@@ -38,22 +38,6 @@ db_cur = db_con.cursor()
 analysis_id = options.analysis
 vc_tool = 'TVC'
 
-db_cur.execute("SELECT panel FROM Analysis WHERE analysisID='%s'" % analysis_id)
-db_analysis = db_cur.fetchone()
-panel = db_analysis['panel']
-
-# recup liste transcripts du panel
-db_cur.execute("SELECT DISTINCT Transcript.transcriptID, Transcript.gene, Transcript.chromosome, Transcript.transcriptionStart, Transcript.transcriptionStop FROM TargetedRegion INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel INNER JOIN Transcript ON Transcript.transcriptID = TargetedRegion.transcript WHERE panel='%s'" % panel)
-db_transcripts = db_cur.fetchall()
-transcript_data = {}
-for db_transcript in db_transcripts:
-	transcript_data[db_transcript['transcriptID']] = {
-		'gene': db_transcript['gene'],
-		'chromosome': db_transcript['chromosome'],
-		'transcriptionStart': db_transcript['transcriptionStart'],
-		'transcriptionStop': db_transcript['transcriptionStop']
-	}
-
 vc_xls_path = options.variants
 if os.path.isfile(vc_xls_path):
 	vc_xls_file = open(vc_xls_path,'r')
@@ -109,10 +93,6 @@ for line in vc_xls_reader:
 	ref = line[2]
 	alt = line[3]
 	variant_type = line[9]
-	# gene = ''
-	# for g in gene_data.keys():
-		# if chromosome == gene_data[g]['chromosome'] and ((gene_data[g]['transcriptionStart']-5000)<position<(gene_data[g]['transcriptionStop']+5000)):
-			# gene = str(g)
 	freq = line[6]
 	pos_cov = int(line[18])
 	var_cov = int(line[24])
@@ -130,31 +110,6 @@ for line in vc_xls_reader:
 		start = position
 		stop = position+len(ref)-1
 
-	gene = ''
-	transcript = ''
-	for g in transcript_data.keys():
-		if chromosome == transcript_data[g]['chromosome'] and ((transcript_data[g]['transcriptionStart']-5000)<start<(transcript_data[g]['transcriptionStop']+5000)):
-			transcript = str(g)
-			gene = transcript_data[g]['gene']
-
-	comments = "var_freq=%s,var_cov=%s,pos_cov=%s,var_class=%s,gene=%s,call=de novo" % (freq,var_cov,pos_cov,variant_type,gene)
-
-	#Genomic Description
-	# if ref == '-':
-		# genomicDescription = '%s:g.%s_%sins%s' % (chromosome,start,stop,alt)
-	# elif alt == '-':
-		# if len(ref) > 1:
-			# genomicDescription = '%s:g.%s_%sdel%s' % (chromosome,start,stop,ref)
-		# else:
-			# genomicDescription = '%s:g.%sdel%s' % (chromosome,start,ref)
-	# elif len(ref) > 1 or len(alt) > 1:
-		# if len(ref) > 1:
-			# genomicDescription = '%s:g.%s_%sdelins%s' % (chromosome,start,stop,alt)
-		# else:
-			# genomicDescription = '%s:g.%sdelins%s' % (chromosome,start,alt)
-	# else:
-		# genomicDescription = '%s:g.%s%s>%s' % (chromosome,start,ref,alt)
-	
 	variant = '%s:%s-%s:%s>%s' % (chromosome,start,stop,ref,alt)
 	if variant not in variants.keys():
 		variants[variant] = {
@@ -164,14 +119,10 @@ for line in vc_xls_reader:
 			'ref':ref,
 			'alt':alt,
 			'variant_type':variant_type,
-			'transcript':transcript,
-			'gene':gene,
 			'freq':freq,
 			'pos_cov':pos_cov,
 			'var_cov':var_cov,
-			'call':'de novo',
-			# 'genomicDescription':genomicDescription,
-			'comments':comments
+			'call':'tvc_de_novo'
 		}
 
 if vc_hotspot_xls_reader:
@@ -187,9 +138,6 @@ if vc_hotspot_xls_reader:
 		ref = line[2]
 		alt = line[3]
 		variant_type = line[9]
-		# for g in gene_data.keys():
-			# if chromosome == gene_data[g]['chromosome'] and ((gene_data[g]['transcriptionStart']-5000)<position<(gene_data[g]['transcriptionStop']+5000)):
-				# gene = str(g)
 		freq = line[6]
 		pos_cov = int(line[18])
 		var_cov = int(line[24])
@@ -207,31 +155,6 @@ if vc_hotspot_xls_reader:
 			start = position
 			stop = position+len(ref)-1
 
-		gene = ''
-		transcript = ''
-		for g in transcript_data.keys():
-			if chromosome == transcript_data[g]['chromosome'] and ((transcript_data[g]['transcriptionStart']-5000)<start<(transcript_data[g]['transcriptionStop']+5000)):
-				transcript = str(g)
-				gene = transcript_data[g]['gene']
-
-		comments = "var_freq=%s,var_cov=%s,pos_cov=%s,var_class=%s,gene=%s" % (freq,var_cov,pos_cov,variant_type,gene)
-
-		# #Genomic Description
-		# if ref == '-':
-			# genomicDescription = '%s:g.%s_%sins%s' % (chromosome,start,stop,alt)
-		# elif alt == '-':
-			# if len(ref) > 1:
-				# genomicDescription = '%s:g.%s_%sdel%s' % (chromosome,start,stop,ref)
-			# else:
-				# genomicDescription = '%s:g.%sdel%s' % (chromosome,start,ref)
-		# elif len(ref) > 1 or len(alt) > 1:
-			# if len(ref) > 1:
-				# genomicDescription = '%s:g.%s_%sdelins%s' % (chromosome,start,stop,alt)
-			# else:
-				# genomicDescription = '%s:g.%sdelins%s' % (chromosome,start,alt)
-		# else:
-			# genomicDescription = '%s:g.%s%s>%s' % (chromosome,start,ref,alt)
-			
 		variant = '%s:%s-%s:%s>%s' % (chromosome,start,stop,ref,alt)
 		if variant not in variants.keys():
 			variants[variant] = {
@@ -241,14 +164,10 @@ if vc_hotspot_xls_reader:
 				'ref':ref,
 				'alt':alt,
 				'variant_type':variant_type,
-				'transcript':transcript,
-				'gene':gene,
 				'freq':freq,
 				'pos_cov':pos_cov,
 				'var_cov':var_cov,
-				'call':'hotspot',
-				# 'genomicDescription':genomicDescription,
-				'comments':comments
+				'call':'tvc_hotspot'
 			}
 		else:
 			variants[variant]['call'] = 'de novo / hotspot'
@@ -267,6 +186,7 @@ if db_vms:
 
 new_var_count = 0
 new_vm_count = 0
+
 for variant in variants:
 	variant_id = variant
 
@@ -275,7 +195,7 @@ for variant in variants:
 	db_variant = db_cur.fetchone()
 	if db_variant is None:
 		try:
-			print "- [Variant] : adding %s in DB" % variant_id
+			print "- [Variant] : new entry %s in DB" % variant_id
 			db_cur.execute("INSERT INTO Variant (variantID, chromosome, genomicStart, genomicStop, referenceAllele, alternativeAllele) VALUES ('%s','%s',%s, %s,'%s','%s')" % (variant_id, variants[variant]['chromosome'], variants[variant]['start'], variants[variant]['stop'], variants[variant]['ref'], variants[variant]['alt']))
 			new_var_count += 1
 		except Exception as e:
@@ -300,7 +220,7 @@ for variant in variants:
 		except Exception as e:
 			print "\t - warning (VARIANTMETRICS table)** %s"%e
 
-print " - [%s] %s variants (%s new Variant entries, %s new VariantAnnotation entries, %s occurences added)" % (time.strftime("%H:%M:%S"),len(variants.keys()),new_var_count,new_varanno_count,new_vm_count)
+print " - [%s] %s variants (%s new Variant entries, %s occurences added)" % (time.strftime("%H:%M:%S"),len(variants.keys()),new_var_count,new_vm_count)
 
 db_con.commit()
 db_con.close()

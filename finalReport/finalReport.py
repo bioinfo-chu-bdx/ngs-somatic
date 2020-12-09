@@ -270,8 +270,19 @@ for db_vm in db_vms :
 	INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant
 	WHERE variant='%s' AND transcript IN %s""" % (db_vm['variant'],tuple(panel_transcripts.keys())))
 	db_variant = db_cur.fetchone()
+
+	comm = db_variant['commentaire']
+	db_cur.execute("SELECT userComment FROM UserComment WHERE panel='%s' AND variantAnnotation='%s'" % (panel,db_variant['variantAnnotationID']))
+	db_userComments = db_cur.fetchall()
+	for db_userComment in db_userComments:
+		userComment = db_userComment['userComment']
+		if comm is None:
+			comm = userComment
+		else:
+			comm = '%s. %s' % (userComment,comm)
+
 	variants.append({
-		'Commentaire':db_variant['commentaire'],
+		'Commentaire':comm,
 		'Gene':panel_transcripts[db_variant['transcript']],
 		'Exon':db_variant['exon'],
 		'Transcript':db_variant['transcript'],
@@ -778,6 +789,9 @@ if base_cov_file:
 					numOfBase = (end-start)+1
 					region_minx.append([chrom,start,end,numOfBase,ampl,gene,details])
 					start = False
+		if start : # si start n'est pas False, s'est termine sur un amplicon < minX, il faut le rajouter!
+			numOfBase = (end-start)+1
+			region_minx.append([chrom,start,end,numOfBase,ampl,gene,details])
 
 		# Recherche variants d'interet (hotspots pour LAM, actionnables pour SBT). Colonne "hotspots"
 		for region in region_minx:

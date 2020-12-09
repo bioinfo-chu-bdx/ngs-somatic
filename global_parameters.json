@@ -1,8 +1,8 @@
 {
 	"ngs_results_folder": "/media/n06lbth/sauvegardes_pgm",
 	"VariantBase": "$NGS_PIPELINE_BX_DIR/variantBase/VariantBase.db",
-	"False_positives": "$NGS_PIPELINE_BX_DIR/finalReport/FalsePositives.csv",
-	"LAM_hotspot_highlight": "$NGS_PIPELINE_BX_DIR/finalReport/hotspot_details/hotspots_HEMATO_capture.csv",
+	"False_positives": "$NGS_PIPELINE_BX_DIR/finalReport/FalsePositives.tsv",
+	"LAM_hotspot_highlight": "$NGS_PIPELINE_BX_DIR/finalReport/hotspot_details/hotspots_HEMATO_capture.tsv",
 	"SBT_sensitivity": "$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 	"TP53_UMD_variants_EU": "$NGS_PIPELINE_BX_DIR/finalReport/TP53_UMD_variants_EU.tsv",
 	"LymphomeT_controls": "$NGS_PIPELINE_BX_DIR/scripts/temoinCNV_variants_lymphomeT.tsv",

@@ -75,114 +75,102 @@ else:
 db_cur.execute("SELECT platform FROM Run WHERE runID = '%s'" % run_id)
 db_run = db_cur.fetchone()
 platform = db_run['platform']
-if platform in ['S5','PGM']:
-	platform = 'ion torrent'
-else:
-	platform = 'illumina'
 
-# FIND CONTROL SAMPLES TO CHECK
-control_barcodes = {}
-regular_barcodes = {}
+ok_barcodes = []
 for barcode in barcodes_json:
-	sample = barcodes_json[barcode]['sample']
-	sample_id = barcodes_json[barcode]['sample_id']
-	analysis_id = barcodes_json[barcode]['analysis_id']
-	sample_folder = '%s/%s' % (options.run_folder,sample)
-	library = barcodes_json[barcode]['library']
-	target_bed = barcodes_json[barcode]['target_bed']
-	project = barcodes_json[barcode]['project']
-	platform = barcodes_json[barcode]['platform']
-	checkConta_read_len = global_param['run_type'][project]['checkContamination_read_len']
-	bam = '%s/%s/%s_%s.bam' % (options.run_folder,sample,sample,barcode)
-	finalreport = '%s/%s/%s_%s.finalReport.xlsx' % (options.run_folder,sample,sample,barcode)
-
-	if '-checkContamination' in sample:
-		print "- note : sample %s is already a filtered one and will not be used" % sample
+	db_cur.execute("SELECT analysisID,isControl FROM Analysis INNER JOIN Sample ON Sample.sampleID = Analysis.sample WHERE Sample='%s' AND Run='%s'" % (barcodes_json[barcode]['sample_id'],run_id)) # get analysis ID from DB is safer than from barcodes.json
+	db_analysis = db_cur.fetchone()
+	barcodes_json[barcode]['analysis_id'] = db_analysis['analysisID']
+	barcodes_json[barcode]['sample_folder'] = '%s/%s' % (options.run_folder,barcodes_json[barcode]['sample'])
+	barcodes_json[barcode]['checkConta_read_len'] = global_param['panel'][barcodes_json[barcode]['panel']]['checkContamination_read_len']
+	barcodes_json[barcode]['bam'] = '%s/%s/%s_%s.bam' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
+	barcodes_json[barcode]['finalreport'] = '%s/%s/%s_%s.finalReport.xlsx' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
+	barcodes_json[barcode]['is_control'] = db_analysis['isControl']
+	if '-checkContamination' in barcodes_json[barcode]['sample']:
+		print "- note : sample %s is already a filtered one and will not be used" % barcodes_json[barcode]['sample']
 		continue
-	if not os.path.exists(bam):
-		print "(warning : %s not found)" % bam
+	if not os.path.exists(barcodes_json[barcode]['bam']):
+		print "(warning : %s not found)" % barcodes_json[barcode]['bam']
 		continue
-
-	iscontrol = False
-	for control_name in control_names:
-		if control_name in sample.upper():
-			iscontrol = True
-	if iscontrol:
-		control_barcodes[barcode] = {'sample':sample,'sample_id':sample_id,'sample_folder':sample_folder,'library':library,'target_bed':target_bed,'bam':bam,'finalreport':finalreport,'analysis_id':analysis_id,'checkConta_read_len':checkConta_read_len}
-	else:
-		regular_barcodes[barcode] = {'sample':sample,'sample_id':sample_id,'sample_folder':sample_folder,'library':library,'target_bed':target_bed,'bam':bam,'finalreport':finalreport}
+	ok_barcodes.append(barcode)
 
 ###  __   __   __   __   ___  __   __      ___       __           __   __       ___  __   __       
 ### |__) |__) /  \ /  ` |__  /__` /__`    |__   /\  /  ` |__|    /  ` /  \ |\ |  |  |__) /  \ |    
 ### |    |  \ \__/ \__, |___ .__/ .__/    |___ /~~\ \__, |  |    \__, \__/ | \|  |  |  \ \__/ |___ 
 
-db_cur.execute("SELECT * FROM Gene")
-db_genes = db_cur.fetchall()
-gene2transcript = {}
-for gene in db_genes:
-	if gene['geneID'] not in gene2transcript:
-		gene2transcript[gene['geneID']] = gene['transcript']
-
-for control_barcode in control_barcodes:
-	print "- Analysing contamination of %s :" % control_barcodes[control_barcode]['sample']
+for control_barcode in ok_barcodes:
+	if barcodes_json[control_barcode]['is_control'] == 0:
+		continue
+	is_H2O_NTC = False
+	for control_name in control_names:
+		if control_name in barcodes_json[control_barcode]['sample']:
+			is_H2O_NTC = True
+	if not is_H2O_NTC:
+		continue
+	print "- Analysing contamination of %s :" % barcodes_json[control_barcode]['sample']
 
 	###################
 	### TARGET DATA ### 
 	###################
 
-	db_cur.execute("SELECT * FROM TargetedRegion WHERE panel = '%s'" % control_barcodes[control_barcode]['target_bed'])
+	db_cur.execute("SELECT targetedRegionName,TargetedRegion.chromosome,start,stop,transcript,gene,details FROM TargetedRegion INNER JOIN Transcript ON Transcript.transcriptID = TargetedRegion.transcript WHERE panel = '%s'" % barcodes_json[control_barcode]['panel'])
 	db_regions = db_cur.fetchall()
 	region_coverage = {}
-	for region in db_regions:
-		region_coverage[region['targetedRegionName']] = {}
-		region_coverage[region['targetedRegionName']]['chr'] = region['chromosome']
-		region_coverage[region['targetedRegionName']]['start'] = region['start']
-		region_coverage[region['targetedRegionName']]['stop'] = region['stop']
-		region_coverage[region['targetedRegionName']]['gene_id'] = '%s_%s' % (region['gene'],region['details'])
-		region_coverage[region['targetedRegionName']]['transcript'] = gene2transcript[region['gene']]
-		region_coverage[region['targetedRegionName']]['contamination count'] = 0
+	for db_region in db_regions:
+		region_coverage[db_region['targetedRegionName']] = {}
+		region_coverage[db_region['targetedRegionName']]['chr'] = db_region['chromosome']
+		region_coverage[db_region['targetedRegionName']]['start'] = db_region['start']
+		region_coverage[db_region['targetedRegionName']]['stop'] = db_region['stop']
+		region_coverage[db_region['targetedRegionName']]['transcript'] = db_region['transcript']
+		region_coverage[db_region['targetedRegionName']]['gene_details'] = '%s_%s' % (db_region['gene'],db_region['details'])
+		region_coverage[db_region['targetedRegionName']]['contamination count'] = 0
 
 	######################
 	### BAM FILTERING  ###
 	######################
 
-	# CREATING FILTERED BAM FOLDER
-	checkConta_bam_folder = '%s-checkContamination' % control_barcodes[control_barcode]['sample_folder']
+	# CREATING FILTERED CONTROL ("checkConta") FOLDER, BARCODE, NAME, ID, ...
+	checkConta_bam_folder = '%s-checkContamination' % barcodes_json[control_barcode]['sample_folder']
 	checkConta_barcode = '%s-checkContamination' % control_barcode
-	checkConta_sample = '%s-checkContamination' % control_barcodes[control_barcode]['sample']
-	checkConta_sample_id = '%s-checkContamination' % control_barcodes[control_barcode]['sample_id']
-	checkConta_analysis_id = '%s-checkContamination' % control_barcodes[control_barcode]['analysis_id']
+	checkConta_sample = '%s-checkContamination' % barcodes_json[control_barcode]['sample']
+	checkConta_sample_id = '%s-checkContamination' % barcodes_json[control_barcode]['sample_id']
+	checkConta_analysis_id = '%s-checkContamination' % barcodes_json[control_barcode]['analysis_id']
+	checkConta_bam = '%s/%s_%s.bam' % (checkConta_bam_folder,checkConta_sample,checkConta_barcode)
 
 	if not os.path.isdir(checkConta_bam_folder):
 		print "\t- creating filtered bam folder..."
 		subprocess.call(['mkdir',checkConta_bam_folder])
 
-	# CREATING FILTERED BAM ENTRY IN BARCODES JSON
+	# ADDING FILTERED CONTROL ENTRY IN BARCODES JSON
 	if checkConta_barcode not in barcodes_json.keys():
 		print "\t- adding filtered bam in barcodes_json..."
 		barcodes_json[checkConta_barcode] = {}
-		for key in barcodes_json[barcode].keys():
+		for key in barcodes_json[barcode].keys(): # ON FAIT D'ABORD UNE COPIE DES DONNEES DU BARCODE CONTROL ORIGINEL
 			barcodes_json[checkConta_barcode][key] = barcodes_json[control_barcode][key]
-		barcodes_json[checkConta_barcode]['sample'] = checkConta_sample	
+		barcodes_json[checkConta_barcode]['sample'] = checkConta_sample
 		barcodes_json[checkConta_barcode]['sample_id'] = checkConta_sample_id
 		barcodes_json[checkConta_barcode]['analysis_id'] = checkConta_analysis_id
-		json_text = json.dumps(barcodes_json, indent=4)
-		bc_json = open(options.run_folder+'/barcodes.json','w')
+
+		print "- Re-writing barcodes JSON..."
+		with open('%s/barcodes.json' % options.run_folder, 'r') as g:
+			mod_json = json.load(g)
+		mod_json[checkConta_barcode] = barcodes_json[checkConta_barcode]
+		json_text = json.dumps(mod_json, indent=4, sort_keys=True)
+		bc_json = open('%s/barcodes.json' % options.run_folder,'w')
 		bc_json.write(json_text)
 		bc_json.close()
 
 		db_cur.execute("INSERT INTO Sample (sampleID, sampleName, isControl) VALUES ('%s', '%s', 1)" % (checkConta_sample_id,checkConta_sample))
-		db_cur.execute("INSERT INTO Analysis (analysisID, sample, barcode, run, panel, bamPath, analysisDate) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (checkConta_analysis_id, checkConta_sample_id, checkConta_barcode, run_id, control_barcodes[control_barcode]['target_bed'], checkConta_bam, time.strftime("%Y-%m-%d")))
+		db_cur.execute("INSERT INTO Analysis (analysisID, sample, barcode, run, panel, bamPath, analysisDate) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (checkConta_analysis_id, checkConta_sample_id, checkConta_barcode, run_id, barcodes_json[control_barcode]['panel'], checkConta_bam, time.strftime("%Y%m%d")))
 		db_con.commit()
 
-	bamfile = pysam.Samfile(control_barcodes[control_barcode]['bam'],'rb')
-	checkConta_bam = '%s/%s_%s.bam' % (checkConta_bam_folder,checkConta_sample,checkConta_barcode)
+	bamfile = pysam.Samfile(barcodes_json[control_barcode]['bam'],'rb')
 	checkConta_bamfile = pysam.Samfile(checkConta_bam, 'wb', template=bamfile)
 
 	### CREATE NEW BAM WITH READS > XX bases
 	print "\t- bam filtering..."
 	for read in bamfile.fetch():
-		if (len(read.query) >= int(control_barcodes[control_barcode]['checkConta_read_len'])): 	# aligned portion of the read, exclude soft-clipped bases
+		if (len(read.query) >= int(barcodes_json[control_barcode]['checkConta_read_len'])): # aligned portion of the read, exclude soft-clipped bases
 			checkConta_bamfile.write(read)
 	bamfile.close()
 	checkConta_bamfile.close()
@@ -198,10 +186,7 @@ for control_barcode in control_barcodes:
 	########################
 
 	print "\t- filtered bam complete analysis..."
-	if platform == 'ion torrent':
-		cmd = subprocess.call(['python','%s/run_analysis.py' % pipeline_folder,'--bam',checkConta_bam],stdout=open('%s/checkConta_bam_analysis.stdout.txt' % checkConta_bam_folder,'w'),stderr=open('%s/checkConta_bam_analysis.stderr.txt' % checkConta_bam_folder,'w'))
-	else:
-		cmd = subprocess.call(['python','%s/run_analysis_illumina.py' % pipeline_folder,'--sample',checkConta_bam_folder,'--skip-preprocessing'],stdout=open('%s/checkConta_bam_analysis.stdout.txt' % checkConta_bam_folder,'w'),stderr=open('%s/checkConta_bam_analysis.stderr.txt' % checkConta_bam_folder,'w'))
+	cmd = subprocess.call(['python','%s/run_analysis.py' % pipeline_folder,'--sample',checkConta_bam_folder,'--skip-pre-processing'],stdout=open('%s/checkConta_bam_analysis.stdout.txt' % checkConta_bam_folder,'w'),stderr=open('%s/checkConta_bam_analysis.stderr.txt' % checkConta_bam_folder,'w'))
 	check_stderr('%s/checkConta_bam_analysis.stderr.txt' % checkConta_bam_folder, indent=1)
 
 	##################################################################
@@ -210,7 +195,7 @@ for control_barcode in control_barcodes:
 
 	print "\t- comparing with other samples..."
 	# creation dic avec variants de l'annotation du check conta
-	variants_in_bam_checkConta = {}
+	variants_checkConta = {}
 	checkConta_finalreport = openpyxl.load_workbook('%s/%s_%s.finalReport.xlsx' % (checkConta_bam_folder,checkConta_sample,checkConta_barcode))
 	if platform == 'ion torrent':
 		checkConta_covSheet = checkConta_finalreport.get_sheet_by_name('Amplicon Coverage')
@@ -219,25 +204,26 @@ for control_barcode in control_barcodes:
 	checkConta_annoSheet = checkConta_finalreport.get_sheet_by_name('Annotation')
 	checkConta_covcol = get_column2index(checkConta_covSheet)
 	checkConta_anncol = get_column2index(checkConta_annoSheet)
+	# PARSING TARGET COVERAGE
 	for i in range(2,checkConta_covSheet.max_row+1):
 		if platform == 'ion torrent':
 			region_coverage[checkConta_covSheet.cell(row=i,column=checkConta_covcol['region_id']).value]['contamination count'] = int(checkConta_covSheet.cell(row=i,column=checkConta_covcol['total_reads']).value)
 		else:
 			region_coverage[checkConta_covSheet.cell(row=i,column=checkConta_covcol['region_id']).value]['contamination count'] = int(checkConta_covSheet.cell(row=i,column=checkConta_covcol['ave_basereads']).value)
+	# PARSING ANNOTATION SHEET
 	for i in range(2,checkConta_annoSheet.max_row+1):
 		if checkConta_annoSheet.cell(row=i,column=checkConta_anncol['Transcript']).value:
 			transcript = checkConta_annoSheet.cell(row=i,column=checkConta_anncol['Transcript']).value.split('.')[0]
 			c_nomen = checkConta_annoSheet.cell(row=i,column=checkConta_anncol['c.']).value
-			variants_in_bam_checkConta[(transcript,c_nomen)] = []
+			variants_checkConta[(transcript,c_nomen)] = []
 
 	# recuperation de la liste des patients a comparer
 	sample2compare = []
-	for regular_barcode in regular_barcodes:
-		regular_sample = regular_barcodes[regular_barcode]['sample']
-		if (regular_barcodes[regular_barcode]['library'] == control_barcodes[control_barcode]['library']) and (regular_barcodes[regular_barcode]['target_bed'] == control_barcodes[control_barcode]['target_bed']):
-			sample2compare.append((regular_barcodes[regular_barcode]['sample'],regular_barcode))
-			if os.path.isfile(regular_barcodes[regular_barcode]['finalreport']):
-				finalReport = openpyxl.load_workbook(regular_barcodes[regular_barcode]['finalreport'])
+	for barcode in barcodes_json:
+		if (barcodes_json[barcode]['is_control'] == 0) and (barcodes_json[barcode]['library'] == barcodes_json[control_barcode]['library']) and (barcodes_json[barcode]['panel'] == barcodes_json[control_barcode]['panel']):
+			sample2compare.append((barcodes_json[barcode]['sample'],barcode))
+			if os.path.isfile(barcodes_json[barcode]['finalreport']):
+				finalReport = openpyxl.load_workbook(barcodes_json[barcode]['finalreport'])
 				if platform == 'ion torrent':
 					covSheet = finalReport.get_sheet_by_name('Amplicon Coverage')
 				else:
@@ -251,13 +237,13 @@ for control_barcode in control_barcodes:
 						totalReads = covSheet.cell(row=i,column=covcol['total_reads']).value
 					else:
 						totalReads = covSheet.cell(row=i,column=covcol['ave_basereads']).value
-					region_coverage[region][regular_barcodes[regular_barcode]['sample']] = int(round(float(totalReads)))
+					region_coverage[region][barcodes_json[barcode]['sample']] = int(round(float(totalReads)))
 				for i in range(2,annoSheet.max_row+1):
 					if annoSheet.cell(row=i,column=anncol['Transcript']).value:
 						transcript = annoSheet.cell(row=i,column=anncol['Transcript']).value.split('.')[0]
 						c_nomen = annoSheet.cell(row=i,column=anncol['c.']).value
-						if (transcript,c_nomen) in variants_in_bam_checkConta.keys():
-							variants_in_bam_checkConta[(transcript,c_nomen)].append('%s_%s' % (regular_barcodes[regular_barcode]['sample'],regular_barcode))
+						if (transcript,c_nomen) in variants_checkConta.keys():
+							variants_checkConta[(transcript,c_nomen)].append('%s_%s' % (barcodes_json[barcode]['sample'],barcode))
 
 	###############################
 	#### ecriture des resultats ###
@@ -273,7 +259,7 @@ for control_barcode in control_barcodes:
 		pass
 
 	# REGION SHEET
-	header = ['Region','Chr','Start','End','Gene_id', 'Transcript', '%s reads > %s b' % (sample,control_barcodes[control_barcode]['checkConta_read_len'])]
+	header = ['Region','Chr','Start','End','Gene_details','Transcript','%s reads > %s b' % (barcodes_json[control_barcode]['sample'],barcodes_json[control_barcode]['checkConta_read_len'])]
 	for s in sample2compare:
 		regular_sample = s[0]
 		header.append(regular_sample)
@@ -284,7 +270,7 @@ for control_barcode in control_barcodes:
 
 	to_write = []
 	for region in region_coverage.keys():
-		line = [region,region_coverage[region]['chr'],region_coverage[region]['start'],region_coverage[region]['stop'],region_coverage[region]['gene_id'],region_coverage[region]['transcript'],region_coverage[region]['contamination count']]
+		line = [region,region_coverage[region]['chr'],region_coverage[region]['start'],region_coverage[region]['stop'],region_coverage[region]['gene_details'],region_coverage[region]['transcript'],region_coverage[region]['contamination count']]
 		for s in sample2compare:
 			try:
 				line.append(region_coverage[region][s[0]])
@@ -326,8 +312,8 @@ for control_barcode in control_barcodes:
 				annotationSheet.cell(row=i,column=checkConta_anncol['Commentaire']+1).value = '.'
 			transcript = checkConta_annoSheet.cell(row=i,column=checkConta_anncol['Transcript']).value.split('.')[0]
 			c_nomen = checkConta_annoSheet.cell(row=i,column=checkConta_anncol['c.']).value
-			if variants_in_bam_checkConta[(transcript,c_nomen)]: # list not empty = variant found somewhere
-				foundstring = ','.join(variants_in_bam_checkConta[(transcript,c_nomen)])
+			if variants_checkConta[(transcript,c_nomen)]: # list not empty = variant found somewhere
+				foundstring = ','.join(variants_checkConta[(transcript,c_nomen)])
 				annotationSheet.cell(row=i,column=1).value = 'Variant found in ' + foundstring
 				annotationSheet.cell(row=i,column=1).font = openpyxl.styles.Font(name='Calibri', size=11, color='ff0000')
 			else:
@@ -367,5 +353,5 @@ for control_barcode in control_barcodes:
 		ws.column_dimensions[col].width = value
 	ws.column_dimensions[ws['J1'].column].width = 8
 
-	conta_report.save(checkconta_folder+'/checkContamination_%s.xlsx'%sample)
+	conta_report.save(checkconta_folder+'/checkContamination_%s.xlsx' % barcodes_json[control_barcode]['sample'])
 	subprocess.call(['mv',checkConta_bam_folder,checkconta_folder]) # OU RM ??

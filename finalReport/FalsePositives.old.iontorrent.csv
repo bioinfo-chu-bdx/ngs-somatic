@@ -37,7 +37,7 @@ NM_004448;c.2481G>A;Faux positif isole <5% (1P), sanger N
 NM_006218;c.3165G>A;Faux positif isole <5% (1P, 1C), sanger N
 NM_000222;c.1946A>T;Faux positif (40P,5C,7M)
 NM_000222;c.2475dup;Faux positif (1P,2M)
-NM_005228;c.2137A>G;Faux positif <5%, cas isole (1P), sanger N 
+NM_005228;c.2137A>G;Faux positif <5%, cas isole (1P), sanger N
 NM_005228;c.2140A>G;Faux positif <5% (2P dont 1maxwell)
 NM_005228;c.2272G>A;Faux positif <5% cas isole (1P)
 NM_005228;c.2437T>C;Faux positif <5% (15P,5C,3M)
@@ -251,7 +251,7 @@ NM_001127208;c.5284A>G;Polymorphisme
 NM_001080424;c.626_627insC;Artefact
 NM_170606;c.6296_6298delinsCTTAC;Artefact
 NM_015048;c.-63_-61delGCC;Artefact
-NM_006015;c.74A>G;Artefact 
+NM_006015;c.74A>G;Artefact
 NM_002660;c.835A>G;Polymorphisme
 NM_170606;c.925C>T;Artefact
 NM_170606;c.946A>T;Polymorphisme
@@ -480,18 +480,19 @@ NM_006306;c.1698G>A;Polymorphisme non pathogene
 NM_015338;c.2395G>T;Polymorphisme non pathogene
 NM_002520;c.860_863dup;COSM17559/rs587776806
 NM_004119;c.2508_2510del;COSM797
-NM_032638.4;c.1018-715_1018-714insG;Faux-positif
-NM_175629.2;c.1413T>C;Polymorphisme non pathogene
-NM_021946.4;c.4011C>T;Polymorphisme non pathogene
-NM_032638.4;c.-11C>T;Polymorphisme non pathogene
-NM_016222.3;c.3G>A;Polymorphisme non pathogene
-NM_001025203.1;c.369G>A;Polymorphisme non pathogene
-NM_003620.3;c.1435G>A;Polymorphisme non pathogene
-NM_002049.3;c.196G>A;Polymorphisme non pathogene
-NM_001123385.1;c.759C>T;Polymorphisme non pathogene
-NM_001123385.1;c.174G>A;Polymorphisme non pathogene
-NM_175629.2;c.2172C>T;Polymorphisme non pathogene
-NM_022552.4;c.801C>T;Polymorphisme non pathogene
-NM_022552.4;c.1266G>A;Polymorphisme non pathogene
-NM_022552.4;c.27C>T;Polymorphisme non pathogene
-NM_001127208.2;c.368G>A;Polymorphisme non pathogene
+NM_032638;c.1018-715_1018-714insG;Faux-positif
+NM_175629;c.1413T>C;Polymorphisme non pathogene
+NM_021946;c.4011C>T;Polymorphisme non pathogene
+NM_032638;c.-11C>T;Polymorphisme non pathogene
+NM_016222;c.3G>A;Polymorphisme non pathogene
+NM_001025203;c.369G>A;Polymorphisme non pathogene
+NM_003620;c.1435G>A;Polymorphisme non pathogene
+NM_002049;c.196G>A;Polymorphisme non pathogene
+NM_001123385;c.759C>T;Polymorphisme non pathogene
+NM_001123385;c.174G>A;Polymorphisme non pathogene
+NM_175629;c.2172C>T;Polymorphisme non pathogene
+NM_022552;c.801C>T;Polymorphisme non pathogene
+NM_022552;c.1266G>A;Polymorphisme non pathogene
+NM_022552;c.27C>T;Polymorphisme non pathogene
+NM_001127208;c.368G>A;Polymorphisme non pathogene
+NM_001163213;c.1156T>C;Polymorphisme
