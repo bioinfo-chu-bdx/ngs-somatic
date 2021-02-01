@@ -6,6 +6,7 @@ import glob
 import json
 import uuid
 import sqlite3
+import shutil
 import zipfile
 import logging
 import subprocess
@@ -50,6 +51,7 @@ parser.add_option('-z', '--skip-caller',			help="Precise caller to skip comme se
 parser.add_option('-i', '--skip-insert-db',			help="s.....s steps)",dest='skip_insert_db',default=False,action='store_true')
 parser.add_option('-a', '--skip-annotation',		help="starts analysis directly with Finalreport (skip annotation and previous steps)",dest='skip_annotation',default=False,action='store_true')
 parser.add_option('-f', '--skip-finalreport',		help="starts analysis directly with checkMut etc",dest='skip_finalreport',default=False,action='store_true')
+parser.add_option('-y', '--sampleask',				help="do one by one sample and ask to continue",dest='sampleask',default=False,action='store_true')
 (options, args) = parser.parse_args()
 
 if options.skip_annotation:
@@ -92,7 +94,7 @@ if options.sample:
 			del barcodes_json[barcode]
 else:
 	for barcode in barcodes_json.keys():
-		if 'checkContamination' in barcodes_json[barcode]['sample']:
+		if 'checkContamination' in barcodes_json[barcode]['sample'] : # or 'LMMC-MAI-v1' not in barcodes_json[barcode]['panel']
 			del barcodes_json[barcode]
 
 ordered_barcodes = [item[1] for item in sorted([(barcodes_json[barcode]['sample'],barcode) for barcode in barcodes_json])]
@@ -123,7 +125,7 @@ for barcode in ordered_barcodes:
 	barcodes_json[barcode]['bam'] = '%s/%s/%s_%s.bam' % (run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
 	barcodes_json[barcode]['sample_folder'] = '%s/%s' % (run_folder,barcodes_json[barcode]['sample'])
 	barcodes_json[barcode]['intermediate_folder'] = '%s/intermediate_files' % barcodes_json[barcode]['sample_folder']
-	barcodes_json[barcode]['reference'] = global_param['default_reference']
+	barcodes_json[barcode]['reference'] = global_param['panel'][barcodes_json[barcode]['panel']]['reference']
 	barcodes_json[barcode]['target_bed'] = global_param['panel'][barcodes_json[barcode]['panel']]['target_bed']
 	barcodes_json[barcode]['covered_bed'] = global_param['panel'][barcodes_json[barcode]['panel']].get('covered_bed','target_bed') # si covered existe, sinon target
 	barcodes_json[barcode]['merged_bed'] = global_param['panel'][barcodes_json[barcode]['panel']]['merged_bed']
@@ -131,9 +133,9 @@ for barcode in ordered_barcodes:
 	barcodes_json[barcode]['tvc_param'] = global_param['panel'][barcodes_json[barcode]['panel']].get('tvc_parameters',False)
 	barcodes_json[barcode]['tvc_param_hotspot'] = global_param['panel'][barcodes_json[barcode]['panel']].get('tvc_parameters_hotspot_only',False)
 	barcodes_json[barcode]['hotspot_vcf'] = global_param['panel'][barcodes_json[barcode]['panel']].get('hotspot_vcf',False)
-	if ('PL' in barcodes_json[barcode]['sample_id']) and (barcodes_json[barcode]['platform'].lower() == 'ion torrent') and ('vc_parameters_hotspot_cdna' in global_param['panel'][barcodes_json[barcode]['panel']]):
-		logging.info("- Sample %s is cDNA" % sample)
-		barcodes_json[barcode]['tvc_param_hotspot'] = global_param['panel'][barcodes_json[barcode]['panel']]['vc_parameters_hotspot_cdna']
+	if ('PL' in barcodes_json[barcode]['sample_id']) and (barcodes_json[barcode]['platform'].lower() == 'ion torrent') and ('tvc_parameters_hotspot_cdna' in global_param['panel'][barcodes_json[barcode]['panel']].keys()):
+		logging.info("- Sample %s is cDNA" % barcodes_json[barcode]['sample'])
+		barcodes_json[barcode]['tvc_param_hotspot'] = global_param['panel'][barcodes_json[barcode]['panel']]['tvc_parameters_hotspot_cdna']
 	if barcodes_json[barcode]['covered_bed'] == barcodes_json[barcode]['target_bed']:
 		logging.info("WARNING : covered_bed is also roi_bed for %s" % barcodes_json[barcode]['sample'])
 	if not barcodes_json[barcode]['intervals'] and barcodes_json[barcode]['platform'].lower() == 'illumina':
@@ -179,7 +181,7 @@ for barcode in ordered_barcodes:
 			db_cur.execute("INSERT INTO Analysis (analysisID, sample, barcode, run, panel, bamPath, analysisDate) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (analysis_id, barcodes_json[barcode]['sample_id'], barcode, run_name, barcodes_json[barcode]['panel'], barcodes_json[barcode]['bam'], time.strftime("%Y%m%d")))
 			db_con.commit()
 
-	logging.info("- SAMPLE : %s, analysisID = %s, panel = %s" % (barcodes_json[barcode]['sample'],barcodes_json[barcode]['analysis_id'],barcodes_json[barcode]['panel']))
+	logging.info("- SAMPLE : %s, sampleID = %s, analysisID = %s, panel = %s" % (barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample_id'],barcodes_json[barcode]['analysis_id'],barcodes_json[barcode]['panel']))
 
 if json_modified:
 	print "- Re-writing barcodes JSON..."
@@ -317,7 +319,9 @@ if (not options.skip_preprocessing) and (platform == 'illumina'):
 		if barcodes_json[barcode]['pre_processing_state'] == 'completed':
 			# remove SAM and BAM temp files (if bam correctly produced)
 			if os.path.exists(barcodes_json[barcode]['bam']):
-				subprocess.call(['rm','%s/*_Cut_0.fastq.gz' % barcodes_json[barcode]['pre_processing_folder']],stdout=FNULL,stderr=FNULL)
+				cut_0_fastqs = glob.glob('%s/*_Cut_0.fastq.gz' % barcodes_json[barcode]['pre_processing_folder'])
+				for cut_0_fastq in cut_0_fastqs:
+					subprocess.call(['rm',cut_0_fastq],stdout=FNULL,stderr=FNULL)
 				subprocess.call(['rm','%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample'])],stdout=FNULL,stderr=FNULL)
 				subprocess.call(['rm','%s/%s.markdup.sorted.bam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample'])],stdout=FNULL,stderr=FNULL)
 				subprocess.call(['rm','%s/%s.markdup.sorted.bam.bai' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample'])],stdout=FNULL,stderr=FNULL)
@@ -354,6 +358,7 @@ if not options.skip_coverage_analysis:
 		logging.info("\t\t- [%s] mosdepth ..." % (time.strftime("%H:%M:%S")))
 		os.chdir(mosdepth_folder)
 		cmd = subprocess.Popen(['%s/mosdepth/mosdepth' % pipeline_folder,'-b', barcodes_json[barcode]['target_bed'],'%s_%s' % (barcodes_json[barcode]['sample'],barcode),barcodes_json[barcode]['bam']],stdout=open('%s/mosdepth.stdout.txt' % mosdepth_folder,'w'), stderr=open('%s/mosdepth.stderr.txt' % mosdepth_folder,'w'))
+		os.chdir(pipeline_folder)
 
 		# BBCTOOLS
 		if barcodes_json[barcode]['platform'].lower() == 'ion torrent':
@@ -375,7 +380,7 @@ if not options.skip_coverage_analysis:
 		cmd.communicate()
 
 		# delete big intermediate files
-		subprocess.call(['rm','%s/%s.per-base.bed.gz' % (mosdepth_folder,barcodes_json[barcode]['sample'])],stdout=FNULL,stderr=FNULL)
+		subprocess.call(['rm','%s/%s_%s.per-base.bed.gz' % (mosdepth_folder,barcodes_json[barcode]['sample'],barcode)],stdout=FNULL,stderr=FNULL)
 		subprocess.call(['rm','%s/tca_auxiliary.bbc' % coverage_folder],stdout=FNULL,stderr=FNULL)
 
 #####                ___    __   __  
@@ -422,7 +427,6 @@ if options.run:
 #####  \/  /~~\ |  \ | /~~\ | \|  |     \__, /~~\ |___ |___ | | \| \__>    /~~\ | \| |__/    /~~\ | \| | \| \__/  |  /~~\  |  | \__/ | \| #####
 
 logging.info("\n- [%s] VARIANT-CALLING AND ANNOTATION ..." % (time.strftime("%H:%M:%S")))
-sampleask = True
 for barcode in ordered_barcodes:
 	logging.info("\t- %s :" % (barcodes_json[barcode]['sample']))
 	if barcodes_json[barcode]['platform'].lower() == 'illumina':
@@ -432,15 +436,15 @@ for barcode in ordered_barcodes:
 		lofreq_folder   = '%s/lofreq' % barcodes_json[barcode]['intermediate_folder']
 
 		# FOR SKIPING SAMPLES # WARNING check-contamination will not work #
-		# if sampleask:
-			# proceed = raw_input('continue? (y/n/stopask)\n')
-			# if proceed == 'y' or proceed == 'yes':
-				# pass
-			# elif proceed == 'stopask':
-				# sampleask = False
-				# pass
-			# else:
-				# continue
+		if options.sampleask:
+			proceed = raw_input('continue? (y/n/stopask)\n')
+			if proceed == 'y' or proceed == 'yes':
+				pass
+			elif proceed == 'stopask':
+				options.sampleask = False
+				pass
+			else:
+				continue
 
 		if not options.skip_calling:
 			# CREATE FOLDERS
@@ -623,9 +627,9 @@ for barcode in ordered_barcodes:
 				subprocess.call(['mkdir','%s/tvc_de_novo' % barcodes_json[barcode]['intermediate_folder']])
 				subprocess.call(['mkdir','%s/tvc_only_hotspot' % barcodes_json[barcode]['intermediate_folder']])
 
-			# RUN 1 : DE NOVO
-			logging.info("\t - [%s] variantCaller <de novo> ..." % (time.strftime("%H:%M:%S")))
-			cmd = subprocess.Popen([
+			# TVC DE NOVO
+			logging.info("\t - [%s] TVC <de novo> + <only hotspot> ..." % (time.strftime("%H:%M:%S")))
+			tvc_de_novo_ps = subprocess.Popen([
 				'python', '%s/variantCaller/bin/variant_caller_pipeline.py' % pipeline_folder,
 				'--input-bam',       barcodes_json[barcode]['bam'],
 				'--output-dir',      '%s/tvc_de_novo' % barcodes_json[barcode]['intermediate_folder'],
@@ -639,26 +643,12 @@ for barcode in ordered_barcodes:
 				], 
 				stdout=open('%s/tvc_de_novo/variant_caller_pipeline.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'),
 				stderr=open('%s/tvc_de_novo/variant_caller_pipeline.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
-			cmd.communicate()
+			tvc_de_novo_running = True
 
-			subprocess.call(['gzip','-d','-c','%s/tvc_de_novo/TSVC_variants.vcf.gz' % barcodes_json[barcode]['intermediate_folder']],stdout=open('%s/tvc_de_novo/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],'w'))
-
-			# Generate Variant Table ('alleles.xls' file)
-			cmd = subprocess.Popen([
-				'python', '%s/variantCaller/bin/generate_variant_tables.py' % pipeline_folder,
-				'--input-vcf',		'%s/tvc_de_novo/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],
-				'--region-bed',		barcodes_json[barcode]['target_bed'],
-				'--output-xls',		'%s/tvc_de_novo/output.xls' % barcodes_json[barcode]['intermediate_folder'],
-				'--alleles2-xls',	'%s/tvc_de_novo/alleles.xls' % barcodes_json[barcode]['intermediate_folder']
-				], 
-				stdout=open('%s/tvc_de_novo/generate_variant_tables.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'), 
-				stderr=open('%s/tvc_de_novo/generate_variant_tables.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
-			cmd.communicate()
-			
-			# RUN 2 : ONLY HOTSPOT
-			logging.info("\t - [%s] variantCaller <only hotspot> ..." % (time.strftime("%H:%M:%S")))
+			# TVC ONLY HOTSPOT
+			tvc_hotspot_running = False
 			if barcodes_json[barcode]['hotspot_vcf'] != '':
-				cmd = subprocess.Popen([
+				tvc_hotspot_ps = subprocess.Popen([
 					'python', '%s/variantCaller/bin/variant_caller_pipeline.py' % pipeline_folder,
 					'--input-bam',       barcodes_json[barcode]['bam'],
 					'--output-dir',      '%s/tvc_only_hotspot' % barcodes_json[barcode]['intermediate_folder'],
@@ -672,28 +662,50 @@ for barcode in ordered_barcodes:
 					], 
 					stdout=open('%s/tvc_only_hotspot/variant_caller_pipeline.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'),
 					stderr=open('%s/tvc_only_hotspot/variant_caller_pipeline.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
-				cmd.communicate()
+				tvc_hotspot_running = True
 
-				subprocess.call(['gzip','-d','-c','%s/tvc_only_hotspot/TSVC_variants.vcf.gz' % barcodes_json[barcode]['intermediate_folder']],stdout=open('%s/tvc_only_hotspot/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],'w'))
-
-				# Generate Variant Table ('alleles.xls' file)
-				cmd = subprocess.Popen([
-					'python', '%s/variantCaller/bin/generate_variant_tables.py' % pipeline_folder,
-					'--input-vcf',		'%s/tvc_only_hotspot/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],
-					'--region-bed',		barcodes_json[barcode]['target_bed'],
-					'--hotspots',
-					'--output-xls',		'%s/tvc_only_hotspot/output.xls' % barcodes_json[barcode]['intermediate_folder'],
-					'--alleles2-xls',	'%s/tvc_only_hotspot/alleles.xls' % barcodes_json[barcode]['intermediate_folder']
-					], 
-					stdout=open('%s/tvc_only_hotspot/generate_variant_tables.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'),
-					stderr=open('%s/tvc_only_hotspot/generate_variant_tables.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
-				cmd.communicate()
+			while tvc_de_novo_running or tvc_hotspot_running:
+				time.sleep(1)
+				if tvc_de_novo_running:
+					if tvc_de_novo_ps.poll() is not None :
+						logging.info("\t - [%s] TVC <de novo> gzip and generate_variant_tables ..." % (time.strftime("%H:%M:%S")))
+						subprocess.call(['gzip','-d','-c','%s/tvc_de_novo/TSVC_variants.vcf.gz' % barcodes_json[barcode]['intermediate_folder']],stdout=open('%s/tvc_de_novo/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],'w'))
+						# Generate Variant Table ('alleles.xls' file)
+						cmd = subprocess.Popen([
+							'python', '%s/variantCaller/bin/generate_variant_tables.py' % pipeline_folder,
+							'--input-vcf',		'%s/tvc_de_novo/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],
+							'--region-bed',		barcodes_json[barcode]['target_bed'],
+							'--output-xls',		'%s/tvc_de_novo/output.xls' % barcodes_json[barcode]['intermediate_folder'],
+							'--alleles2-xls',	'%s/tvc_de_novo/alleles.xls' % barcodes_json[barcode]['intermediate_folder']
+							], 
+							stdout=open('%s/tvc_de_novo/generate_variant_tables.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'), 
+							stderr=open('%s/tvc_de_novo/generate_variant_tables.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
+						cmd.communicate()
+						tvc_de_novo_running = False
+				if tvc_hotspot_running:
+					if tvc_hotspot_ps.poll() is not None :
+						logging.info("\t - [%s] TVC <only hotspot> gzip and generate_variant_tables ..." % (time.strftime("%H:%M:%S")))
+						subprocess.call(['gzip','-d','-c','%s/tvc_only_hotspot/TSVC_variants.vcf.gz' % barcodes_json[barcode]['intermediate_folder']],stdout=open('%s/tvc_only_hotspot/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],'w'))
+						# Generate Variant Table ('alleles.xls' file)
+						cmd = subprocess.Popen([
+							'python', '%s/variantCaller/bin/generate_variant_tables.py' % pipeline_folder,
+							'--input-vcf',		'%s/tvc_only_hotspot/TSVC_variants.vcf' % barcodes_json[barcode]['intermediate_folder'],
+							'--region-bed',		barcodes_json[barcode]['target_bed'],
+							'--hotspots',
+							'--output-xls',		'%s/tvc_only_hotspot/output.xls' % barcodes_json[barcode]['intermediate_folder'],
+							'--alleles2-xls',	'%s/tvc_only_hotspot/alleles.xls' % barcodes_json[barcode]['intermediate_folder']
+							], 
+							stdout=open('%s/tvc_only_hotspot/generate_variant_tables.stdout.txt' % barcodes_json[barcode]['intermediate_folder'],'w'),
+							stderr=open('%s/tvc_only_hotspot/generate_variant_tables.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'w'))
+						cmd.communicate()
+						tvc_hotspot_running = False
 
 		# GET PROCESSED BAM
 		if os.path.isfile('%s/tvc_de_novo/processed.bam' % barcodes_json[barcode]['intermediate_folder']):
 			subprocess.call(['mv','%s/tvc_de_novo/processed.bam' % barcodes_json[barcode]['intermediate_folder'],'%s/%s_%s.processed.bam' % (barcodes_json[barcode]['sample_folder'],barcodes_json[barcode]['sample'],barcode)])
 		if os.path.isfile('%s/tvc_de_novo/processed.bam.bai' % barcodes_json[barcode]['intermediate_folder']):
 			subprocess.call(['mv','%s/tvc_de_novo/processed.bam.bai' % barcodes_json[barcode]['intermediate_folder'],'%s/%s_%s.processed.bam.bai' % (barcodes_json[barcode]['sample_folder'],barcodes_json[barcode]['sample'],barcode)])
+	os.chdir(pipeline_folder)
 
 	###         __   ___  __  ___     __   __  ### 
 	### | |\ | /__` |__  |__)  |     |  \ |__) ### 
@@ -702,7 +714,7 @@ for barcode in ordered_barcodes:
 	if not options.skip_insert_db:
 		logging.info("\t\t - [%s] insert variants and metrics into DB ..." % (time.strftime("%H:%M:%S")))
 		abl1 = 'no'
-		if 'ABL1_NM_005157.fasta' in barcodes_json[barcode]['reference']:
+		if 'ABL1' in barcodes_json[barcode]['reference']:
 			abl1 = 'yes'
 
 		if barcodes_json[barcode]['platform'].lower() == 'illumina':
@@ -814,38 +826,48 @@ for barcode in ordered_barcodes:
 
 
 ## ZIP INTERMEDIATE FOLDER##
-	shutil.make_archive(barcodes_json[barcode]['intermediate_folder'],'zip',barcodes_json[barcode]['intermediate_folder'])
-	shutil.rmtree(barcodes_json[barcode]['intermediate_folder'])
+	try:
+		shutil.make_archive(barcodes_json[barcode]['intermediate_folder'],'zip',barcodes_json[barcode]['intermediate_folder'])
+		shutil.rmtree(barcodes_json[barcode]['intermediate_folder'])
+	except:
+		pass
 
 if options.run:
 	###  __   __   __     __  ___  __  ###
 	### /__` /  ` |__) | |__)  |  /__` ###
 	### .__/ \__, |  \ | |     |  .__/ ###
 
+	### VBS scripts for printing
+	logging.info(" [%s] Making VBS for fast printing..." % time.strftime("%H:%M:%S"))
+	subprocess.call(['python','%s/finalReport/make_vbs_print.py' % pipeline_folder,run_folder,'%s/barcodes.json' % run_folder])
+
 	for barcode in ordered_barcodes:
 		if 'ACROMETRIX' in barcodes_json[barcode]['sample'].upper():
+			logging.info(" [%s] Acrometrix_check.py..." % time.strftime("%H:%M:%S"))
 			subprocess.call(['python','%s/scripts/Acrometrix_check.py' % pipeline_folder,barcodes_json[barcode]['finalReport'],barcodes_json[barcode]['sample'],run_name])
 		elif 'HORIZON' in barcodes_json[barcode]['sample'].upper():
+			logging.info(" [%s] Horizon_check.py..." % time.strftime("%H:%M:%S"))
 			subprocess.call(['python','%s/scripts/Horizon_check.py' % pipeline_folder,barcodes_json[barcode]['finalReport'],barcodes_json[barcode]['sample'],run_name])
 		elif 'BARBI' in barcodes_json[barcode]['sample'].upper():
+			logging.info(" [%s] Temoin_TP53_check.py..." % time.strftime("%H:%M:%S"))
 			subprocess.call(['python','%s/scripts/Temoin_TP53_check.py' % pipeline_folder,barcodes_json[barcode]['finalReport'],barcodes_json[barcode]['sample'],run_name])
 		for c in ['BAF-','BAF5','P190']:
 			if c in barcodes_json[barcode]['sample'].upper():
+				logging.info(" [%s] Temoins_ABL1_check.py..." % time.strftime("%H:%M:%S"))
 				subprocess.call(['python','%s/scripts/Temoins_ABL1_check.py' % pipeline_folder,barcodes_json[barcode]['finalReport'],barcodes_json[barcode]['sample'],run_name])
 		if barcodes_json[barcode]['panel'] == 'ColonLung_v10':
+			logging.info(" [%s] collect_variants_MET_intron_13.py..." % time.strftime("%H:%M:%S"))
 			subprocess.call(['python','%s/scripts/collect_variants_MET_intron_13-14.py' % pipeline_folder,barcodes_json[barcode]['finalReport'],barcodes_json[barcode]['sample'],run_name])
 
 	###  __        ___  __           __   __       ___                        ___    __       ###
 	### /  ` |__| |__  /  ` |__/    /  ` /  \ |\ |  |   /\   |\/| | |\ |  /\   |  | /  \ |\ | ###
 	### \__, |  | |___ \__, |  \    \__, \__/ | \|  |  /~~\  |  | | | \| /~~\  |  | \__/ | \| ###
 
-	# checkconta_folder = '%s/_checkContamination' % run_folder
-	# if not os.path.isdir(checkconta_folder):
-		# subprocess.call(['mkdir', checkconta_folder])
+	checkconta_folder = '%s/_checkContamination' % run_folder # pour les stdout et stderr
+	if not os.path.isdir(checkconta_folder):
+		subprocess.call(['mkdir', checkconta_folder])
 	logging.info(" [%s] checkContamination ..." % time.strftime("%H:%M:%S"))
-	cmd = subprocess.Popen(['python','%s/checkContamination/checkContamination.py' % pipeline_folder,'--run-folder', run_folder],stdout=open('%s/checkContamination.stdout.txt' % checkconta_folder,'w'),stderr=open('%s/checkContamination.stderr.txt' % checkconta_folder,'w'))
-	cmd.communicate()
-	check_stderr('%s/checkContamination.stderr.txt' % checkconta_folder,indent=1)
+	cmd = subprocess.call(['python','%s/checkContamination/checkContamination.py' % pipeline_folder,'--run-folder', run_folder],stdout=open('%s/checkContamination.stdout.txt' % checkconta_folder,'w'),stderr=open('%s/checkContamination.stderr.txt' % checkconta_folder,'w'))
 
 	####  __        ___  __                  ___ ###
 	#### /  ` |__| |__  /  ` |__/  |\/| |  |  |  ###
@@ -855,10 +877,35 @@ if options.run:
 	if not os.path.isdir(checkMut_folder):
 		subprocess.call(['mkdir',checkMut_folder])
 	logging.info(" [%s] checkMut (routine variants) ..." % time.strftime("%H:%M:%S"))
-	subprocess.call(['python','%s/checkMut/routine_checkMut.py' % pipeline_folder,run_folder])
+	cmd = subprocess.Popen(['python','%s/checkMut/routine_checkMut.py' % pipeline_folder,run_folder])
+	cmd.communicate()
 
 	#  ___      __   ___                    __              ___  __        __   ___ 
 	# |__  \_/ /  ` |__  |       \  /  /\  |__) |  /\  |\ |  |  |__)  /\  /__` |__  
 	# |___ / \ \__, |___ |___     \/  /~~\ |  \ | /~~\ | \|  |  |__) /~~\ .__/ |___ 
 
-	subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LAM-illumina-v1,LAM-illumina-v2', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx'])
+	panels = list(set([barcodes_json[barcode]['panel'] for barcode in barcodes_json]))
+	if 'ColonLung_v10' in panels:
+		logging.info(" [%s] make_excel_VariantBase SBT ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--project', 'SBT', '--output', '/media/n06lbth/sauvegardes_pgm/SBT/VariantBase_SBT.xlsx'])
+	if 'LAM-illumina-v2' in panels:
+		logging.info(" [%s] make_excel_VariantBase LAM-illumina ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LAM-illumina-v3,LAM-illumina-v2,LAM-illumina-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx'])
+	if 'LAM-iontorrent-v8' in panels:
+		logging.info(" [%s] make_excel_VariantBase LAM-iontorrent ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LAM-iontorrent-v8,LAM-iontorrent-v3,LAM-iontorrent-v2,LAM-iontorrent-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_LAM_FLT3.xlsx'])
+	if 'TP53' in panels:
+		logging.info(" [%s] make_excel_VariantBase TP53 ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'TP53', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_TP53.xlsx'])
+	if 'ABl1' in panels:
+		logging.info(" [%s] make_excel_VariantBase ABL1 ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'ABL1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_ABL1.xlsx'])
+	if 'Leuc' in panels:
+		logging.info(" [%s] make_excel_VariantBase Leuc ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'Leuc', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_Leuc.xlsx'])
+	if 'Lymphome_B' in panels:
+		logging.info(" [%s] make_excel_VariantBase Lymphome_B ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'Lymphome_B', '--output', '/media/n06lbth/sauvegardes_pgm/Lymphome_B/VariantBase_Lymphome_B.xlsx'])
+	if 'Lymphome_T' in panels:
+		logging.info(" [%s] make_excel_VariantBase Lymphome_T ..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'Lymphome_T', '--output', '/media/n06lbth/sauvegardes_pgm/Lymphome_T/VariantBase_Lymphome_T.xlsx'])

@@ -291,5 +291,98 @@ elif platform.lower() == 'ion torrent':
 	for c_pos in cd79b_c_list:
 		subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','CD79B','--cpos',c_pos,'--run-type','Lymphome_B'])#,'--sub-folder','KRAS'])
 
+	stat3_c_list = [
+	'c.1771A>G',
+	'c.1772A>T',
+	'c.1778G>C',
+	'c.1825A>G',
+	'c.1831A>G',
+	'c.1832G>A',
+	'c.1832G>T',
+	'c.18040A>G',
+	'c.1842C>G',
+	'c.1847A>G',
+	'c.1846G>A',
+	'c.1850G>A',
+	'c.1850G>T',
+	'c.1849G>A',
+	'c.1852G>C',
+	'c.1853G>A',
+	'c.1858A>G',
+	'c.1859C>G',
+	'c.1861T>G',
+	'c.1863C>G',
+	'c.1862T>C',
+	'c.1865C>T',
+	'c.1881C>A',
+	'c.1907C>T',
+	'c.1907C>A',
+	'c.1909G>A',
+	'c.1909G>T',
+	'c.1910T>C',
+	'c.1913A>G',
+	'c.1915C>G',
+	'c.1915C>T',
+	'c.1915C>A',
+	'c.1919A>T',
+	'c.1924A>G',
+	'c.1927C>A',
+	'c.1929A>C',
+	'c.1931_1933del',
+	'c.1938C>G',
+	'c.1939A>G',
+	'c.1940A>T',
+	'c.1954G>A',
+	'c.1967G>A',
+	'c.1968delinsTTTT',
+	'c.1970A>G',
+	'c.1970A>C',
+	'c.1969T>A',
+	'c.1969_1971dup',
+	'c.1969_1980dup',
+	'c.1973A>T',
+	'c.1974G>T',
+	'c.1972_1974delinsTAT',
+	'c.1972A>G',
+	'c.1976A>T',
+	'c.1975A>C',
+	'c.1979T>G',
+	'c.1978T>A',
+	'c.1981_1982delinsAT',
+	'c.1981G>T',
+	'c.1981A>T',
+	'c.1981G>C',
+	'c.1985C>T',
+	'c.1988_1989delinsTT',
+	'c.1998T>A',
+	'c.1999C>G',
+	'c.2003C>T',
+	'c.2003C>A',
+	'c.2104G>A'
+	]
+
+	print "[%s] STAT3 checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(stat3_c_list))
+	for c_pos in stat3_c_list:
+		subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','STAT3','--cpos',c_pos,'--run-type','Lymphome_T','--sub-folder','STAT3'])#,'--sub-folder','KRAS'])
+
+	stat5b_c_list = [
+	'c.1787G>T',
+	'c.1883C>G',
+	'c.1888G>C',
+	'c.1901A>T',
+	'c.1907A>C',
+	'c.1924A>C',
+	'c.1937T>C',
+	'c.1942A>T',
+	'c.1975C>T',
+	'c.1994A>T',
+	'c.1993T>C',
+	'c.2110A>C',
+	'c.1735G>A'
+	]
+
+	print "[%s] STAT5B checkMut (%s)..." % (time.strftime("%H:%M:%S"),len(stat5b_c_list))
+	for c_pos in stat5b_c_list:
+		subprocess.call(['python',checkMut_path,'--run-folder',run_folder,'--min-sample','30','--gene','STAT5B','--cpos',c_pos,'--run-type','Lymphome_T','--sub-folder','STAT5B'])#,'--sub-folder','KRAS'])
 
 print "[%s] Done." % time.strftime("%H:%M:%S")

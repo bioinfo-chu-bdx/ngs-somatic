@@ -33,8 +33,8 @@ def reverse(seq):
 ### GATHERING PARAMETERS ############################################################
 
 parser = OptionParser()
-parser.add_option('-n', '--new',	help="annonate new variants only", 	dest='new', 	default=False, action='store_true')
-parser.add_option('-f', '--full',	help="annonate full database", 		dest='full', 	default=False, action='store_true')
+parser.add_option('-n', '--new',	help="annotate new variants only", 	dest='new', 	default=False, action='store_true')
+parser.add_option('-f', '--full',	help="annotate full database", 		dest='full', 	default=False, action='store_true')
 parser.add_option('-c', '--clean',	help="delete all variant annotation entries", 		dest='clean', 	default=False, action='store_true')
 # parser.add_option('-u', '--update',	help="update old variants", 		dest='update', 	default=False, action='store_true')
 (options, args) = parser.parse_args()
@@ -142,18 +142,20 @@ for db_variant_annotation in db_variant_annotations:
 	else: # SNP
 		variant_type = 'SNP'
 		genomicDescription = 'g.%s%s>%s' % (start,ref,alt)
-	db_cur.execute("UPDATE Variant SET genomicDescription=? WHERE variantID=?" , (genomicDescription,variantID))
+	completeGenomicDescription = '%s:%s' % (chromosome,genomicDescription)
+	db_cur.execute("UPDATE Variant SET genomicDescription=? WHERE variantID=?" , (completeGenomicDescription,variantID))
 	db_cur.execute("UPDATE VariantAnnotation SET variantType=? WHERE variantAnnotationID=?" , (variant_type,variantAnnotationID))
 
 	# STEP 1 : PARSE VARIANT (g)
 	g0 = hp.parse_hgvs_variant('%s:%s' % (nc,genomicDescription))
 	# print "- %s: %s (%s:%s-%s:%s>%s)" % (z,g0,chromosome,start,stop,ref,alt)
-	print "- %s: %s" % (z,genomicDescription)
+	print "- %s: %s" % (z,completeGenomicDescription)
 
 	# STEP 2 : VALIDATE (g)
 	try:
 		hv.validate(g0)
-	except hgvs.exceptions.HGVSError as e:
+	except Exception as e:
+	# except hgvs.exceptions.HGVSError as e:
 		error_message = 'error : %s' % str(e)
 		print "\t- %s" % error_message
 		db_cur.execute("UPDATE VariantAnnotation SET hgvs='error', hgvsInfo=? WHERE variantAnnotationID=?" , (error_message,variantAnnotationID))
@@ -162,7 +164,8 @@ for db_variant_annotation in db_variant_annotations:
 	# STEP 3 : g to c (with normalization)
 	try:
 		c = am37.g_to_c(g0,transcript)
-	except hgvs.exceptions.HGVSError as e:
+	except Exception as e:
+	# except hgvs.exceptions.HGVSError as e:
 		error_message = 'error : %s' % str(e)
 		print "\t- %s" % error_message
 		db_cur.execute("UPDATE VariantAnnotation SET hgvs='error', hgvsInfo=? WHERE variantAnnotationID=?" , (error_message,variantAnnotationID))
@@ -240,7 +243,8 @@ for db_variant_annotation in db_variant_annotations:
 	db_cur.execute("UPDATE VariantAnnotation SET transcriptDescription=?, hgvs='yes' WHERE variantAnnotationID=?" , (c_pos,variantAnnotationID))
 	try:
 		hv.validate(c)
-	except hgvs.exceptions.HGVSError as e:
+	except Exception as e:
+	# except hgvs.exceptions.HGVSError as e:
 		warning_message = 'warning : %s' % str(e)
 		print "\t- %s" % warning_message
 		db_cur.execute("UPDATE VariantAnnotation SET hgvs='warning', hgvsInfo=? WHERE variantAnnotationID=?" , (warning_message,variantAnnotationID))
@@ -248,7 +252,8 @@ for db_variant_annotation in db_variant_annotations:
 	# STEP 5 : c_to_p
 	try:
 		p = am37.c_to_p(c)
-	except hgvs.exceptions.HGVSError as e:
+	except Exception as e:
+	# except hgvs.exceptions.HGVSError as e:
 		warning_message = 'warning : %s' % str(e)
 		print "\t- %s" % warning_message
 		db_cur.execute("UPDATE VariantAnnotation SET hgvs='warning', hgvsInfo=? WHERE variantAnnotationID=?" , (warning_message,variantAnnotationID))

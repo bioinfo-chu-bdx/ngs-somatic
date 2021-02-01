@@ -1,0 +1,2 @@
+1. remplir/mettre à jour le fichier FalsePositives.tsv
+2. lancer le script variantAnnotation/annotate_variantbase.custom_annotation.py

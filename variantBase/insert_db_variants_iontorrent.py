@@ -48,19 +48,19 @@ else:
 		if 'tvc_de_novo/alleles.xls' in archive.namelist():
 			vc_xls_file = archive.open('tvc_de_novo/alleles.xls')	
 
-vc_xls_reader = csv.reader(vc_xls_file,delimiter='\t')
+vc_xls_reader = csv.DictReader(vc_xls_file,delimiter='\t')
 
 vc_hotspot_xls_reader = False
 if os.path.isfile(vc_xls_path.replace('tvc_de_novo','tvc_only_hotspot')):
 	vc_hotspot_xls_file = open(vc_xls_path.replace('tvc_de_novo','tvc_only_hotspot'),'r')
-	vc_hotspot_xls_reader = csv.reader(vc_hotspot_xls_file,delimiter='\t')
+	vc_hotspot_xls_reader = csv.DictReader(vc_hotspot_xls_file,delimiter='\t')
 else:
 	intermediate_folder = os.path.dirname(os.path.dirname(vc_xls_path))
 	if os.path.isfile('%s.zip' % intermediate_folder):
 		archive = zipfile.ZipFile('%s.zip' % intermediate_folder, 'r')
 		if 'tvc_only_hotspot/alleles.xls' in archive.namelist():
 			vc_xls_file = archive.open('tvc_only_hotspot/alleles.xls')
-			vc_hotspot_xls_reader = csv.reader(vc_hotspot_xls_file,delimiter='\t')
+			vc_hotspot_xls_reader = csv.DictReader(vc_hotspot_xls_file,delimiter='\t')
 
 abl1_c2g = {}
 # /DATA/work/variantAnnotation/ABL1_NM_005157_cdna_genomic.tsv
@@ -82,20 +82,20 @@ if options.abl1 == 'yes':
 variants = {}
 
 for line in vc_xls_reader:
-	call = line[4]
+	call = line['Allele Call']
 	if call != 'Heterozygous' and call != 'Homozygous':
 		continue
-	chromosome = line[0]
-	position = int(line[1])
+	chromosome = line['Chrom']
+	position = int(line['Position'])
 	if options.abl1 == 'yes':
 		chromosome = 'chr9'
 		position = abl1_c2g[position-192]
-	ref = line[2]
-	alt = line[3]
-	variant_type = line[9]
-	freq = line[6]
-	pos_cov = int(line[18])
-	var_cov = int(line[24])
+	ref = line['Ref']
+	alt = line['Variant']
+	variant_type = line['Type']
+	freq = line['Frequency']
+	pos_cov = int(line['Coverage'])
+	var_cov = int(line['Allele Cov'])
 
 	if variant_type == 'SNP':
 		start = position
@@ -127,20 +127,20 @@ for line in vc_xls_reader:
 
 if vc_hotspot_xls_reader:
 	for line in vc_hotspot_xls_reader:
-		call = line[4]
+		call = line['Allele Call']
 		if call != 'Heterozygous' and call != 'Homozygous':
 			continue
-		chromosome = line[0]
-		position = int(line[1])
-		if options.abl1 == 'yes':	
+		chromosome = line['Chrom']
+		position = int(line['Position'])
+		if options.abl1 == 'yes':
 			chromosome = 'chr9'
 			position = abl1_c2g[position-192]
-		ref = line[2]
-		alt = line[3]
-		variant_type = line[9]
-		freq = line[6]
-		pos_cov = int(line[18])
-		var_cov = int(line[24])
+		ref = line['Ref']
+		alt = line['Variant']
+		variant_type = line['Type']
+		freq = line['Frequency']
+		pos_cov = int(line['Coverage'])
+		var_cov = int(line['Allele Cov'])
 
 		if variant_type == 'SNP':
 			start = position
@@ -170,7 +170,7 @@ if vc_hotspot_xls_reader:
 				'call':'tvc_hotspot'
 			}
 		else:
-			variants[variant]['call'] = 'de novo / hotspot'
+			variants[variant]['call'] = 'tvc_de_novo/tvc_hotspot'
 
 # IF ANALYSIS PREVIOUSLY DONE, DELETE OLD VARIANTMETRICS FIRST
 db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s'" % analysis_id)

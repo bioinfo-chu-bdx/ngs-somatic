@@ -24,6 +24,9 @@ parser.add_option('-i', '--illumina_folder',help="Path to illumina folder contai
 
 sbt_pattern			= r"^.*[A-Z]{2}[0-9]{3}[A-Z]{1}$" ## ex BESCOND-AW210F (2 lettres 3 chiffres 1 lettre)
 sbt_old_pattern		= r"^.*[A-Z]{1}[0-9]{3}[A-Z]{1}$" ## ex GUSMINI-Z492F (1 lettre 3 chiffres 1 lettre)
+sbt_cdna_pattern1 = r"^.*[A-Z]{3}[0-9]{4}$" ## ex ALIE-PLR1146 (3 lettres 4 chiffres)
+sbt_cdna_pattern2 = r"^.*[A-Z]{3}[0-9]{3}$" ## ex ALLARD-PLR905 (3 lettres 3 chiffres)
+sbt_cdna_pattern3 = r"^.*[A-Z]{2}[0-9]{2}[A-Z]{1}[0-9]{1}$" ## ex VANDENBERGHE-PL05C2 (2 lettres 2 chiffres 1 lettre 1 chiffre)
 hemato_pattern		= r"^.*[0-9]{3}\.[0-9]{3}$" ## ex ETIENNE-MICHELE-204.066 (se termine par 3 chiffres 1 point 3 chiffres)
 hemato_old_pattern	= r"^.*[0-9]{3}\.[0-9]{2}$" ## ex ETIENNE-MICHELE-204.06 (se termine par 3 chiffres 1 point 2 chiffres)
 hemato_pattern2		= r"^.*[0-9]{3}-[0-9]{3}$" ## ex ETIENNE-MICHELE-204-066 (se termine par 3 chiffres 1 tiret 3 chiffres)
@@ -83,6 +86,14 @@ for line in ss_reader:
 		samples[sample_id]['sample_number'] = 'S%s' % number
 		number+=1
 
+# FILL TRACABILITE TECHNIQUE DES RUNS CAPTURE
+if run_project != 'FusionPlex_CTL':
+	try:
+		ttr = '/media/n06lbth/sauvegardes_pgm/LAM/EN_LAB_20_2579_Tracabilite_technique_des_runs_capture.xlsx'
+		subprocess.call(['python','%s/scripts/tracabilite_technique_capture.py' % pipeline_folder,options.illumina_folder,ttr,experiment_name])
+	except:
+		pass
+
 # BCL2FASTQ
 print "- BCL2FASTQ"
 if run_project == 'FusionPlex_CTL':
@@ -111,12 +122,14 @@ cmd.communicate()
 #  Twenty percent of threads for demultiplexing data.
 #  One hundred percent of threads for processing demultiplexed data
 
+# POUR TSO 500 si besoin semble etre Y101;I8;I8;Y101 
+
 # CREATE OUTPUT FOLDER 
-print "- CREATING RUN FOLDER"
-output_location = '%s/%s' % (ngs_folder,run_project)
+print "- CREATING FOLDERS"
+output_location = '%s/%s' % (ngs_folder,run_project) # PROJECT FOLDER 
 if not os.path.exists(output_location):
 	subprocess.call(['mkdir',output_location])
-if not sub_project == '':
+if not sub_project == '': # SUB-PROJECT FOLDER 
 	output_location = '%s/%s/%s' % (ngs_folder,run_project,sub_project)
 	if not os.path.exists(output_location):
 		subprocess.call(['mkdir',output_location])
@@ -125,7 +138,7 @@ run_folder = '%s/%s' % (output_location,experiment_name)
 # while os.path.isdir(run_folder): ## ?? est-ce vraiment utile
 	# run_folder = '%s_%s' % (run_folder,time.strftime("%d-%m-%Y-%Hh%M"))
 print "\t - %s" % (run_folder)
-subprocess.call(['mkdir',run_folder])
+subprocess.call(['mkdir',run_folder]) # RUN FOLDER
 
 # CREATE PATIENT FOLDERS & TRANSFER FASTQ
 print "- CREATING PATIENT FOLDERS & TRANSFER FASTQ"
@@ -143,11 +156,13 @@ else:
 		# sample_fastqs = glob.glob('%s/Data/Intensities/BaseCalls/%s/%s*.fastq.gz' % (options.illumina_folder,samples[sample_id]['panel'],sample)) # SI project dans DATA
 		sample_fastqs = glob.glob('%s/Data/Intensities/BaseCalls/%s*.fastq.gz' % (options.illumina_folder,sample))
 		for fastq in sample_fastqs:
+			print "\t\t - %s found" % (os.path.basename(fastq))
 			if fastq.startswith('Undetermined_S0'):
-				sample_fastqs.remove(fastq)
-				continue
-		print "\t\t - %s found" % (os.path.basename(fastq))
-		subprocess.call(['mv', fastq, sample_folder])
+				# sample_fastqs.remove(fastq)
+				# continue
+				subprocess.call(['mv', fastq, run_folder])
+			else:
+				subprocess.call(['mv', fastq, sample_folder])
 
 # AND GENERATE BARCODES.JSON
 print "- GENERATE BARCODES.JSON"
@@ -187,6 +202,18 @@ for sample in samples.keys():
 			print "\t -sbt old pattern ('X123X')"
 			sample_id = sample[-5:]
 			sample = sample[:-6]
+		elif re.match(sbt_cdna_pattern1,sample):
+			print "\t -sbt cdna pattern1 ('XXX1234')"
+			sample_id = sample[-7:]
+			sample = sample[:-8]
+		elif re.match(sbt_cdna_pattern2,sample):
+			print "\t -sbt cdna pattern2 ('XXX123')"
+			sample_id = sample[-6:]
+			sample = sample[:-7]
+		elif re.match(sbt_cdna_pattern3,sample):
+			print "\t -sbt cdna pattern3 ('XX12X3')"
+			sample_id = sample[-6:]
+			sample = sample[:-7]
 		elif re.match(hemato_long_pattern,sample):
 			print "\t -hemato pattern ('.c0.R0.B123.456')"
 			sample_id = sample[-7:]

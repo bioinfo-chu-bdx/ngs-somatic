@@ -1,0 +1,40 @@
+step 1 : annotate_bed.py (utiliser -c pour copier les transcripts d'un panel existant dans la BDD)
+
+	python reference_files/annotate_bed/annotate_bed.py 
+	-i /media/stuff/IAD206975_231_Designed.bed 
+	-o /media/stuff/Target_ColonLung_v11_IAD206975_231.anno.bed 
+	-c 'ColonLung_v10'
+
+step 2 : update_panel_gene_variantbase.py 
+
+	(remplir dict, ex: 
+	'ColonLung_v11':{'path':'%s/reference_files/Target_ColonLung_v11_IAD206975_231.anno.bed' % pipeline_folder,'project':'SBT','subproject':None}, )
+
+	python variantBase/update_panel_gene_variantbase.py
+
+(step 2.5 : generate merged bed for TVC )
+
+	variantCaller/bin/tvcutils validate_bed 
+	--target-regions-bed /media/stuff/Target_ColonLung_v11_IAD206975_231.anno.bed 
+	--reference reference_files/hg19/hg19.fasta 
+	--merged-plain-bed /media/stuff/Target_ColonLung_v11_IAD206975_231.merged.plain.bed
+
+step 3 : mettre à jour global_parameters.json
+
+			"ColonLung_v11":{
+			"project": "SBT",
+			"sub_project": "",
+			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_ColonLung_v11_IAD206975_231.anno.bed",
+			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_ColonLung_v11_IAD206975_231.merged.plain.bed",
+			"tvc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.json",
+			"tvc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_only.json",
+			"tvc_parameters_hotspot_cdna": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_cDNA.json",
+			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_ColonLung_v5.vcf",
+			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
+			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
+			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
+			"checkContamination_read_len":100
+		},
+
+POUR ILLUMINA : faire des version avec padding et ne pas oublier d'importer le coverered bed
++ Faire fichier .intervals

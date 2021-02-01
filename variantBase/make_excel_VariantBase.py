@@ -65,7 +65,7 @@ db_con = sqlite3.connect('%s/variantBase/VariantBase.db' % pipeline_folder)
 db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
-if options.project and options.pane:
+if options.project and options.panel:
 	sys.stderr.write("Error: choose either <--project> or <--panel>, not both\n")
 	sys.exit()
 
@@ -187,28 +187,44 @@ dataSheet['A2'].value = len(runs)
 
 ## MAKE ALL GENE SHEET
 print "- making gene sheets..."
+gene2transcript = {}
+geneTemplateSheet = excelVB['Gene']
 if options.project:
 	db_cur.execute("""SELECT DISTINCT gene,transcriptID FROM Transcript 
 	INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID 
 	INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel 
 	WHERE panelProject in %s ORDER BY gene""" % in_projects)
+	db_transcripts = db_cur.fetchall()
+	for db_transcript in db_transcripts:
+		gene = db_transcript['gene']
+		transcript = db_transcript['transcriptID']
+		if gene not in gene2transcript.keys():
+			gene2transcript[gene] = transcript
+			newGeneSheet = excelVB.copy_worksheet(geneTemplateSheet)
+			newGeneSheet.title = db_transcript['gene']
+		else:
+			print "WARNING : duplicate gene-transcript %s:%s : using transcript %s" % (gene,transcript,gene2transcript[gene])
 elif options.panel:
-	db_cur.execute("""SELECT DISTINCT gene,transcriptID FROM Transcript 
-	INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID 
-	INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel 
-	WHERE panelID in %s ORDER BY gene""" % in_panels)
-db_transcripts = db_cur.fetchall()
-gene2transcript = {}
-geneTemplateSheet = excelVB['Gene']
-for db_transcript in db_transcripts:
-	gene = db_transcript['gene']
-	transcript = db_transcript['transcriptID']
-	if gene not in gene2transcript.keys():
-		gene2transcript[gene] = transcript
-		newGeneSheet = excelVB.copy_worksheet(geneTemplateSheet)
-		newGeneSheet.title = db_transcript['gene']
-	else:
-		print "WARNING : duplicate gene-transcript %s:%s : using transcript %s" % (gene,transcript,gene2transcript[gene])
+	# db_cur.execute("""SELECT DISTINCT gene,transcriptID FROM Transcript 
+	# INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID 
+	# INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel 
+	# WHERE panelID in %s ORDER BY gene""" % in_panels)
+	# db_transcripts = db_cur.fetchall()
+	for panel in panels: ## les transcripts preferes sont ceux des panels dans l'ordre specifie
+		db_cur.execute("""SELECT DISTINCT gene,transcriptID FROM Transcript 
+		INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID 
+		INNER JOIN Panel ON Panel.panelID = TargetedRegion.panel 
+		WHERE panelID='%s' ORDER BY gene""" % panel)
+		db_transcripts = db_cur.fetchall()
+		for db_transcript in db_transcripts:
+			gene = db_transcript['gene']
+			transcript = db_transcript['transcriptID']
+			if gene not in gene2transcript.keys():
+				gene2transcript[gene] = transcript
+				newGeneSheet = excelVB.copy_worksheet(geneTemplateSheet)
+				newGeneSheet.title = db_transcript['gene']
+			elif transcript != gene2transcript[gene]:
+				print "WARNING : duplicate gene-transcript %s:%s : using transcript %s" % (gene,transcript,gene2transcript[gene])
 del excelVB['Gene']
 
 genes = gene2transcript.keys()

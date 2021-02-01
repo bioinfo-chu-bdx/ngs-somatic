@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-import sys
 import json
 import os
 import csv
-import urllib2
+import sqlite3
 from optparse import OptionParser
 
 # THIS SCRIPT NEED THE FOLLOWING FILES (decompressed with GUNZIP) : 
@@ -13,6 +12,12 @@ from optparse import OptionParser
 
 # USAGE : python annotate_bed.py --i /path/to/target.bed --o /path/to/target.anno.bed
 # !!! BED SHOULD HAVE LINUX LINE ENDING !!! (use dos2unix script)
+
+def dict_factory(cursor, row):
+	d = {}
+	for idx, col in enumerate(cursor.description):
+		d[col[0]] = row[idx]
+	return d
 
 def find_refgene_data(transcript):
 	gene = ''
@@ -68,23 +73,39 @@ def find_refgene_data(transcript):
 		return gene,strand,exonStarts,exonEnds,details
 
 parser = OptionParser()
-parser.add_option('-i', '--input-bed',help="Path to bed",dest='bed')
-parser.add_option('-o', '--output-bed',help="Output bed",dest='output')
+parser.add_option('-i', '--input-bed',	help="path to bed",dest='bed')
+parser.add_option('-o', '--output-bed',	help="output bed",dest='output')
+parser.add_option('-c', '--copy-panel',	help="optionnal : use same transcripts as an existing panel in the DB",dest='copy_panel')
 (options, args) = parser.parse_args()
-
-favorite_transcript = {'ANKRD26':'NM_014915','ASXL1':'NM_015338','ASXL2':'NM_018263','BCOR':'NM_001123385','BCORL1':'NM_021946','CALR':'NM_004343',
-'CBL':'NM_005188','CCND2':'NM_001759','CEBPA':'NM_004364','CSF3R':'NM_156039','CUX1':'NM_181552','DDX41':'NM_016222','DHX15':'NM_001358',
-'DNMT3A':'NM_022552','ETNK1':'NM_018638','ETV6':'NM_001987','EZH2':'NM_004456','FLT3':'NM_004119','GATA1':'NM_002049','GATA2':'NM_032638',
-'GNAS':'NM_000516','GNB1':'NM_002074','IDH1':'NM_005896','IDH2':'NM_002168','IKZF1':'NM_006060','JAK2':'NM_004972','KDM6A':'NM_021140',
-'KIT':'NM_000222','KMT2C':'NM_170606','KRAS':'NM_033360','MPL':'NM_005373','MYC':'NM_001354870','NFE2':'NM_006163','NPM1':'NM_002520',
-'NRAS':'NM_002524','PHF6':'NM_001015877','PPM1D':'NM_003620','PTEN':'NM_000314','PTPN11':'NM_002834','RAD21':'NM_006265','RIT1':'NM_006912',
-'RUNX1':'NM_001754','SAMD9':'NM_017654','SAMD9L':'NM_001303497','SETBP1':'NM_015559','SF3B1':'NM_012433','SH2B3':'NM_005475','SMC1A':'NM_006306',
-'SMC3':'NM_005445','SRSF2':'NM_003016','SRY':'NM_003140','STAG2':'NM_001042749','TERC':'NR_001566','TERT':'NM_198253','TET2':'NM_001127208',
-'TP53':'NM_001126112','U2AF1':'NM_001025203','WT1':'NM_001198551','ZRSR2':'NM_005089'}
 
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 with open('%s/global_parameters.json' % pipeline_folder, 'r') as g:
 	global_param = json.loads(g.read().replace('$NGS_PIPELINE_BX_DIR',os.environ['NGS_PIPELINE_BX_DIR']))
+
+db_path = global_param['VariantBase']
+db_con = sqlite3.connect(db_path)
+db_con.row_factory = dict_factory
+db_cur = db_con.cursor()
+
+favorite_transcript = {}
+if options.copy_panel:
+	db_cur.execute("""SELECT DISTINCT gene,transcriptID FROM Transcript 
+	INNER JOIN TargetedRegion ON TargetedRegion.transcript = Transcript.transcriptID
+	WHERE panel = '%s'
+	ORDER BY Gene""" % options.copy_panel)
+	db_transcripts = db_cur.fetchall()
+	for db_transcript in db_transcripts:
+		favorite_transcript[db_transcript['gene']] = db_transcript['transcriptID'].split('.')[0]
+
+# favorite_transcript = {'ANKRD26':'NM_014915','ASXL1':'NM_015338','ASXL2':'NM_018263','BCOR':'NM_001123385','BCORL1':'NM_021946','CALR':'NM_004343',
+# 'CBL':'NM_005188','CCND2':'NM_001759','CEBPA':'NM_004364','CSF3R':'NM_156039','CUX1':'NM_181552','DDX41':'NM_016222','DHX15':'NM_001358',
+# 'DNMT3A':'NM_022552','ETNK1':'NM_018638','ETV6':'NM_001987','EZH2':'NM_004456','FLT3':'NM_004119','GATA1':'NM_002049','GATA2':'NM_032638',
+# 'GNAS':'NM_000516','GNB1':'NM_002074','IDH1':'NM_005896','IDH2':'NM_002168','IKZF1':'NM_006060','JAK2':'NM_004972','KDM6A':'NM_021140',
+# 'KIT':'NM_000222','KMT2C':'NM_170606','KRAS':'NM_033360','MPL':'NM_005373','MYC':'NM_001354870','NFE2':'NM_006163','NPM1':'NM_002520',
+# 'NRAS':'NM_002524','PHF6':'NM_001015877','PPM1D':'NM_003620','PTEN':'NM_000314','PTPN11':'NM_002834','RAD21':'NM_006265','RIT1':'NM_006912',
+# 'RUNX1':'NM_001754','SAMD9':'NM_017654','SAMD9L':'NM_001303497','SETBP1':'NM_015559','SF3B1':'NM_012433','SH2B3':'NM_005475','SMC1A':'NM_006306',
+# 'SMC3':'NM_005445','SRSF2':'NM_003016','SRY':'NM_003140','STAG2':'NM_001042749','TERC':'NR_001566','TERT':'NM_198253','TET2':'NM_001127208',
+# 'TP53':'NM_001126112','U2AF1':'NM_001025203','WT1':'NM_001198551','ZRSR2':'NM_005089'}
 
 knownToRefSeq_path = global_param['knownToRefSeq']
 knownCanonical_path = global_param['knownCanonical']
@@ -212,9 +233,13 @@ for bed_line in bed_reader:
 				print "\t Canonical used was %s" % canonical_used
 			if transcript == '':
 				print "\t WARNING : transcript not found in refGene for canonicals : %s" % canonicals
-	
-	print "\t- GENE=%s;DETAILS=%s;TRANSCRIPT=%s;STRAND=%s" % (gene,details,transcript,strand)
-	line2write.append("GENE=%s;DETAILS=%s;TRANSCRIPT=%s;STRAND=%s" % (gene,details,transcript,strand))
+
+	line = "GENE=%s;DETAILS=%s;TRANSCRIPT=%s;STRAND=%s" % (gene,details,transcript,strand)
+	if "Pool" in bl[5]:
+		pool = bl[5].split("Pool=")[-1].split(";")[0]
+		line = "%s;Pool=%s" % (line,pool)
+	print "\t- %s" % line
+	line2write.append(line)
 	l2w = '\t'.join(line2write)
 	l2w = l2w+'\n'
 	bed_writer.write(l2w)

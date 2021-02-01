@@ -32,7 +32,7 @@
         "prediction_precision": 1.0,
         "error_motifs": "",
         "sse_prob_threshold": 1.0, #TODETERMINE 0.2?#
-        "report_ppa": 0,
+        "report_ppa": 1,
         "suppress_recalibration": 0,
         "use_fd_param": 0,
         

@@ -41,6 +41,7 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 
 ###############################################################################
 
+pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 suivi_abl1_path = "/media/n06lbth/sauvegardes_pgm/ABL1/EN_LAB_19_2333_Suivi_temoin_ABL1.xlsx"
 temoin_abl1_finalreport_path = sys.argv[1]
 sample = sys.argv[2]
@@ -58,7 +59,7 @@ annotation_rows = tuple(annotation_sheet.rows)
 suivi_abl1 = openpyxl.load_workbook(suivi_abl1_path)
 suivi_sheet = suivi_abl1.get_sheet_by_name('Temoin ABL1')
 
-img = openpyxl.drawing.image.Image('/DATA/work/scripts/ChuBordeaux_small.png')
+img = openpyxl.drawing.image.Image('%s/scripts/ChuBordeaux_small.png' % pipeline_folder)
 suivi_sheet.add_image(img,'A1')
 
 row2write = suivi_sheet.max_row + 1
@@ -91,12 +92,13 @@ for i in range(len(annotation_rows[0])):
 
 list_not_found = []
 for j in range(1,len(annotation_rows)):
-	variant = (annotation_rows[j][nm_index].value.split('.')[0],annotation_rows[j][c_index].value)
-	variant_annovar = (annotation_rows[j][nm_index].value.split('.')[0],annotation_rows[j][annovar_index].value)
-	variant_freq = '?'
-	if (variant2check == variant) or (variant2check == variant_annovar):
-		variant_freq = annotation_rows[j][freq_index].value
-		break
+	if annotation_rows[j][nm_index].value:
+		variant = (annotation_rows[j][nm_index].value.split('.')[0],annotation_rows[j][c_index].value)
+		variant_annovar = (annotation_rows[j][nm_index].value.split('.')[0],annotation_rows[j][annovar_index].value)
+		variant_freq = '?'
+		if (variant2check == variant) or (variant2check == variant_annovar):
+			variant_freq = annotation_rows[j][freq_index].value
+			break
 if variant_freq == '?': # not found!
 	suivi_sheet.cell(row=row2write,column=4).value = '?'
 	suivi_sheet.cell(row=row2write,column=5).value = '?'

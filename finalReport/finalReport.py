@@ -161,6 +161,8 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 	# CELL COLOR
 	if color == 'LightGreen':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='D8E4BC')
+	if color == 'DarkGreen':
+		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='C3D696')
 	elif color == 'LightRed':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='E6B8B7')
 	elif color == 'DarkRed':
@@ -213,13 +215,27 @@ barcode = db_analysis['barcode']
 sample_id = db_analysis['sample']
 run_id = db_analysis['run']
 panel = db_analysis['panel']
+db_cur.execute("SELECT panelProject,panelSubProject FROM Panel WHERE panelID='%s'"% panel)
+db_panel = db_cur.fetchone()
+project = db_panel['panelProject']
+subproject = db_panel['panelSubProject']
 bam_path = db_analysis['bamPath']
-sample_folder = os.path.dirname(bam_path)
+if os.path.exists(bam_path):
+	sample_folder = os.path.dirname(bam_path)
+else:
+	db_cur.execute("SELECT * FROM Sample WHERE sampleID='%s'"% sample_id)
+	db_sample = db_cur.fetchone()
+	if subproject:
+		sample_folder = '%s/%s/%s/%s/%s' % (global_param['ngs_results_folder'],project,subproject,run_id,db_sample['sampleName'])
+	else:
+		sample_folder = '%s/%s/%s/%s' % (global_param['ngs_results_folder'],project,run_id,db_sample['sampleName'])
+if not os.path.exists(sample_folder):
+	sys.exit("Error : sample folder not found (%s)" % sample_folder)
+
 sample = sample_folder.split('/')[-1]
 run_folder = os.path.dirname(sample_folder)
 intermediate_folder = sample_folder+'/intermediate_files'
-db_cur.execute("SELECT panelProject FROM Panel WHERE panelID='%s'"% panel)
-project = db_cur.fetchone()['panelProject']
+
 db_cur.execute("""SELECT TargetedRegion.chromosome,start,stop,targetedRegionName,transcript,gene,details FROM TargetedRegion 
 INNER JOIN Transcript ON Transcript.transcriptID = TargetedRegion.transcript
 WHERE panel='%s' ORDER BY start""" % panel)
@@ -263,12 +279,14 @@ db_vms = db_cur.fetchall()
 
 variants = []
 for db_vm in db_vms :
-	# print """SELECT * FROM VariantAnnotation 
-	# INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant
-	# WHERE variant='%s' AND transcript IN %s""" % (db_vm['variant'],tuple(panel_transcripts.keys()))
-	db_cur.execute("""SELECT * FROM VariantAnnotation 
-	INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant
-	WHERE variant='%s' AND transcript IN %s""" % (db_vm['variant'],tuple(panel_transcripts.keys())))
+	if len(panel_transcripts.keys()) > 1:
+		db_cur.execute("""SELECT * FROM VariantAnnotation 
+		INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant
+		WHERE variant='%s' AND transcript IN %s""" % (db_vm['variant'],tuple(panel_transcripts.keys())))
+	else: # ex : panel TP53 only one gene
+		db_cur.execute("""SELECT * FROM VariantAnnotation 
+		INNER JOIN Variant ON Variant.variantID = VariantAnnotation.variant
+		WHERE variant='%s' AND transcript='%s'""" % (db_vm['variant'],panel_transcripts.keys()[0]))
 	db_variant = db_cur.fetchone()
 
 	comm = db_variant['commentaire']
@@ -324,7 +342,9 @@ for db_vm in db_vms :
 		'highlight':db_variant['highlight'],
 		'Patho UMD':db_variant['pathoUMD'],
 		'Comment UMD':db_variant['commentUMD'],
-		'c.p.f.':'%s ; %s ; %s' % (db_variant['transcriptDescription'],db_variant['proteinDescription'],(float(db_vm['variantReadDepth'])/float(db_vm['positionReadDepth']))*100.0)
+		'c.p.f.':'%s ; %s ; %s' % (db_variant['transcriptDescription'],db_variant['proteinDescription'],(float(db_vm['variantReadDepth'])/float(db_vm['positionReadDepth']))*100.0),
+		'c.p.':'%s ; %s' % (db_variant['transcriptDescription'],db_variant['proteinDescription']),
+		'cosm.rs':'%s ; %s' % (str(db_variant['cosmic']).split(',')[0],str(db_variant['dbsnp']).split(',')[0])
 	})
 
 print " - [%s] Annotation sheet ..." % time.strftime("%H:%M:%S")
@@ -339,6 +359,8 @@ elif 'TP53' in project:
 	aheader.insert(len(aheader)+1,'c.p.f.')
 else:
 	aheader.insert(len(aheader)+1,'c.p.f.')
+	aheader.insert(len(aheader)+1,'c.p.')
+	aheader.insert(len(aheader)+1,'cosm.rs')
 
 # writing annotation new aheader in finalreport
 for i in range(len(aheader)):
@@ -398,7 +420,7 @@ for variant in variants:
 	# FORMATING RESULTS
 	condition1_green_line = (variant['Region'] in ['exonic','splicing','ncRNA_exonic']) and (variant['Consequence'] != 'synonymous')
 	condition2_green_line = (116411873 <= variant['Position'] <= 116411902) or (116412044 <= variant['Position'] <= 116412087)
-	condition3_green_line = (variant['Region'] == '') # Si pas d'annotation, mettre en vert au cas ou pour ne pas louper de variant important
+	condition3_green_line = (variant['Region'] == '' or variant['Region'] == None) # Si pas d'annotation, mettre en vert au cas ou pour ne pas louper de variant important
 
 	if condition1_green_line or condition2_green_line or condition3_green_line:
 		vb_variant_list.append('%s:%s' % (variant['Gene'],variant['c.']))
@@ -409,7 +431,9 @@ for variant in variants:
 			else:
 				variant['Commentaire'] = '%s. %s' % (variant['Commentaire'],hgvsinfo)
 		if condition3_green_line :
-			variant['Commentaire'] = '%s. %s' % ('ATTENTION Region inconnue',variant['Commentaire'])
+			variant['Commentaire'] = '%s. %s' % ('Region/Consequence inconnue',variant['Commentaire'])
+			variant['Region'] = '?'
+			variant['Consequence'] = '?'
 		for columnName in aheader:
 			cell_val = variant[columnName]
 			annotationSheet.cell(row=l,column=aheader.index(columnName)+1).value = cell_val
@@ -418,7 +442,12 @@ for variant in variants:
 		cell_format(annotationSheet.cell(row=l,column=aheader.index('Freq')+1),color='LightGrey',border='hair',font='bold',alignment='right')
 		cell_format(annotationSheet.cell(row=l,column=aheader.index('Var.Cov.')+1),color='LightGrey',border='hair')
 		cell_format(annotationSheet.cell(row=l,column=aheader.index('Depth')+1),color='LightGrey',border='hair')
-		cell_format(annotationSheet.cell(row=l,column=aheader.index('c.p.f.')+1),color='LightGrey',border='hair')
+		if 'c.p.f.' in aheader:
+			cell_format(annotationSheet.cell(row=l,column=aheader.index('c.p.f.')+1),color='LightGrey',border='hair')
+		if 'c.p.' in aheader:
+			cell_format(annotationSheet.cell(row=l,column=aheader.index('c.p.')+1),color='LightGrey',border='hair')
+		if 'cosm.rs' in aheader:
+			cell_format(annotationSheet.cell(row=l,column=aheader.index('cosm.rs')+1),color='LightGrey',border='hair')
 		# intervar et clinvar (bold)
 		if variant['InterVar'] != None:
 			if 'likely pathogenic' in variant['InterVar']:
@@ -427,14 +456,14 @@ for variant in variants:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('InterVar')+1),font='boldDarkRed')
 			elif 'likely benign' in variant['InterVar'] or 'benign' in variant['InterVar']:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('InterVar')+1),font='boldDarkGreen')
-		if variant['ClinVar'] != None:		
+		if variant['ClinVar'] != None:
 			s_clinvar = variant['ClinVar'].split('/')
 			if 'pathogenic' in s_clinvar:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='boldDarkRed')
 			elif 'likely_pathogenic' in s_clinvar:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='boldDarkOrange')
 			elif 'likely_benign' in s_clinvar or 'benign' in s_clinvar:
-				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='boldDarkGreen')		
+				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='boldDarkGreen')
 	else:
 		for columnName in aheader:
 			cell_val = variant[columnName]
@@ -449,14 +478,24 @@ for variant in variants:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('InterVar')+1),font='DarkRed')
 			elif 'Likely benign' in variant['InterVar'] or 'Benign' in variant['InterVar']:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('InterVar')+1),font='DarkGreen')
-		if variant['ClinVar'] != None:	
+		if variant['ClinVar'] != None:
 			s_clinvar = variant['ClinVar'].split('/')
 			if 'Pathogenic' in s_clinvar:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='DarkRed')
 			elif 'Likely_pathogenic' in s_clinvar:
 				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='DarkOrange')
 			elif 'Likely_benign' in s_clinvar or 'Benign' in s_clinvar:
-				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='DarkGreen')		
+				cell_format(annotationSheet.cell(row=l,column=aheader.index('ClinVar')+1),font='DarkGreen')
+
+	# if condition3_green_line:
+		# for columnName in aheader:
+			# cell_val = variant[columnName]
+			# annotationSheet.cell(row=l,column=aheader.index(columnName)+1).value = cell_val
+			# cell_format(annotationSheet.cell(row=l,column=aheader.index(columnName)+1),border='hair')
+		# annotationSheet.cell(row=l,column=aheader.index('Region')+1).value = '?'
+		# cell_format(annotationSheet.cell(row=l,column=aheader.index('Region')+1),color='DarkGreen',border='hair')
+		# annotationSheet.cell(row=l,column=aheader.index('Consequence')+1).value = '?'
+		# cell_format(annotationSheet.cell(row=l,column=aheader.index('Consequence')+1),color='DarkGreen',border='hair')
 
 	# HEMATO : GATA2 INTRON 4 ET ANKRD26 5'UTR VIOLET
 	if (variant['Gene'] == 'GATA2' and (128200788 <= variant['Position'] <= 128202702)) or (variant['Gene'] == 'ANKRD26' and (27389256 <= variant['Position'] <= 27389427)):
@@ -479,7 +518,10 @@ for variant in variants:
 		if 'missense' in variant['Consequence'] or 'nonframeshift' in variant['Consequence']:
 			cell_format(annotationSheet.cell(row=l,column=aheader.index('Consequence')+1),font='DarkOrange')
 		elif 'stopgain' in variant['Consequence'] or 'stoploss' in variant['Consequence'] or 'frameshift' in variant['Consequence']:
-			cell_format(annotationSheet.cell(row=l,column=aheader.index('Consequence')+1),font='DarkRed')		
+			cell_format(annotationSheet.cell(row=l,column=aheader.index('Consequence')+1),font='DarkRed')
+		elif '?' in variant['Consequence']:
+			cell_format(annotationSheet.cell(row=l,column=aheader.index('Consequence')+1),font='DarkRed')
+			cell_format(annotationSheet.cell(row=l,column=aheader.index('Region')+1),font='DarkRed')
 
 	# SENSITIVITY VERT / ROUGE
 	if 'Sensitivity' in aheader and variant['Sensitivity'] != None:
@@ -500,9 +542,9 @@ if 'SBT' in project:
 # /  ` |\ | \  /    /__` |__| |__  |__   |  
 # \__, | \|  \/     .__/ |  | |___ |___  |  
 
-if os.path.isfile('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,project)):
+if os.path.isfile('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,panel)):
 	print " - [%s] CNV sheet ..." % time.strftime("%H:%M:%S")
-	inBook = openpyxl.load_workbook('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,project))
+	inBook = openpyxl.load_workbook('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,panel))
 	inSheet = inBook['copy number analysis']
 
 	for row_idx in range(1, inSheet.max_row+1):
@@ -521,7 +563,7 @@ if os.path.isfile('%s/_CNA/%s/CNV_finalReport.xlsx' % (run_folder,project)):
 			cell_format(c,color='Yellow')
 			break
 else:
-	print "\t - CNV finalReport file not found"
+	print " /!\ CNV finalReport file not found"
 	del finalReport['CNV']
 	# cnvSheet.cell(row=1,column=1).value = "CNV finalReport file not found for %s. " % sample
 
@@ -530,7 +572,7 @@ else:
 # |    |___ \__/  |     \__, \__/  \/  |___ |  \ /~~\ \__> |___ 
 
 sample_read_len_histo = '%s/_plotCoverage/read_len_histograms/%s_rawlib.read_len_histogram.png' % (run_folder,barcode)
-amplicon_plots = sorted(glob.glob('%s/_plotCoverage/%s/amplicons_S*_all_samples.png' % (run_folder, project)))
+amplicon_plots = sorted(glob.glob('%s/_plotCoverage/%s/*_S*_all_samples.png' % (run_folder, panel)))
 
 z = 1
 if os.path.isfile(sample_read_len_histo):
@@ -553,31 +595,34 @@ if os.path.isfile(sample_read_len_histo):
 	img = Image(run_read_len_histo.replace('.png','.thumb.png'))
 	plotSheet.add_image(img,'T2')
 
-if amplicon_plots:
-	print " - [%s] Plot Coverage sheet ..." % time.strftime("%H:%M:%S")
-	# z = 10
-	for ap in amplicon_plots:
-		plotSheet.merge_cells(start_row=z, start_column=1, end_row=z, end_column=32)
-		plotSheet.cell(row=z,column=1).value = os.path.basename(ap)
-		cell_format(plotSheet.cell(row=z,column=1),font='bigBold',alignment='center',color='DarkGrey')
-		z += 1
-		with PILimage.open(ap) as img:
-			img.thumbnail((9999,560)) # 600 / 40 = 15 lines
-			img.save(ap.replace('.png','.thumb.png'))
-		img = Image(ap.replace('.png','.thumb.png'))
-		plotSheet.add_image(img,'B%s' % z)
-		z += 14
+try:
+	if amplicon_plots:
+		print " - [%s] Plot Coverage sheet ..." % time.strftime("%H:%M:%S")
+		# z = 10
+		for ap in amplicon_plots:
+			plotSheet.merge_cells(start_row=z, start_column=1, end_row=z, end_column=32)
+			plotSheet.cell(row=z,column=1).value = os.path.basename(ap)
+			cell_format(plotSheet.cell(row=z,column=1),font='bigBold',alignment='center',color='DarkGrey')
+			z += 1
+			with PILimage.open(ap) as img:
+				img.thumbnail((9999,560)) # 600 / 40 = 15 lines
+				img.save(ap.replace('.png','.thumb.png'))
+			img = Image(ap.replace('.png','.thumb.png'))
+			plotSheet.add_image(img,'B%s' % z)
+			z += 14
 
-	for c in range(1,38): # 40/40 pixel cube
-		plotSheet.column_dimensions[plotSheet.cell(row=1,column=c).column].width = 5.71
-	for r in range(1,plotSheet.max_row+15):# 40/40 pixel cube
-		plotSheet.row_dimensions[plotSheet.cell(row=r,column=1).row].height = 30
-		for cell in plotSheet["%s:%s" % (r,r)]:
-			cell_format(cell,font='bigBold',alignment='center',color='DarkGrey')
-else:
-	print "\t - plotCoverage histograms not found, removing sheet"
-	del finalReport['Plot Coverage']
-	# plotSheet.cell(row=1,column=1).value = "plotCoverage not found for %s. " % sample
+		for c in range(1,38): # 40/40 pixel cube
+			plotSheet.column_dimensions[plotSheet.cell(row=1,column=c).column].width = 5.71
+		for r in range(1,plotSheet.max_row+15):# 40/40 pixel cube
+			plotSheet.row_dimensions[plotSheet.cell(row=r,column=1).row].height = 30
+			for cell in plotSheet["%s:%s" % (r,r)]:
+				cell_format(cell,font='bigBold',alignment='center',color='DarkGrey')
+	else:
+		print " /!\ plotCoverage histograms not found, removing sheet"
+		del finalReport['Plot Coverage']
+		# plotSheet.cell(row=1,column=1).value = "plotCoverage not found for %s. " % sample
+except:
+	pass
 
 #  __   __        ___  __        __   ___     __        ___  ___ ___ 
 # /  ` /  \ \  / |__  |__)  /\  / _` |__     /__` |__| |__  |__   |  
@@ -688,7 +733,7 @@ if cov_file:
 	cov_file.close()
 else:
 	coverageSheet.cell(row=1,column=1).value = "Region Coverage file not found for %s. " % sample
-	print "\t - coverage file not found"
+	print " /!\ coverage file not found"
 
 #  __        __   ___     __   __        ___  __        __   ___     __        ___  ___ ___ 
 # |__)  /\  /__` |__     /  ` /  \ \  / |__  |__)  /\  / _` |__     /__` |__| |__  |__   |  
@@ -871,7 +916,7 @@ if base_cov_file:
 
 else:
 	baseCoverageSheet.cell(row=1,column=1).value = "WARNING : Base Coverage file not found for %s (or error parsing the base coverage file). " % sample
-	print "\t - base coverage file not found."
+	print " /!\ base coverage file not found."
 
 #       __   ___ 
 # \  / /  ` |__  
@@ -971,7 +1016,11 @@ if 'Var.Cov.' in aheader:
 if 'Depth' in aheader:
 	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('Depth')+1)].width = 8
 if 'c.p.f.' in aheader:
-	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('c.p.f.')+1)].width = 6
+	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('c.p.f.')+1)].width = 30
+if 'c.p.' in aheader:
+	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('c.p.')+1)].width = 30
+if 'cosm.rs' in aheader:
+	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('cosm.rs')+1)].width = 30
 if 'COSMIC' in aheader:
 	annotationSheet.column_dimensions[openpyxl.utils.cell.get_column_letter(aheader.index('COSMIC')+1)].width = 13
 if 'Sensitivity' in aheader:

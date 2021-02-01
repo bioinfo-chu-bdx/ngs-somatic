@@ -19,7 +19,7 @@ bilan_mut_paths = {
 	'bilan_mut_path_2016' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilans_archive/Bilan_mutation_2016.xlsx',
 	'bilan_mut_path_2017' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilans_archive/Bilan_mutation_2017.xlsx',
 	'bilan_mut_path_2018' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilans_archive/Bilan_mutation_2018.xlsx',
-	'bilan_mut_path_2019' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilan_mutation_2019.xlsx',
+	'bilan_mut_path_2019' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilans_archive/Bilan_mutation_2019.xlsx',
 	'bilan_mut_path_2020' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilan_mutation_2020.xlsx'
 	}
 

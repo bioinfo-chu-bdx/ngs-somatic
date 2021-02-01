@@ -3,6 +3,7 @@ from optparse import OptionParser
 import subprocess
 import openpyxl
 import sqlite3
+import shutil
 import pysam
 import time
 import json
@@ -65,8 +66,11 @@ db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
 checkconta_folder = '%s/_checkContamination' % options.run_folder
+checkconta_intermediate_folder = '%s/intermediate_files' % checkconta_folder
 if not os.path.isdir(checkconta_folder):
 	subprocess.call(['mkdir', checkconta_folder])
+if not os.path.isdir(checkconta_intermediate_folder):
+	subprocess.call(['mkdir', checkconta_intermediate_folder])
 
 if options.run_folder.endswith('/'):
 	run_id = os.path.basename(os.path.dirname(options.run_folder))
@@ -354,4 +358,8 @@ for control_barcode in ok_barcodes:
 	ws.column_dimensions[ws['J1'].column].width = 8
 
 	conta_report.save(checkconta_folder+'/checkContamination_%s.xlsx' % barcodes_json[control_barcode]['sample'])
-	subprocess.call(['mv',checkConta_bam_folder,checkconta_folder]) # OU RM ??
+	subprocess.call(['mv',checkConta_bam_folder,checkconta_intermediate_folder])
+
+## ZIP INTERMEDIATE FOLDER##
+shutil.make_archive(checkconta_intermediate_folder,'zip',checkconta_intermediate_folder)
+shutil.rmtree(checkconta_intermediate_folder)

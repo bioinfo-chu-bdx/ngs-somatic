@@ -81,7 +81,6 @@ for i in range(len(annotation_rows[0])):
 list_not_found = []
 for i in range(8,len(suivi_rows)):
 	variant2check = (suivi_rows[i][1].value,suivi_rows[i][5].value) # NM, c.
-	print variant2check
 	for j in range(1,len(annotation_rows)):
 		if annotation_rows[j][nm_index].value:
 			variant = (annotation_rows[j][nm_index].value.split('.')[0],annotation_rows[j][c_index].value)

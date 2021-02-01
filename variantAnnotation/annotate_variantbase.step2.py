@@ -204,7 +204,10 @@ for line in annovar_reader:
 					annotation[variantAnnotationID]['consequence'] = line['ExonicFunc.refGeneWithVer']
 					annotation[variantAnnotationID]['exon'] = representsInt(aadesc[2].replace('exon',''))
 					annotation[variantAnnotationID]['annovar_transcriptDescription'] = aadesc[3]
-					annotation[variantAnnotationID]['annovar_proteinDescription'] = aadesc[4]
+					try:
+						annotation[variantAnnotationID]['annovar_proteinDescription'] = aadesc[4]
+					except:
+						pass
 					break
 		# non-exonic avec c. (cas particulier : aachange est vide et l'equivalent se trouve dans dans genedetail)
 		elif line['GeneDetail.refGeneWithVer'] != '.':

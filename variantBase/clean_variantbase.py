@@ -34,5 +34,5 @@ for db_transcript in db_transcripts:
 		db_cur.execute("DELETE FROM VariantAnnotation WHERE transcript='%s'" % transcript)
 		db_cur.execute("DELETE FROM Transcript WHERE transcriptID='%s'" % transcript)
 
-db_con.commit()
-db_con.close()
+# db_con.commit()
+# db_con.close()

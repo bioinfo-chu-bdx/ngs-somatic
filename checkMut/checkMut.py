@@ -95,6 +95,8 @@ if options.runtype:
 
 bamlist = []
 for barcode in barcodes_json:
+	if 'checkContamination' in barcode:
+		continue
 	if options.processed:
 		bamfile = '%s/%s/%s_%s.processed.bam' % (options.run_folder,barcodes_json[barcode]['sample'],barcodes_json[barcode]['sample'],barcode)
 	else:

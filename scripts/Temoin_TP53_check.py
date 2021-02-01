@@ -37,6 +37,7 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 
 ###############################################################################
 
+pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
 suivi_acro_path = "/media/n06lbth/sauvegardes_pgm/LAM/EN_LAB_20_1236_Suivi_temoin_TP53.xlsx"
 tp53_finalreport_path = sys.argv[1]
 sample = sys.argv[2]
@@ -53,7 +54,7 @@ suivi_acro = openpyxl.load_workbook(suivi_acro_path)
 suivi_sheet = suivi_acro.get_sheet_by_name('Horizon')
 suivi_rows = tuple(suivi_sheet.rows)
 
-img = openpyxl.drawing.image.Image('/DATA/work/scripts/ChuBordeaux.png')
+img = openpyxl.drawing.image.Image('%s/scripts/ChuBordeaux.png' % pipeline_folder)
 suivi_sheet.add_image(img,'A1')
 
 column2write = len(suivi_rows[0])+1

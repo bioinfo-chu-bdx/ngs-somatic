@@ -52,8 +52,11 @@ panels = {
 	# ('%s/reference_files/reannoted/IAD72953_231_Designed.with_NM.bed' % pipeline_folder				,'SBT',			3),
 	# ('%s/reference_files/reannoted/SureSelect-HEMATO-v5.sorted.annotated.bed' % pipeline_folder		,'TEST',		1),
 	# ('%s/reference_files/Target-Myeloid_v1-SureSelect.roi.anno.bed' % pipeline_folder				,'LAM-illumina',1),
-	'LAM-illumina-v2':{'path':'%s/reference_files/Target-Myeloid_capture_v2.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
-	'LAM-illumina-v1':{'path':'%s/reference_files/Target-Myeloid_capture_v1.roi.anno.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'}
+	# 'LAM-illumina-v2':{'path':'%s/reference_files/Target-Myeloid_capture_v2.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
+	# 'LAM-illumina-v1':{'path':'%s/reference_files/Target-Myeloid_capture_v1.roi.anno.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
+	# 'ColonLung_v11':{'path':'%s/reference_files/Target_ColonLung_v11_IAD206975_231.anno.bed' % pipeline_folder,'project':'SBT','subproject':None},
+	# 'LAM-illumina-v3':{'path':'%s/reference_files/Target-Myeloid_capture_v3.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
+	'LMMC-MAI-v1':{'path':'%s/reference_files/Target-LMMC-MAI_capture.roi.anno.padding5.bed' % pipeline_folder,'project':'LMMC-MAI','subproject':None},
 }
 
 db_con = sqlite3.connect(db_path)
@@ -93,9 +96,9 @@ for panel in panels:
 			db_cur.execute("UPDATE Panel SET panelProject='%s' WHERE panelID='%s'" % (panelProject, panelID))
 		if db_panel['panelSubProject'] != panelSubProject:
 			print "\t - updating panelSubProject : %s -> %s" % (db_panel['panelSubProject'],panelSubProject)
-			db_cur.execute("UPDATE Panel SET panelSubProject='%s' WHERE panelID='%s'" % (panelSubProject, panelID))
+			db_cur.execute("UPDATE Panel SET panelSubProject=? WHERE panelID=?", (panelSubProject, panelID))
 	else:
-		db_cur.execute("INSERT INTO Panel (panelID, bedName, panelProject, panelSubProject) VALUES ('%s', '%s', '%s', '%s')" % (panelID, bedName, panelProject, panelSubProject))
+		db_cur.execute("INSERT INTO Panel (panelID, bedName, panelProject, panelSubProject) VALUES (?, ?, ?, ?)", (panelID, bedName, panelProject, panelSubProject))
 
 	# PARSE BED
 	panel_reader = open(panels[panelID]['path'],'r')
@@ -126,7 +129,6 @@ for panel in panels:
 		print "\t - %s_%s\t%s\t(%s:%s-%s)" % (gene,details,transcript_without_version,chromosome,start,stop)
 
 		# 2 : CHECK TRANSCRIPT PRESENCE IN BDD, AND VERSION NUMBER
-
 		# TRANSCRIPT VERSION
 		gene_tx = hdp.get_tx_for_gene(gene)
 		version_in_uta = 1
@@ -186,7 +188,7 @@ for panel in panels:
 			random_uuid = uuid.uuid1()
 			targetedregion_id = 'T-'+random_uuid.hex[:8]
 			db_cur.execute("INSERT INTO TargetedRegion (targetedRegionID, panel, transcript, targetedRegionName, chromosome, start, stop, details) VALUES ('%s', '%s', '%s', '%s', '%s', %s, %s, '%s')" % (targetedregion_id,panelID,transcript,targetedregion_name,chromosome,start,stop,details))
-			print "\r\t - %s new TargetedRegion added" % z,
+			# print "\t - %s new TargetedRegion added" % z
 			z+=1
 
 	if db_panel is not None:

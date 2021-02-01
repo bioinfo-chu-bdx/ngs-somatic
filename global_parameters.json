@@ -1,7 +1,7 @@
 {
 	"ngs_results_folder": "/media/n06lbth/sauvegardes_pgm",
 	"VariantBase": "$NGS_PIPELINE_BX_DIR/variantBase/VariantBase.db",
-	"False_positives": "$NGS_PIPELINE_BX_DIR/finalReport/FalsePositives.tsv",
+	"False_positives": "$NGS_PIPELINE_BX_DIR/finalReport/FalsePositives.xlsx",
 	"LAM_hotspot_highlight": "$NGS_PIPELINE_BX_DIR/finalReport/hotspot_details/hotspots_HEMATO_capture.tsv",
 	"SBT_sensitivity": "$NGS_PIPELINE_BX_DIR/finalReport/hotspot_sensitivity/database_hotspot_sensitivity_30-07-2020.xls",
 	"TP53_UMD_variants_EU": "$NGS_PIPELINE_BX_DIR/finalReport/TP53_UMD_variants_EU.tsv",
@@ -20,6 +20,20 @@
 	"uta_container_id":"7b5b595deacb",
 	"cosmicDB":"$NGS_PIPELINE_BX_DIR/variantBase/cosmic.db",
 	"panel":{
+		"ColonLung_v11":{
+			"project": "SBT",
+			"sub_project": "",
+			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_ColonLung_v11_IAD206975_231.anno.bed",
+			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_ColonLung_v11_IAD206975_231.merged.plain.bed",
+			"tvc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.json",
+			"tvc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_only.json",
+			"tvc_parameters_hotspot_cdna": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_ColonLung_5.10.hotspot_cDNA.json",
+			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_ColonLung_v5.vcf",
+			"variantBase": "/media/n06lbth/sauvegardes_pgm/SBT/VariantBase.xlsx",
+			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_SBT.tsv",
+			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
+			"checkContamination_read_len":100
+		},
 		"ColonLung_v10":{
 			"project": "SBT",
 			"sub_project": "",
@@ -62,6 +76,36 @@
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
 			"checkContamination_read_len":150
 		},
+		"LAM-illumina-v3":{
+			"project": "LAM",
+			"sub_project": "panel-capture",
+			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
+			"covered_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_capture_v3.covered.bed",
+			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_capture_v3.roi.anno.padding5.bed",
+			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_capture_v3.roi.anno.padding5.bed",
+			"intervals": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_capture_v3.roi.padding5.intervals",
+			"tvc_parameters": "",
+			"tvc_parameters_hotspot_only": "",
+			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots-Myeloid_capture_v2.vcf",
+			"variantBase": "/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx",
+			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
+			"checkContamination_read_len":150
+		},
+		"LMMC-MAI-v1":{
+			"project": "LAM",
+			"sub_project": "panel-capture",
+			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
+			"covered_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-LMMC-MAI_capture.covered.bed",
+			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-LMMC-MAI_capture.roi.anno.padding5.bed",
+			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-LMMC-MAI_capture.roi.anno.padding5.bed",
+			"intervals": "$NGS_PIPELINE_BX_DIR/reference_files/Target-LMMC-MAI_capture.roi.padding5.intervals",
+			"tvc_parameters": "",
+			"tvc_parameters_hotspot_only": "",
+			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots-Myeloid_capture_v2.vcf",
+			"variantBase": "/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx",
+			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
+			"checkContamination_read_len":150
+		},
 		"TP53":{
 			"project": "TP53",
 			"sub_project": "",
@@ -81,7 +125,7 @@
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
 			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_Lymphome_B_IAD119887_231.anno.bed",
 			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_Lymphome_B_IAD119887_231.merged.plain.bed",
-			"tvc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_LymphomeB_5.10.json",
+			"tvc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_LymphomeB_5.12.json",
 			"tvc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_LymphomeB_5.10.hotspot_only.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_Lymphome_B.vcf",
 			"variantBase": "/media/n06lbth/sauvegardes_pgm/Lymphome_B/VariantBase.xlsx",

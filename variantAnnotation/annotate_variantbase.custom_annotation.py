@@ -1,3 +1,4 @@
+import openpyxl
 import sqlite3
 import json
 import time
@@ -46,23 +47,29 @@ illumina_panels = ','.join([str(item['panelID']) for item in db_cur.fetchall()])
 
 # KNOWN FALSE-POSITIVES
 print "\t- [%s] adding FalsePositives ..." % (time.strftime("%H:%M:%S"))
-with open(custom_false_positives,'r') as fp:
-	fp_reader = csv.reader(fp,delimiter='\t')
-	for fp_line in fp_reader :
-		transcript_without_version = fp_line[0]
-		cpos = fp_line[1]
-		comment = fp_line[2].replace("'"," ")
-		panels = fp_line[3].replace('ion-torrent-panels',ion_torrent_panels).replace('illumina-panels',illumina_panels)
-		panels = panels.split(',')
 
+fp_workbook = openpyxl.load_workbook(custom_false_positives)
+fp_sheet = fp_workbook['FalsePositives']
+for nrow in range(8,fp_sheet.max_row+1):
+	transcript_without_version = fp_sheet.cell(row=nrow,column=1).value
+	cpos = fp_sheet.cell(row=nrow,column=2).value
+	gpos = fp_sheet.cell(row=nrow,column=3).value
+	comment = fp_sheet.cell(row=nrow,column=4).value
+	panels = fp_sheet.cell(row=nrow,column=5).value
+	panels = panels.replace('ion-torrent-panels',ion_torrent_panels).replace('illumina-panels',illumina_panels)
+	panels = panels.split(',')
+	if transcript_without_version and cpos:
 		db_cur.execute("SELECT variantAnnotationID FROM VariantAnnotation WHERE transcript LIKE '%s.%%' AND (transcriptDescription='%s' OR annovarTranscriptDescription='%s')" % (transcript_without_version,cpos,cpos))
 		va_ids = db_cur.fetchall()
-		for va_id in va_ids:
-			va_id = va_id['variantAnnotationID']
-			for panel in panels:
-				random_uuid = uuid.uuid1()
-				usercomment_id = 'C-'+random_uuid.hex[:8]
-				db_cur.execute("INSERT INTO UserComment (userCommentID,variantAnnotation,panel,userComment) VALUES ('%s','%s','%s','%s')" % (usercomment_id,va_id,panel,comment))
+	elif gpos:
+		db_cur.execute("SELECT variantAnnotationID FROM VariantAnnotation INNER JOIN Variant ON VariantAnnotation.variant = Variant.variantID WHERE genomicDescription='%s')" % (gpos))
+		va_ids = db_cur.fetchall()
+	for va_id in va_ids:
+		va_id = va_id['variantAnnotationID']
+		for panel in panels:
+			random_uuid = uuid.uuid1()
+			usercomment_id = 'C-'+random_uuid.hex[:8]
+			db_cur.execute("INSERT INTO UserComment (userCommentID,variantAnnotation,panel,userComment) VALUES (?,?,?,?)",  (usercomment_id,va_id,panel,comment))
 
 # DRUG SENSITIVITY
 print "\t- [%s] adding Drug Sensitivity ..." % (time.strftime("%H:%M:%S"))
