@@ -42,8 +42,8 @@ def init_log(log_path): # set up log file
 
 FNULL = open(os.devnull, 'w')
 parser = OptionParser()
-parser.add_option('-r', '--run',					help="run folder path for FULL RUN ANALYSIS",dest='run') 
-parser.add_option('-s', '--sample',					help="sample folder path for SINGLE SAMPLE ANALYSIS", dest='sample')
+parser.add_option('--run',							help="run folder path for FULL RUN ANALYSIS",dest='run') 
+parser.add_option('--sample',						help="sample folder path for SINGLE SAMPLE ANALYSIS", dest='sample')
 parser.add_option('-p', '--skip-pre-processing',	help="starts analysis directly with variant calling on BAM (skip fastq pre-processing and alignment)",dest='skip_preprocessing',default=False,action='store_true')
 parser.add_option('-c', '--skip-coverage-analysis',	help="skip coverage analysis step",dest='skip_coverage_analysis',default=False,action='store_true')
 parser.add_option('-v', '--skip-calling',			help="starts analysis directly with Annotation (skip variant calling and and previous steps)",dest='skip_calling',default=False,action='store_true')
@@ -51,7 +51,8 @@ parser.add_option('-z', '--skip-caller',			help="Precise caller to skip comme se
 parser.add_option('-i', '--skip-insert-db',			help="s.....s steps)",dest='skip_insert_db',default=False,action='store_true')
 parser.add_option('-a', '--skip-annotation',		help="starts analysis directly with Finalreport (skip annotation and previous steps)",dest='skip_annotation',default=False,action='store_true')
 parser.add_option('-f', '--skip-finalreport',		help="starts analysis directly with checkMut etc",dest='skip_finalreport',default=False,action='store_true')
-parser.add_option('-y', '--sampleask',				help="do one by one sample and ask to continue",dest='sampleask',default=False,action='store_true')
+parser.add_option('--sampleask',					help="do one by one sample and ask to continue",dest='sampleask',default=False,action='store_true')
+parser.add_option('--illumina-calling',				help="force illumina variant-calling",dest='illumina_calling',default=False,action='store_true')
 (options, args) = parser.parse_args()
 
 if options.skip_annotation:
@@ -429,11 +430,11 @@ if options.run:
 logging.info("\n- [%s] VARIANT-CALLING AND ANNOTATION ..." % (time.strftime("%H:%M:%S")))
 for barcode in ordered_barcodes:
 	logging.info("\t- %s :" % (barcodes_json[barcode]['sample']))
-	if barcodes_json[barcode]['platform'].lower() == 'illumina':
+	if barcodes_json[barcode]['platform'].lower() == 'illumina' or options.illumina_calling:
 		mutect2_folder  = '%s/mutect2' % barcodes_json[barcode]['intermediate_folder']
 		vardict_folder  = '%s/vardict' % barcodes_json[barcode]['intermediate_folder']
 		varscan2_folder = '%s/varscan2' % barcodes_json[barcode]['intermediate_folder']
-		lofreq_folder   = '%s/lofreq' % barcodes_json[barcode]['intermediate_folder']
+		# lofreq_folder   = '%s/lofreq' % barcodes_json[barcode]['intermediate_folder']
 
 		# FOR SKIPING SAMPLES # WARNING check-contamination will not work #
 		if options.sampleask:
@@ -448,21 +449,23 @@ for barcode in ordered_barcodes:
 
 		if not options.skip_calling:
 			# CREATE FOLDERS
-			if not 'lofreq' in skip_caller:
-				if os.path.isdir(lofreq_folder):
-					subprocess.call(['rm','-r',lofreq_folder]) # because "cowardly refusing to overwrite" lofreq bullshit
-			for f in [mutect2_folder,vardict_folder,varscan2_folder,lofreq_folder]:
+			# if not 'lofreq' in skip_caller:
+				# if os.path.isdir(lofreq_folder):
+					# subprocess.call(['rm','-r',lofreq_folder]) # because "cowardly refusing to overwrite" lofreq bullshit
+			# for f in [mutect2_folder,vardict_folder,varscan2_folder,lofreq_folder]:
+			for f in [mutect2_folder,vardict_folder,varscan2_folder]:
 				if not os.path.isdir(f):
 					subprocess.call(['mkdir',f])
 
 			calling_in_progress = True
 			varscan2_running = False
-			lofreq_running = False
+			# lofreq_running = False
 			mutect2_running = False
 			vardict_running = False
 
 			# SETTINGS
-			mutect2_thread = 12 # x hmm-threads
+			mutect2_thread = 16 # x hmm-threads
+			vardict_thread = 4
 			mutect2_ps_list = []
 			mutect2_vcf_chunk_list = []
 
@@ -476,7 +479,7 @@ for barcode in ordered_barcodes:
 					'-N',barcodes_json[barcode]['sample'],
 					'-b', barcodes_json[barcode]['bam'],
 					'-U', # de not call SV (structural variant) wich are false pos shit
-					'-th', '6',
+					'-th', str(vardict_thread),
 					'-c','1','-S','2','-E','3','-g','4',
 					barcodes_json[barcode]['target_bed']],
 					stdout=open('%s/vardict.stdout.txt' % vardict_folder,'w'),
@@ -512,13 +515,13 @@ for barcode in ordered_barcodes:
 				varscan2_running = True
 
 			# LOFREQ
-			if not 'lofreq' in skip_caller:
-				logging.info("\t\t - [%s] LoFreq : indelqual ..." % time.strftime("%H:%M:%S"))
-				if barcodes_json[barcode]['platform'].lower() == 'illumina':
-					lofreq_ps = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'indelqual','--dindel','-f',barcodes_json[barcode]['reference'],'-o','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample']),barcodes_json[barcode]['bam']], stdout=open('%s/lofreq_indelqual_dindel.stdout.txt' % lofreq_folder,'w'), stderr=open('%s/lofreq_indelqual_dindel.stderr.txt' % lofreq_folder,'w'))
-				else: # Set INDELQUAL uniform 45 for ion torrent
-					lofreq_ps = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'indelqual','--uniform','45','-o','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample']),barcodes_json[barcode]['bam']], stdout=open('%s/lofreq_indelqual_uniform.stdout.txt' % lofreq_folder,'w'), stderr=open('%s/lofreq_indelqual_uniform.stderr.txt' % lofreq_folder,'w'))
-				lofreq_running = True
+			# if not 'lofreq' in skip_caller:
+				# logging.info("\t\t - [%s] LoFreq : indelqual ..." % time.strftime("%H:%M:%S"))
+				# if barcodes_json[barcode]['platform'].lower() == 'illumina':
+					# lofreq_ps = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'indelqual','--dindel','-f',barcodes_json[barcode]['reference'],'-o','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample']),barcodes_json[barcode]['bam']], stdout=open('%s/lofreq_indelqual_dindel.stdout.txt' % lofreq_folder,'w'), stderr=open('%s/lofreq_indelqual_dindel.stderr.txt' % lofreq_folder,'w'))
+				# else: # Set INDELQUAL uniform 45 for ion torrent
+					# lofreq_ps = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'indelqual','--uniform','45','-o','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample']),barcodes_json[barcode]['bam']], stdout=open('%s/lofreq_indelqual_uniform.stdout.txt' % lofreq_folder,'w'), stderr=open('%s/lofreq_indelqual_uniform.stderr.txt' % lofreq_folder,'w'))
+				# lofreq_running = True
 
 			while calling_in_progress:
 				# VARSCAN2
@@ -541,25 +544,25 @@ for barcode in ordered_barcodes:
 						# delete pileup to free space
 						subprocess.call(['rm','%s/%s.pileup' % (varscan2_folder,barcodes_json[barcode]['sample'])],stdout=FNULL,stderr=FNULL)
 				# LOFREQ
-				if lofreq_running :
-					if lofreq_ps.poll() is not None :
-						logging.info("\t\t - [%s] LoFreq : index indelqual ..." % time.strftime("%H:%M:%S"))
-						lofreq_ps = subprocess.call(['samtools','index','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])], stdout=open('%s/samtools_index.stdout.txt' % lofreq_folder,'w'), stderr=open('%s/samtools_index.stderr.txt' % lofreq_folder,'w'))
-						logging.info("\t\t - [%s] LoFreq : call ..." % time.strftime("%H:%M:%S"))
-						cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'call-parallel','--pp-threads','6','--call-indels','-f',barcodes_json[barcode]['reference'],'-l',barcodes_json[barcode]['target_bed'],'-o','%s/%s.lofreq.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),'%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])],stdout=open('%s/lofreq.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.stderr.txt'%lofreq_folder,'w'))
-						cmd.communicate()
-						logging.info("\t\t - [%s] LoFreq : filter ..." % time.strftime("%H:%M:%S"))
-						cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'filter',
-							'-i','%s/%s.lofreq.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
-							'-o','%s/%s.lofreq.filtered.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
-							'--cov-min','10',
-							'--af-min','0.01',
-							'--snvqual-thresh','10'
-						],stdout=open('%s/lofreq.filter.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.filter.stderr.txt'%lofreq_folder,'w'))
-						cmd.communicate()
-						# remove temp indelqual bam
-						subprocess.call(['rm','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])])
-						lofreq_running = False
+				# if lofreq_running :
+					# if lofreq_ps.poll() is not None :
+						# logging.info("\t\t - [%s] LoFreq : index indelqual ..." % time.strftime("%H:%M:%S"))
+						# lofreq_ps = subprocess.call(['samtools','index','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])], stdout=open('%s/samtools_index.stdout.txt' % lofreq_folder,'w'), stderr=open('%s/samtools_index.stderr.txt' % lofreq_folder,'w'))
+						# logging.info("\t\t - [%s] LoFreq : call ..." % time.strftime("%H:%M:%S"))
+						# cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'call-parallel','--pp-threads','6','--call-indels','-f',barcodes_json[barcode]['reference'],'-l',barcodes_json[barcode]['target_bed'],'-o','%s/%s.lofreq.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),'%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])],stdout=open('%s/lofreq.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.stderr.txt'%lofreq_folder,'w'))
+						# cmd.communicate()
+						# logging.info("\t\t - [%s] LoFreq : filter ..." % time.strftime("%H:%M:%S"))
+						# cmd = subprocess.Popen(['%s/lofreq/bin/lofreq' % pipeline_folder,'filter',
+							# '-i','%s/%s.lofreq.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
+							# '-o','%s/%s.lofreq.filtered.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
+							# '--cov-min','10',
+							# '--af-min','0.01',
+							# '--snvqual-thresh','10'
+						# ],stdout=open('%s/lofreq.filter.stdout.txt'%lofreq_folder,'w'),stderr=open('%s/lofreq.filter.stderr.txt'%lofreq_folder,'w'))
+						# cmd.communicate()
+						# # remove temp indelqual bam
+						# subprocess.call(['rm','%s/%s.indelqual.bam' % (lofreq_folder,barcodes_json[barcode]['sample'])])
+						# lofreq_running = False
 				# VARDICT
 				if vardict_running :
 					if vardict_ps.poll() is not None :
@@ -616,12 +619,13 @@ for barcode in ordered_barcodes:
 						mutect2_running = False
 
 				subprocess.call(['stty','sane'])
-				if not varscan2_running and not lofreq_running and not vardict_running and not mutect2_running:
+				# if not varscan2_running and not lofreq_running and not vardict_running and not mutect2_running:
+				if not varscan2_running and not vardict_running and not mutect2_running:
 					calling_in_progress = False
 				else:
 					time.sleep(5)
 
-	elif barcodes_json[barcode]['platform'].lower() == 'ion torrent':
+	else : # elif barcodes_json[barcode]['platform'].lower() == 'ion torrent':
 		if not options.skip_calling:
 			if not os.path.isdir('%s/tvc_de_novo' % barcodes_json[barcode]['intermediate_folder']):
 				subprocess.call(['mkdir','%s/tvc_de_novo' % barcodes_json[barcode]['intermediate_folder']])
@@ -717,12 +721,12 @@ for barcode in ordered_barcodes:
 		if 'ABL1' in barcodes_json[barcode]['reference']:
 			abl1 = 'yes'
 
-		if barcodes_json[barcode]['platform'].lower() == 'illumina':
+		if barcodes_json[barcode]['platform'].lower() == 'illumina' or options.illumina_calling:
 			cmd = subprocess.Popen(['python','%s/variantBase/insert_db_variants_illumina.py' % pipeline_folder,
 				'--analysis', barcodes_json[barcode]['analysis_id'],
 				'--vcf', '%s/%s.mutect2.filtered.vcf' % (mutect2_folder,barcodes_json[barcode]['sample']),
 				'--vcf', '%s/%s.varscan2.filtered.vcf' % (varscan2_folder,barcodes_json[barcode]['sample']),
-				'--vcf', '%s/%s.lofreq.filtered.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
+				# '--vcf', '%s/%s.lofreq.filtered.vcf' % (lofreq_folder,barcodes_json[barcode]['sample']),
 				'--vcf', '%s/%s.vardict.vcf' % (vardict_folder,barcodes_json[barcode]['sample']),
 				'--abl1', abl1
 				],
@@ -735,7 +739,7 @@ for barcode in ordered_barcodes:
 			with open('%s/insert_db_variants.stderr.txt' % barcodes_json[barcode]['intermediate_folder'],'r') as stderr:
 				for line in stderr.readlines():
 					print '\t\t\t' + line.replace('\n','')
-		else:
+		else: # ion torrent
 			cmd = subprocess.Popen(['python','%s/variantBase/insert_db_variants_iontorrent.py' % pipeline_folder,
 				'--analysis', barcodes_json[barcode]['analysis_id'],
 				'--variants', '%s/tvc_de_novo/alleles.xls' % barcodes_json[barcode]['intermediate_folder'],
@@ -888,16 +892,16 @@ if options.run:
 	if 'ColonLung_v10' in panels:
 		logging.info(" [%s] make_excel_VariantBase SBT ..." % time.strftime("%H:%M:%S"))
 		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--project', 'SBT', '--output', '/media/n06lbth/sauvegardes_pgm/SBT/VariantBase_SBT.xlsx'])
-	if 'LAM-illumina-v2' in panels:
+	if 'LAM-illumina-v3' in panels or 'LMMC-MAI-v1' in panels:
 		logging.info(" [%s] make_excel_VariantBase LAM-illumina ..." % time.strftime("%H:%M:%S"))
-		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LAM-illumina-v3,LAM-illumina-v2,LAM-illumina-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx'])
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LMMC-MAI-v1,LAM-illumina-v3,LAM-illumina-v2,LAM-illumina-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx'])
 	if 'LAM-iontorrent-v8' in panels:
 		logging.info(" [%s] make_excel_VariantBase LAM-iontorrent ..." % time.strftime("%H:%M:%S"))
 		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LAM-iontorrent-v8,LAM-iontorrent-v3,LAM-iontorrent-v2,LAM-iontorrent-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_LAM_FLT3.xlsx'])
 	if 'TP53' in panels:
 		logging.info(" [%s] make_excel_VariantBase TP53 ..." % time.strftime("%H:%M:%S"))
 		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'TP53', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_TP53.xlsx'])
-	if 'ABl1' in panels:
+	if 'ABL1' in panels:
 		logging.info(" [%s] make_excel_VariantBase ABL1 ..." % time.strftime("%H:%M:%S"))
 		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'ABL1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_ABL1.xlsx'])
 	if 'Leuc' in panels:

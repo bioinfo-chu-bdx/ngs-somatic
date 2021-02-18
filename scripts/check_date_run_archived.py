@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import json
 import glob
 import subprocess
@@ -6,6 +7,7 @@ from datetime import date
 
 maxDays = 90
 exportedReports = '/media/n06lbth/sauvegardes_pgm/archivedReports/'
+illumina_output = '/media/n06lbth/sauvegardes_pgm/Illumina_output/'
 month2num = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
 
 toKeep= ['/media/n06lbth/sauvegardes_pgm/archivedReports/Auto_user_PGM-39-Run_16_validation_SBT_colun_lung_v4_85_068', 	# SBT validation
@@ -25,9 +27,15 @@ toKeep= ['/media/n06lbth/sauvegardes_pgm/archivedReports/Auto_user_PGM-39-Run_16
 	'/media/n06lbth/sauvegardes_pgm/archivedReports/Auto_user_S5-0198-15-NGSValidPanel_175_35pM_Chef_SBT-colon-lung_v7_530_118_052'
 	]
 
+print "age threshold  = %s days" % maxDays
+run_to_delete = []
+
+# ION TORRENT
 runs_stored = glob.glob(exportedReports + '*')
-print "%s runs stored." % len(runs_stored)
+print "%s Ion Torrent runs stored." % len(runs_stored)
 for run_folder in runs_stored:
+	if 'Thumbs.db' in run_folder:
+		continue
 	try:
 		if run_folder in toKeep:
 			continue
@@ -66,14 +74,44 @@ for run_folder in runs_stored:
 #		print '\t --Run age : ' + str(delta.days) + ' days'
 
 		if delta.days >= maxDays:
-			print "- RUN : " + run_folder
-			print "\t --Launch Date: %s %s %s" % (str(day),start_time[1],year)
-			print "\t --Run age : " + str(delta.days) + " days"
-			print "\t -> This run can be deleted"
-			# uncomment for auto delete folder (not recommended)
-	#		cmd = Popen(['rm','-rf',run_folder], stdout=PIPE)
-	#		out, err = cmd.communicate()
-	#		print "-Removing previous xls : \nOUT: %s\nERR: %s"%(out, err)
-
+			print "- Ion Torrent run : %s (date: %s/%s/%s, age : %s days)" % (run_folder,day,start_time[1],year,delta.days)
+			run_to_delete.append(run_folder)
 	except:
 		print "warning : can't check " + run_folder
+
+# ION TORRENT
+runs_stored = glob.glob(illumina_output + '*')
+print "%s Illumina runs stored (with Data folder)." % len(runs_stored)
+for run_folder in runs_stored:
+	if 'completed_run_list' in run_folder or 'log.txt' in run_folder:
+		continue
+	if not os.path.exists('%s/Data' % run_folder):
+		continue
+	try:
+		rundate = run_folder.split('/')[-1].split('_')[0] # ex : 210129 (YYMMDD)
+		year = int('20%s' % rundate[0:2])
+		month = int(rundate[2:4])
+		day = int(rundate[4:6])
+		run_date = date(year,month,day)
+		# calcul nb de jours entre date explog et date aujourd'hui, si > x jours, delete dossier
+		today = date.today()
+		delta = today - run_date
+
+		if delta.days >= maxDays:
+			print "- Illumina run : %s (date: %s/%s/%s, age : %s days)" % (run_folder,day,month,year,delta.days)
+			run_to_delete.append('%s/Data' % run_folder)
+	except:
+		print "warning : can't check " + run_folder
+
+# DELETE
+if run_to_delete:
+	answer = raw_input("\nDelete listed runs ? (y/n) : ")
+else:
+	print "no run to delete"
+	exit()
+if answer == 'y':
+	for folder in run_to_delete:
+		print "- deleting %s ..." % folder
+		subprocess.call(['rm','-rf',folder])
+elif answer == 'n':
+	exit()

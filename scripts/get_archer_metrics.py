@@ -1,4 +1,4 @@
-##!/usr/bin/env python
+#!/usr/bin/env python
 import subprocess
 import openpyxl
 import json
@@ -63,20 +63,20 @@ for row in rows:
 	if row[0].value not in runs:
 		runs.append(row[0].value)
 
-r = subprocess.check_output('curl -X GET "http://10.67.63.93/rest_api/jobs/" -H "accept: application/json" -H "authorization: Basic c2J0QGNodS1ib3JkZWF1eC5mcjpzYnQxMjNTQlQh" -H "X-CSRFToken: pBJkg5aAfS0LAb33LLQBwbVlnyBfIM0yzKsCLxw2xdVbzQaEGcFXNR31qdO00SIA"',shell=True)
+r = subprocess.check_output('curl -X GET "http://10.67.80.140/rest_api/jobs/" -H "accept: application/json" -H "authorization: Basic c2J0QGNodS1ib3JkZWF1eC5mcjpzYnQxMjNTQlQh" -H "X-CSRFToken: pBJkg5aAfS0LAb33LLQBwbVlnyBfIM0yzKsCLxw2xdVbzQaEGcFXNR31qdO00SIA"',shell=True)
 j = json_loads_byteified(r)
 for result in j['results']:
 	job_name = result['name']
 	if job_name in runs:
 		continue
 	job_id = result['job_id']
-	r2 = subprocess.check_output('curl -X GET "http://10.67.63.93/rest_api/jobs/%s/" -H "accept: application/json" -H "authorization: Basic c2J0QGNodS1ib3JkZWF1eC5mcjpzYnQxMjNTQlQh" -H "X-CSRFToken: pBJkg5aAfS0LAb33LLQBwbVlnyBfIM0yzKsCLxw2xdVbzQaEGcFXNR31qdO00SIA"' % job_id,shell=True)
+	r2 = subprocess.check_output('curl -X GET "http://10.67.80.140/rest_api/jobs/%s/" -H "accept: application/json" -H "authorization: Basic c2J0QGNodS1ib3JkZWF1eC5mcjpzYnQxMjNTQlQh" -H "X-CSRFToken: pBJkg5aAfS0LAb33LLQBwbVlnyBfIM0yzKsCLxw2xdVbzQaEGcFXNR31qdO00SIA"' % job_id,shell=True)
 	j2 = json_loads_byteified(r2)
 	start_merge = line2write
 	for sample in j2['samples']:
 		sample_name = sample['name'].replace('.unaligned','')
 		sample_id = sample['id']
-		r3 = subprocess.check_output('curl -X GET "http://10.67.63.93/rest_api/jobs/%s/samples/%s/results/read-stats" -H "accept: application/json" -H "authorization: Basic c2J0QGNodS1ib3JkZWF1eC5mcjpzYnQxMjNTQlQh" -H "X-CSRFToken: pBJkg5aAfS0LAb33LLQBwbVlnyBfIM0yzKsCLxw2xdVbzQaEGcFXNR31qdO00SIA"' % (job_id,sample_id),shell=True)
+		r3 = subprocess.check_output('curl -X GET "http://10.67.80.140/rest_api/jobs/%s/samples/%s/results/read-stats" -H "accept: application/json" -H "authorization: Basic c2J0QGNodS1ib3JkZWF1eC5mcjpzYnQxMjNTQlQh" -H "X-CSRFToken: pBJkg5aAfS0LAb33LLQBwbVlnyBfIM0yzKsCLxw2xdVbzQaEGcFXNR31qdO00SIA"' % (job_id,sample_id),shell=True)
 		j3 = json_loads_byteified(r3)
 		total_fragments = j3['molbar_stats']['total_molbar_reads']
 		for rstat in j3['read_stat_types']:
@@ -91,16 +91,16 @@ for result in j['results']:
 				rna_percent = stat['rna_reads_percent']
 				rna_reads = stat['rna_reads']
 				break
-				
+
 		sheet.cell(row=line2write,column=1).value = job_name
 		sheet.cell(row=line2write,column=2).value = sample_name
 		sheet.cell(row=line2write,column=3).value = total_fragments
 		cell_format(sheet.cell(row=line2write,column=3),color='LightGreen')
-		
+
 		if 'PATIENT-INCONNU' in sample_name:
 			cell_format(sheet.cell(row=line2write,column=2),alert=True)
 			cell_format(sheet.cell(row=line2write,column=3),color='LightGreen',alert=True)
-		
+
 		sheet.cell(row=line2write,column=4).value = mapped_reads
 		cell_format(sheet.cell(row=line2write,column=4),color='Green')
 		sheet.cell(row=line2write,column=5).value = dna_reads
@@ -113,10 +113,8 @@ for result in j['results']:
 		cell_format(sheet.cell(row=line2write,column=8),color='LightOrange')
 		sheet.cell(row=line2write,column=9).value = rna_median_fragment_length
 		cell_format(sheet.cell(row=line2write,column=9),color='Orange')
-		
 		line2write = line2write+1
-		
-		
+
 	# merge
 	sheet.merge_cells(start_row=start_merge, start_column=1, end_row=line2write-1, end_column=1)
 	cell_format(sheet.cell(row=start_merge,column=1),alignment='center')

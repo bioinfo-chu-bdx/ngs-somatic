@@ -21,6 +21,20 @@ def dict_factory(cursor, row):
 		d[col[0]] = row[idx]
 	return d
 
+def parse_mutect2_multiallelic(vcf_line):
+	alts = line[4].split(',')
+	pos_cov = int(line[9].split(':')[3])
+	var_covs = line[9].split(':')[1].split(',')[1:] # premiere valeur est ref count
+	var_covs = [int(v) for v in var_covs]
+	TLODs = line[7].split('TLOD=')[-1].split(';')[0].split(',')
+	TLODs = [float(TLOD) for TLOD in TLODs]
+	var_index_to_keep = [i for i in range(len(TLODs)) if TLODs[i]>100.0] # on ne garde que TLOD > 100
+	if len(var_index_to_keep) > 2 : # si trop de variants TLOD > 100, on ne garde que les 2 meilleurs TLOD
+		var_index_to_keep = [TLODs.index(sorted(TLODs)[-1]),TLODs.index(sorted(TLODs)[-2])]
+	alts = [alts[i] for i in var_index_to_keep]
+	var_covs = [var_covs[i] for i in var_index_to_keep]
+	return alts,pos_cov,var_covs
+
 ### GATHERING PARAMETERS ############################################################
 
 parser = OptionParser()
@@ -39,7 +53,7 @@ db_con.row_factory = dict_factory
 db_cur = db_con.cursor()
 
 analysis_id = options.analysis
-vc_tool = 'Mutect2,VarDict,Lofreq,VarScan2'
+vc_tool = 'Mutect2,VarDict,VarScan2'
 
 db_cur.execute("SELECT panel FROM Analysis WHERE analysisID='%s'" % analysis_id)
 db_analysis = db_cur.fetchone()
@@ -74,7 +88,7 @@ mutect2_nocall = ['base_qual','low_allele_frac','map_qual','slippage','strand_bi
 
 variants = {}
 mutect2_count = 0
-lofreq_count = 0
+# lofreq_count = 0
 varscan_count = 0
 vardict_count = 0
 # deepvariant_count = 0
@@ -91,40 +105,46 @@ for vcf_path in options.vcfs:
 		alts = line[4].split(',')
 		if 'mutect' in vcf_path:
 			vc_name = 'mutect2'
-			filters = line[6].split(';')
-			pass_variant = False
-			for no_call in mutect2_nocall:
-				if no_call in filters:
-					pass_variant = True
-			if pass_variant:
-				continue
-			pos_cov = int(line[9].split(':')[3])
-			var_covs = line[9].split(':')[1].split(',')[1:] # premiere valeur est ref count
-			var_covs = [int(v) for v in var_covs]
-			mutect2_count += 1
-		elif 'lofreq' in vcf_path:# 1 seul variant par ligne avec lofreq
-			vc_name = 'lofreq'
-			dp4 = line[7].split('DP4=')[-1].split(';')[0].split(',') 
-			pos_cov = int(dp4[0])+int(dp4[1])+int(dp4[2])+int(dp4[3])
-			var_covs = [int(dp4[2])+int(dp4[3])]
-			lofreq_count += 1
+			filter_column = line[6].split(';')
+			# cas particulier "multiallelic", garder max 2 variants TLOD > 100, prendre les deux meilleurs scores
+			if 'multiallelic' in filter_column:
+				alts,pos_cov,var_covs = parse_mutect2_multiallelic(line)
+				mutect2_count += len(alts)
+			else:
+				# cas normal
+				skip_variant = False
+				for no_call in mutect2_nocall:
+					if no_call in filter_column:
+						skip_variant = True
+				if skip_variant:
+					continue
+				pos_cov = int(line[9].split(':')[3])
+				var_covs = line[9].split(':')[1].split(',')[1:] # premiere valeur est ref count
+				var_covs = [int(v) for v in var_covs]
+				mutect2_count += len(alts)
+		# elif 'lofreq' in vcf_path:# 1 seul variant par ligne avec lofreq
+			# vc_name = 'lofreq'
+			# dp4 = line[7].split('DP4=')[-1].split(';')[0].split(',') 
+			# pos_cov = int(dp4[0])+int(dp4[1])+int(dp4[2])+int(dp4[3])
+			# var_covs = [int(dp4[2])+int(dp4[3])]
+			# lofreq_count += 1
 		elif 'varscan' in vcf_path: #VarScan calls the most-observed variant
 			vc_name = 'varscan2'
-			filters = line[6]
-			if filters != 'PASS':
+			filter_column = line[6]
+			if filter_column != 'PASS':
 				continue
 			pos_cov = int(line[9].split(':')[2])
 			var_covs = [int(line[9].split(':')[5])]
-			varscan_count += 1
+			varscan_count += len(alts)
 		elif 'vardict' in vcf_path:
 			vc_name = 'vardict'
-			filters = line[6]
-			if filters != 'PASS':
+			filter_column = line[6]
+			if filter_column != 'PASS':
 				continue
 			pos_cov = int(line[9].split(':')[1])
 			var_covs = line[9].split(':')[3].split(',')[1:] # premiere valeur est ref count
 			var_covs = [int(v) for v in var_covs]
-			vardict_count += 1
+			vardict_count += len(alts)
 
 		for a in range(len(alts)): # si multiallelic
 			ref = oref
@@ -212,24 +232,14 @@ for vcf_path in options.vcfs:
 				variants[variant]['call'].append(vc_name)
 
 print " variants called by Mutect2     : %s" % mutect2_count
-print " variants called by Lofreq      : %s" % lofreq_count
 print " variants called by VarScan     : %s" % varscan_count
 print " variants called by VarDict     : %s" % vardict_count
-# print " variants called by Deepvariant : %s" % deepvariant_count
 print " - TOTAL : %s variants" % len(variants)
-x = 0
-y = 0
 z = 0
 for variant in variants:
-	if len(variants[variant]['call']) >= 2:
-		x+=1
-	if len(variants[variant]['call']) >= 3:
-		y+=1
-	if len(variants[variant]['call']) == 4:
+	if (variants[variant]['call'] == ['varscan2','vardict']) or (variants[variant]['call'] == ['vardict','varscan2']):
 		z+=1
-print " - found by 4 callers  : %s variants" % z
-print " - found by 3+ callers : %s variants" % y
-print " - found by 2+ callers : %s variants" % x
+print " - variant missed by mutect2 but found by varscan2 + vardict : %s variants" % z
 
 # IF ANALYSIS PREVIOUSLY DONE, DELETE OLD VARIANTMETRICS FIRST
 db_cur.execute("SELECT variantMetricsID FROM VariantMetrics WHERE analysis='%s'" % analysis_id)
@@ -246,7 +256,8 @@ if db_vms:
 new_var_count = 0
 new_vm_count = 0
 for variant in variants:
-	if (len(variants[variant]['call']) >= 2) or (variants[variant]['gene'] == 'CEBPA' and variants[variant]['variant_type'] != 'SNP') or (variants[variant]['variant_type'] != 'SNP' and variants[variant]['call'] != ['lofreq']):
+	if ('mutect2' in variants[variant]['call']) or (variants[variant]['call'] == ['varscan2','vardict']) or (variants[variant]['call'] == ['vardict','varscan2']):
+	# (variants[variant]['gene'] == 'CEBPA' and variants[variant]['variant_type'] != 'SNP') or (variants[variant]['variant_type'] != 'SNP' and variants[variant]['call'] != ['lofreq']):
 		variant_id = variant
 		pos_cov = int(mean(variants[variant]['pos_cov']))
 		var_cov = int(mean(variants[variant]['var_cov']))

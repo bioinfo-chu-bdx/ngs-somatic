@@ -22,7 +22,7 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 	if color == 'LightGreen':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='D8E4BC') # EBF1DE
 	elif color == 'Orange':	
-		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffc000')		
+		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffc000')
 	elif color == 'LightOrange':	
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffe7e0') # ffd8ad
 	elif color == 'LightBlue1':	
@@ -30,7 +30,7 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 	elif color == 'LightBlue2':	
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='add8e6')
 	elif color == 'Cyan':	
-		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ccffff')	
+		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ccffff')
 	elif color == 'LightPink':	
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffc9f7')
 	elif color == 'LightPurple':	
@@ -74,40 +74,52 @@ sheet.cell(row=7,column=col2write).value = run_name
 cell_format(sheet.cell(row=7,column=col2write),font='bold',alignment='center',border='thin')
 # write data
 # Flow Cell - Serial Number
-sheet.cell(row=24,column=col2write).value = xmldict['RunParameters']['FlowCellRfidTag']['SerialNumber']
-cell_format(sheet.cell(row=24,column=col2write),alignment='center',border='thin',color='LightBlue1')
+row2write = 26
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['FlowCellRfidTag']['SerialNumber']
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightBlue1')
+row2write += 1
 # Flow Cell - Part number
-sheet.cell(row=25,column=col2write).value = representsInt(xmldict['RunParameters']['FlowCellRfidTag']['PartNumber'])
-cell_format(sheet.cell(row=25,column=col2write),alignment='center',border='thin',color='LightBlue1')
+sheet.cell(row=row2write,column=col2write).value = representsInt(xmldict['RunParameters']['FlowCellRfidTag']['PartNumber'])
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightBlue1')
+row2write += 1
 # Flow Cell - Lot number
-sheet.cell(row=26,column=col2write).value = representsInt(xmldict['RunParameters']['FlowCellRfidTag']['LotNumber'])
-cell_format(sheet.cell(row=26,column=col2write),alignment='center',border='thin',color='LightBlue1')
+sheet.cell(row=row2write,column=col2write).value = representsInt(xmldict['RunParameters']['FlowCellRfidTag']['LotNumber'])
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightBlue1')
+row2write += 1
 # Flow Cell - Exp. date
-sheet.cell(row=27,column=col2write).value = xmldict['RunParameters']['FlowCellRfidTag']['ExpirationDate']
-cell_format(sheet.cell(row=27,column=col2write),alignment='center',border='thin',color='LightBlue1')
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['FlowCellRfidTag']['ExpirationDate']
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightBlue1')
+row2write += 1
 # Buffer - Serial Number
-sheet.cell(row=28,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['SerialNumber']
-cell_format(sheet.cell(row=28,column=col2write),alignment='center',border='thin',color='LightPurple')
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['SerialNumber']
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightPurple')
+row2write += 1
 # Buffer - Part number
-sheet.cell(row=29,column=col2write).value = representsInt(xmldict['RunParameters']['PR2BottleRfidTag']['LotNumber'])
-cell_format(sheet.cell(row=29,column=col2write),alignment='center',border='thin',color='LightPurple')
+sheet.cell(row=row2write,column=col2write).value = representsInt(xmldict['RunParameters']['PR2BottleRfidTag']['LotNumber'])
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightPurple')
 # Buffer - Lot number
-sheet.cell(row=30,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['SerialNumber']
-cell_format(sheet.cell(row=30,column=col2write),alignment='center',border='thin',color='LightPurple')
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['SerialNumber']
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightPurple')
+row2write += 1
 # Buffer - Exp. Date
-sheet.cell(row=31,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['ExpirationDate']
-cell_format(sheet.cell(row=31,column=col2write),alignment='center',border='thin',color='LightPurple')
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['ExpirationDate']
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightPurple')
+row2write += 1
 # Reagent Kit - Serial Number
-sheet.cell(row=32,column=col2write).value = xmldict['RunParameters']['ReagentKitRfidTag']['SerialNumber']
-cell_format(sheet.cell(row=32,column=col2write),alignment='center',border='thin',color='Cyan')
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['ReagentKitRfidTag']['SerialNumber']
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='Cyan')
+row2write += 1
 # Reagent Kit - Part number
-sheet.cell(row=33,column=col2write).value = representsInt(xmldict['RunParameters']['ReagentKitRfidTag']['PartNumber'])
-cell_format(sheet.cell(row=33,column=col2write),alignment='center',border='thin',color='Cyan')
+sheet.cell(row=row2write,column=col2write).value = representsInt(xmldict['RunParameters']['ReagentKitRfidTag']['PartNumber'])
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='Cyan')
+row2write += 1
 # Reagent Kit - Lot number
-sheet.cell(row=34,column=col2write).value = representsInt(xmldict['RunParameters']['ReagentKitRfidTag']['LotNumber'])
-cell_format(sheet.cell(row=34,column=col2write),alignment='center',border='thin',color='Cyan')
+sheet.cell(row=row2write,column=col2write).value = representsInt(xmldict['RunParameters']['ReagentKitRfidTag']['LotNumber'])
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='Cyan')
+row2write += 1
 # Reagent Kit  - Exp. Date
-sheet.cell(row=35,column=col2write).value = xmldict['RunParameters']['ReagentKitRfidTag']['ExpirationDate']
-cell_format(sheet.cell(row=35,column=col2write),alignment='center',border='thin',color='Cyan')
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['ReagentKitRfidTag']['ExpirationDate']
+cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='Cyan')
+
 
 workbook.save(tracabilite_xlsx_path)

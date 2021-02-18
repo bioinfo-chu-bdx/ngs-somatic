@@ -165,6 +165,8 @@ else:
 				subprocess.call(['mv', fastq, sample_folder])
 
 # AND GENERATE BARCODES.JSON
+if run_project == 'FusionPlex_CTL':
+	exit()
 print "- GENERATE BARCODES.JSON"
 barcodes_json = {}
 for sample in samples.keys():

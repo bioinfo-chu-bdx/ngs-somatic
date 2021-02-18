@@ -125,6 +125,7 @@
 			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
 			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_Lymphome_B_IAD119887_231.anno.bed",
 			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target_Lymphome_B_IAD119887_231.merged.plain.bed",
+			"intervals": "$NGS_PIPELINE_BX_DIR/reference_files/Lymphome_B_IAD119887_231.intervals",
 			"tvc_parameters": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_LymphomeB_5.12.json",
 			"tvc_parameters_hotspot_only": "$NGS_PIPELINE_BX_DIR/reference_files/TVC_Parameters_LymphomeB_5.10.hotspot_only.json",
 			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots_Lymphome_B.vcf",
