@@ -91,6 +91,20 @@
 			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
 			"checkContamination_read_len":150
 		},
+		"LAM-illumina-v4":{
+			"project": "LAM",
+			"sub_project": "panel-capture",
+			"reference": "$NGS_PIPELINE_BX_DIR/reference_files/hg19/hg19.fasta",
+			"target_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_capture_v4.roi.anno.padding5.bed",
+			"merged_bed": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_capture_v4.roi.anno.padding5.bed",
+			"intervals": "$NGS_PIPELINE_BX_DIR/reference_files/Target-Myeloid_capture_v4.roi.padding5.intervals",
+			"tvc_parameters": "",
+			"tvc_parameters_hotspot_only": "",
+			"hotspot_vcf": "$NGS_PIPELINE_BX_DIR/reference_files/Hotspots-Myeloid_capture_v2.vcf",
+			"variantBase": "/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx",
+			"variantList": "$NGS_PIPELINE_BX_DIR/variantBase/VariantList/VariantList_Hemato.tsv",
+			"checkContamination_read_len":150
+		},
 		"LMMC-MAI-v1":{
 			"project": "LAM",
 			"sub_project": "panel-capture",

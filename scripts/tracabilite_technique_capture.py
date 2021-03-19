@@ -21,19 +21,19 @@ def cell_format(cell, font=None, alignment=None, color=None, format=None, border
 		cell.alignment = openpyxl.styles.Alignment(horizontal='left')
 	if color == 'LightGreen':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='D8E4BC') # EBF1DE
-	elif color == 'Orange':	
+	elif color == 'Orange':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffc000')
-	elif color == 'LightOrange':	
+	elif color == 'LightOrange':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffe7e0') # ffd8ad
-	elif color == 'LightBlue1':	
+	elif color == 'LightBlue1':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='c5d9f1')
-	elif color == 'LightBlue2':	
+	elif color == 'LightBlue2':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='add8e6')
-	elif color == 'Cyan':	
+	elif color == 'Cyan':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ccffff')
-	elif color == 'LightPink':	
+	elif color == 'LightPink':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='ffc9f7')
-	elif color == 'LightPurple':	
+	elif color == 'LightPurple':
 		cell.fill = openpyxl.styles.PatternFill(fill_type='solid',start_color='E0DBE9')
 	else:
 		cell.fill = openpyxl.styles.PatternFill(fill_type=None,start_color='FFFFFF')
@@ -95,10 +95,11 @@ sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['PR2
 cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightPurple')
 row2write += 1
 # Buffer - Part number
-sheet.cell(row=row2write,column=col2write).value = representsInt(xmldict['RunParameters']['PR2BottleRfidTag']['LotNumber'])
+sheet.cell(row=row2write,column=col2write).value = representsInt(xmldict['RunParameters']['PR2BottleRfidTag']['PartNumber'])
 cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightPurple')
+row2write += 1
 # Buffer - Lot number
-sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['SerialNumber']
+sheet.cell(row=row2write,column=col2write).value = xmldict['RunParameters']['PR2BottleRfidTag']['LotNumber']
 cell_format(sheet.cell(row=row2write,column=col2write),alignment='center',border='thin',color='LightPurple')
 row2write += 1
 # Buffer - Exp. Date

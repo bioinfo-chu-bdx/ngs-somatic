@@ -20,7 +20,8 @@ bilan_mut_paths = {
 	'bilan_mut_path_2017' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilans_archive/Bilan_mutation_2017.xlsx',
 	'bilan_mut_path_2018' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilans_archive/Bilan_mutation_2018.xlsx',
 	'bilan_mut_path_2019' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilans_archive/Bilan_mutation_2019.xlsx',
-	'bilan_mut_path_2020' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilan_mutation_2020.xlsx'
+	'bilan_mut_path_2020' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilan_mutation_2020.xlsx',
+	'bilan_mut_path_2021' : '/media/n06lbth/sauvegardes_pgm/SBT/Bilan_mutation_2021.xlsx'
 	}
 
 pipeline_folder = os.environ['NGS_PIPELINE_BX_DIR']
@@ -32,6 +33,7 @@ db_cur = db_con.cursor()
 # PARSE ALL BILAN MUTATION
 print "- parsing bilan mutation..."
 sample2patho = {}
+sample2diamic = {}
 for bm in bilan_mut_paths.values():
 	bilan_mut = openpyxl.load_workbook(bm)
 	sheetnames = bilan_mut.sheetnames
@@ -40,6 +42,7 @@ for bm in bilan_mut_paths.values():
 		sheet = bilan_mut[sheetnames[i]]
 		for nrow in range(sheet.max_row):
 			sample2patho[sheet.cell(row=nrow+1,column=4).value] = sheet2path[sheetnames[i]]
+			sample2diamic[sheet.cell(row=nrow+1,column=4).value] = sheet.cell(row=nrow+1,column=1).value
 
 # FIND AND INSERT PATHOLOGY INTO DB
 print "- updating db..."
@@ -48,17 +51,17 @@ db_cur.execute("SELECT sampleID FROM SAMPLE INNER JOIN Analysis ON Analysis.samp
 db_samples = db_cur.fetchall()
 for db_sample in db_samples:
 	SBT_samples.append(db_sample['sampleID'])
-	
+
 print "\t - %s SBT samples" % len(SBT_samples)
 for sampleID in sample2patho.keys():
 	if sampleID in SBT_samples:
-		db_cur.execute("UPDATE Sample SET pathology = '%s' WHERE sampleID='%s'" % (sample2patho[sampleID],sampleID))
-		print "\t\t - %s -> %s" % (sampleID,sample2patho[sampleID])
+		db_cur.execute("UPDATE Sample SET pathology = '%s', lims = '%s' WHERE sampleID='%s'" % (sample2patho[sampleID],sample2diamic[sampleID],sampleID))
+		print "\t\t - %s (%s) -> %s" % (sampleID,sample2diamic[sampleID],sample2patho[sampleID])
 	else:
 		try:
 			print "\t\t - %s not found in bilan mutation" % sampleID
 		except Exception as e:
 			print str(e)
-	
+
 db_con.commit()
 db_con.close()

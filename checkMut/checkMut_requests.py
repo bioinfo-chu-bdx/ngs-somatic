@@ -61,8 +61,8 @@ for row_idx in range(10, ws.max_row+1):
 			if use_processed.lower() == 'true':
 				cmd_args.append('--use-processed')
 		print ' '.join(cmd_args)
-		cmd = subprocess.Popen(cmd_args)
-		cmd.communicate()
+		cmd = subprocess.Popen(cmd_args,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		stdout, stderr = cmd.communicate()
 
 		fig_path = '%s/_checkMut/%s_%s.png' % (run_folder,gene,cpos.replace('>','_'))
 		if os.path.exists(fig_path):
@@ -73,13 +73,19 @@ for row_idx in range(10, ws.max_row+1):
 			ws.cell(row=row_idx,column=8).style = 'Hyperlink'
 		else:
 			state = 'error'
+			ws.cell(row=row_idx,column=9).value = stdout
+			ws.cell(row=row_idx,column=10).value = stderr
 		ws.cell(row=row_idx,column=7).value = state
 
+		write_success = False
 		for i in range(6):
 			try:
 				wb.save('/media/n06lbth/sauvegardes_pgm/checkMut_requests.xlsx')
+				write_success = True
+				break
 			except Exception as e:
 				print e.message
 				print "- retrying in 10sec..."
 				time.sleep(5)
-		print "Cannot write file after 6 try in 30 sec. Aborting."
+		if not write_success :
+			print "Cannot write file after 6 try in 30 sec. Aborting."

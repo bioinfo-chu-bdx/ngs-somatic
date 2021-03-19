@@ -31,6 +31,7 @@ CREATE TABLE `Sample` (
 	`gender`	TEXT,
 	`pathology`	TEXT,
 	`isControl`	INTEGER NOT NULL DEFAULT 0,
+	`lims`	TEXT,
 	PRIMARY KEY(`sampleID`)
 );"""
 

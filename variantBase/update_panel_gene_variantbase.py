@@ -33,30 +33,13 @@ db_path = global_param['VariantBase']
 
 # LIST OF PANEL SORTED BY NEWER > OLDER. (order is important so that old annotations are not written first)
 panels = {
-	# ('%s/reference_files/reannoted/Target_ColonLung_v10_IAD172906_231.bed' % pipeline_folder		,'SBT',			10),
-	# ('%s/reference_files/reannoted/LAM2018_IAD143291_236_Designed_with_NM.bed' % pipeline_folder	,'LAM',			4),
-	# ('%s/reference_files/reannoted/TP53.20140108.designed_with_NM.bed' % pipeline_folder			,'TP53',		1),
-	# ('%s/reference_files/reannoted/Lymphome_B_IAD119887_231_Designed.with_NM.bed' % pipeline_folder	,'Lymphome_B',	1),
-	# ('%s/reference_files/reannoted/Lymphome_T_IAD120574_238_Designed.with_NM.bed' % pipeline_folder	,'Lymphome_T',	1),
-	# ('%s/reference_files/reannoted/IAD83112_241_Designed.with_NM.bed' % pipeline_folder				,'Leuc',		1),
-	# ('%s/reference_files/reannoted/ABL1_NM_005157_Designed.with_NM.bed' % pipeline_folder			,'ABL1',		1),
-	# ('%s/reference_files/reannoted/FLT3_IAD161204_182_Designed.with_NM.bed' % pipeline_folder		,'FLT3',		1),
-	# ('%s/reference_files/reannoted/IAD78219_237_Designed_with_NM.bed' % pipeline_folder				,'LAM',			1),
-	# ('%s/reference_files/reannoted/IAD37093_Designed_with_NM.bed' % pipeline_folder					,'LAM',			2),
-	# ('%s/reference_files/reannoted/IAD62716_182_Designed_with_NM.bed' % pipeline_folder				,'LAM',			3),
-	# ('%s/reference_files/reannoted/IAD165023_231_Designed.with_NM.bed' % pipeline_folder			,'SBT',			9),
-	# ('%s/reference_files/reannoted/IAD154118_231_Designed.with_NM.bed' % pipeline_folder			,'SBT',			8),
-	# ('%s/reference_files/reannoted/IAD119108_231_Designed.with_NM.bed' % pipeline_folder			,'SBT',			7),
-	# ('%s/reference_files/reannoted/IAD108862_231_Designed.with_NM.bed' % pipeline_folder			,'SBT',			5),
-	# ('%s/reference_files/reannoted/IAD94971_233_Designed.with_NM.bed' % pipeline_folder				,'SBT',			4),
-	# ('%s/reference_files/reannoted/IAD72953_231_Designed.with_NM.bed' % pipeline_folder				,'SBT',			3),
-	# ('%s/reference_files/reannoted/SureSelect-HEMATO-v5.sorted.annotated.bed' % pipeline_folder		,'TEST',		1),
-	# ('%s/reference_files/Target-Myeloid_v1-SureSelect.roi.anno.bed' % pipeline_folder				,'LAM-illumina',1),
 	# 'LAM-illumina-v2':{'path':'%s/reference_files/Target-Myeloid_capture_v2.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
 	# 'LAM-illumina-v1':{'path':'%s/reference_files/Target-Myeloid_capture_v1.roi.anno.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
 	# 'ColonLung_v11':{'path':'%s/reference_files/Target_ColonLung_v11_IAD206975_231.anno.bed' % pipeline_folder,'project':'SBT','subproject':None},
 	# 'LAM-illumina-v3':{'path':'%s/reference_files/Target-Myeloid_capture_v3.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'},
-	'LMMC-MAI-v1':{'path':'%s/reference_files/Target-LMMC-MAI_capture.roi.anno.padding5.bed' % pipeline_folder,'project':'LMMC-MAI','subproject':None},
+	# 'LMMC-MAI-v1':{'path':'%s/reference_files/Target-LMMC-MAI_capture.roi.anno.padding5.bed' % pipeline_folder,'project':'LMMC-MAI','subproject':None},
+	# 'Lymphome_T':{'path':'%s/reference_files/Target_Lymphome_T_IAD120574_238.anno.bed' % pipeline_folder,'project':'Lymphome_T','subproject':None},
+	'LAM-illumina-v4':{'path':'%s/reference_files/Target-Myeloid_capture_v4.roi.anno.padding5.bed' % pipeline_folder,'project':'LAM','subproject':'panel-capture'}
 }
 
 db_con = sqlite3.connect(db_path)

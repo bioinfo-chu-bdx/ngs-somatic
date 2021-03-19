@@ -38,3 +38,9 @@ step 3 : mettre à jour global_parameters.json
 
 POUR ILLUMINA : faire des version avec padding et ne pas oublier d'importer le coverered bed
 + Faire fichier .intervals
+
+POUR ION TORRENT :
+
+- upload sur torrent suite
+- mettre à jour le template
+- mettre à jour BackupCopy.py dictionnaire

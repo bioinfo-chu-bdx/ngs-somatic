@@ -17,6 +17,8 @@ completed_run_list_path = '%s/completed_run_list.txt' % illumina_folder_path
 
 illumina_folders = glob.glob('%s/*/' % illumina_folder_path)
 illumina_folders = [folder.split('/')[-2] for folder in illumina_folders]
+if 'SampleSheets' in illumina_folders:
+	illumina_folders.remove('SampleSheets')
 
 completed_runs = {}
 with open(completed_run_list_path,'r') as crl:

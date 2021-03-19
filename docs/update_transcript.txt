@@ -1,0 +1,18 @@
+1. modifier bed et remplacer transcrit
+
+(si besoin de reannoter le bed, utiliser annotate_bed 
+	python reference_files/annotate_bed/annotate_bed.py
+			-i /media/stuff/IAD206975_231_Designed.bed
+			-o /media/stuff/Target_ColonLung_v11_IAD206975_231.anno.bed
+			-c 'ColonLung_v10'
+
+2. modifier et lancer update_panel_gene_variantbase.py
+
+
+-----
+sinon, utiliser scripts/add_new_transcript.py
+-----
+
+(3. eventuellement reannotateVB.sh)
+
+(4. eventuellement variantBase/clean_variantbase.py pour enlever les entrées de transcrits et variantannotation qui ne sont plus utilisées)

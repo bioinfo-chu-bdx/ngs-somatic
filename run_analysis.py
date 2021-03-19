@@ -128,7 +128,7 @@ for barcode in ordered_barcodes:
 	barcodes_json[barcode]['intermediate_folder'] = '%s/intermediate_files' % barcodes_json[barcode]['sample_folder']
 	barcodes_json[barcode]['reference'] = global_param['panel'][barcodes_json[barcode]['panel']]['reference']
 	barcodes_json[barcode]['target_bed'] = global_param['panel'][barcodes_json[barcode]['panel']]['target_bed']
-	barcodes_json[barcode]['covered_bed'] = global_param['panel'][barcodes_json[barcode]['panel']].get('covered_bed','target_bed') # si covered existe, sinon target
+	barcodes_json[barcode]['covered_bed'] = global_param['panel'][barcodes_json[barcode]['panel']].get('covered_bed',barcodes_json[barcode]['target_bed']) # si covered existe, sinon target
 	barcodes_json[barcode]['merged_bed'] = global_param['panel'][barcodes_json[barcode]['panel']]['merged_bed']
 	barcodes_json[barcode]['intervals'] = global_param['panel'][barcodes_json[barcode]['panel']].get('intervals',False)
 	barcodes_json[barcode]['tvc_param'] = global_param['panel'][barcodes_json[barcode]['panel']].get('tvc_parameters',False)
@@ -241,9 +241,9 @@ if (not options.skip_preprocessing) and (platform == 'illumina'):
 						logging.info("\t- [%s] %s : BWA-MEM Alignment ..." % (time.strftime("%H:%M:%S"),barcodes_json[barcode]['sample']))
 						read_group = '@RG\\tID:%s\\tLB:%s\\tPL:%s\\tPU:%s\\tSM:%s' % ('%s' % barcodes_json[barcode]['sample_id'],barcodes_json[barcode]['panel'],'illumina','NDX550372',barcodes_json[barcode]['sample']) # READ GROUP (which reflects which library a read belongs to and what lane it was sequenced in on the flowcell)
 						if paired_end_classic:
-							ps = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),barcodes_json[barcode]['reference'],barcodes_json[barcode]['fastq_r1'],barcodes_json[barcode]['fastq_r2']], stdout=open('%s/bwa_mem.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/bwa_mem.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
+							ps = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','24','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),barcodes_json[barcode]['reference'],barcodes_json[barcode]['fastq_r1'],barcodes_json[barcode]['fastq_r2']], stdout=open('%s/bwa_mem.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/bwa_mem.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
 						else:
-							ps = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','12','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),barcodes_json[barcode]['reference'],barcodes_json[barcode]['fastq_r1']], stdout=open('%s/bwa_mem.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/bwa_mem.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
+							ps = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','24','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),barcodes_json[barcode]['reference'],barcodes_json[barcode]['fastq_r1']], stdout=open('%s/bwa_mem.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/bwa_mem.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
 						barcodes_json[barcode]['pre_processing_ps'] = ps
 						barcodes_json[barcode]['pre_processing_state'] = 'alignment'
 				elif barcodes_json[barcode]['pre_processing_state'] == 'trimming' and barcodes_json[barcode]['pre_processing_ps'].poll() is not None:
@@ -252,7 +252,7 @@ if (not options.skip_preprocessing) and (platform == 'illumina'):
 					barcodes_json[barcode]['fastq_r1'] = glob.glob('%s/*_R1_*fastq*' % barcodes_json[barcode]['pre_processing_folder'])[0]
 					barcodes_json[barcode]['fastq_r3'] = glob.glob('%s/*_R3_*fastq*' % barcodes_json[barcode]['pre_processing_folder'])[0]
 					read_group = '@RG\\tID:%s\\tLB:%s\\tPL:%s\\tPU:%s\\tSM:%s' % ('%s' % barcodes_json[barcode]['sample_id'],barcodes_json[barcode]['panel'],'illumina','NDX550372',barcodes_json[barcode]['sample']) # READ GROUP (which reflects which library a read belongs to and what lane it was sequenced in on the flowcell)
-					ps = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','6','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),barcodes_json[barcode]['reference'],barcodes_json[barcode]['fastq_r1'],barcodes_json[barcode]['fastq_r3']], stdout=open('%s/bwa_mem.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/bwa_mem.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
+					ps = subprocess.Popen(['%s/bwa/bwa' % pipeline_folder,'mem','-C','-t','24','-M','-R',read_group,'-v','1','-o','%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),barcodes_json[barcode]['reference'],barcodes_json[barcode]['fastq_r1'],barcodes_json[barcode]['fastq_r3']], stdout=open('%s/bwa_mem.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/bwa_mem.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
 					barcodes_json[barcode]['pre_processing_ps'] = ps
 					barcodes_json[barcode]['pre_processing_state'] = 'alignment'
 				elif barcodes_json[barcode]['pre_processing_state'] == 'alignment' and barcodes_json[barcode]['pre_processing_ps'].poll() is not None:
@@ -284,7 +284,7 @@ if (not options.skip_preprocessing) and (platform == 'illumina'):
 						barcodes_json[barcode]['pre_processing_state'] = 'locatit'
 					else:
 						logging.info("\t- [%s] %s : Converting SAM to BAM ..." % (time.strftime("%H:%M:%S"),barcodes_json[barcode]['sample']))
-						ps = subprocess.Popen(['samtools','view','-@','12','-bS','-o','%s/%s.markdup.sorted.bam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),'%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample'])], stdout=open('%s/samtools_view.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/samtools_view.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
+						ps = subprocess.Popen(['samtools','view','-@','24','-bS','-o','%s/%s.markdup.sorted.bam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample']),'%s/%s.sam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample'])], stdout=open('%s/samtools_view.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/samtools_view.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
 						barcodes_json[barcode]['pre_processing_ps'] = ps
 						barcodes_json[barcode]['pre_processing_state'] = 'samtools view'
 				elif barcodes_json[barcode]['pre_processing_state'] == 'mark duplicates' and barcodes_json[barcode]['pre_processing_ps'].poll() is not None:
@@ -301,7 +301,7 @@ if (not options.skip_preprocessing) and (platform == 'illumina'):
 				elif (barcodes_json[barcode]['pre_processing_state'] in ['locatit','samtools view']) and barcodes_json[barcode]['pre_processing_ps'].poll() is not None:
 					# SORT BAM
 					logging.info("\t- [%s] %s : Sorting BAM ..." % (time.strftime("%H:%M:%S"),barcodes_json[barcode]['sample']))
-					ps = subprocess.Popen(['samtools','sort','-@','12','-O','bam','-o',barcodes_json[barcode]['bam'],'%s/%s.markdup.sorted.bam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample'])], stdout=open('%s/samtools_sort.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/samtools_sort.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
+					ps = subprocess.Popen(['samtools','sort','-@','24','-O','bam','-o',barcodes_json[barcode]['bam'],'%s/%s.markdup.sorted.bam' % (barcodes_json[barcode]['pre_processing_folder'],barcodes_json[barcode]['sample'])], stdout=open('%s/samtools_sort.stdout.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'), stderr=open('%s/samtools_sort.stderr.txt' % barcodes_json[barcode]['pre_processing_folder'],'w'))
 					barcodes_json[barcode]['pre_processing_ps'] = ps
 					barcodes_json[barcode]['pre_processing_state'] = 'samtools sort'
 				elif barcodes_json[barcode]['pre_processing_state'] == 'samtools sort' and barcodes_json[barcode]['pre_processing_ps'].poll() is not None:
@@ -859,7 +859,7 @@ if options.run:
 			if c in barcodes_json[barcode]['sample'].upper():
 				logging.info(" [%s] Temoins_ABL1_check.py..." % time.strftime("%H:%M:%S"))
 				subprocess.call(['python','%s/scripts/Temoins_ABL1_check.py' % pipeline_folder,barcodes_json[barcode]['finalReport'],barcodes_json[barcode]['sample'],run_name])
-		if barcodes_json[barcode]['panel'] == 'ColonLung_v10':
+		if barcodes_json[barcode]['panel'] == 'ColonLung_v11':
 			logging.info(" [%s] collect_variants_MET_intron_13.py..." % time.strftime("%H:%M:%S"))
 			subprocess.call(['python','%s/scripts/collect_variants_MET_intron_13-14.py' % pipeline_folder,barcodes_json[barcode]['finalReport'],barcodes_json[barcode]['sample'],run_name])
 
@@ -889,12 +889,12 @@ if options.run:
 	# |___ / \ \__, |___ |___     \/  /~~\ |  \ | /~~\ | \|  |  |__) /~~\ .__/ |___ 
 
 	panels = list(set([barcodes_json[barcode]['panel'] for barcode in barcodes_json]))
-	if 'ColonLung_v10' in panels:
+	if 'ColonLung_v11' in panels:
 		logging.info(" [%s] make_excel_VariantBase SBT ..." % time.strftime("%H:%M:%S"))
 		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--project', 'SBT', '--output', '/media/n06lbth/sauvegardes_pgm/SBT/VariantBase_SBT.xlsx'])
 	if 'LAM-illumina-v3' in panels or 'LMMC-MAI-v1' in panels:
 		logging.info(" [%s] make_excel_VariantBase LAM-illumina ..." % time.strftime("%H:%M:%S"))
-		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LMMC-MAI-v1,LAM-illumina-v3,LAM-illumina-v2,LAM-illumina-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx'])
+		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LAM-illumina-v3,LAM-illumina-v2,LAM-illumina-v1,LMMC-MAI-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/panel-capture/VariantBase_capture.xlsx'])
 	if 'LAM-iontorrent-v8' in panels:
 		logging.info(" [%s] make_excel_VariantBase LAM-iontorrent ..." % time.strftime("%H:%M:%S"))
 		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'LAM-iontorrent-v8,LAM-iontorrent-v3,LAM-iontorrent-v2,LAM-iontorrent-v1', '--output', '/media/n06lbth/sauvegardes_pgm/LAM/VariantBase_LAM_FLT3.xlsx'])
@@ -913,3 +913,7 @@ if options.run:
 	if 'Lymphome_T' in panels:
 		logging.info(" [%s] make_excel_VariantBase Lymphome_T ..." % time.strftime("%H:%M:%S"))
 		subprocess.call(['python', '%s/variantBase/make_excel_VariantBase.py' % pipeline_folder, '--panel', 'Lymphome_T', '--output', '/media/n06lbth/sauvegardes_pgm/Lymphome_T/VariantBase_Lymphome_T.xlsx'])
+
+	if 'LAM-illumina-v3' in panels or 'LMMC-MAI-v1' in panels:
+		logging.info(" [%s] getITD.py..." % time.strftime("%H:%M:%S"))
+		subprocess.call(['python','%s/scripts/getitd.py' % pipeline_folder,'--run',options.run])
